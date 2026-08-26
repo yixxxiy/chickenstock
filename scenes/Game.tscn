@@ -1,0 +1,992 @@
+[gd_scene format=3 uid="uid://bjperk0t7t1yv"]
+
+[ext_resource type="Script" uid="uid://bjxr5gmc8x154" path="res://scripts/Game.gd" id="1_game"]
+[ext_resource type="Texture2D" uid="uid://6p3gunmmb80d" path="res://assets/map/farm-background.png" id="2_map"]
+[ext_resource type="Texture2D" uid="uid://rs4cunjihjxy" path="res://icons/egg.png" id="7_egg"]
+[ext_resource type="Texture2D" uid="uid://bhsiymv7ua011" path="res://assets/sprites/hatch-8.png" id="7_sv1m6"]
+[ext_resource type="Texture2D" uid="uid://bxiw6xexquu7e" path="res://icons/cake.png" id="8_cake"]
+[ext_resource type="PackedScene" path="res://scenes/SheetSprite.tscn" id="10_sheet"]
+[ext_resource type="Texture2D" uid="uid://bhcj8ga0qt3rs" path="res://assets/sprites/hen.png" id="12_hen"]
+[ext_resource type="Texture2D" uid="uid://1p7lqhoqoa1u" path="res://assets/sprites/chick-character.png" id="13_chick_character"]
+[ext_resource type="Script" uid="uid://b2fhocyfqfd7" path="res://scripts/EditorAssetPlacement.gd" id="14_editor_placement"]
+[ext_resource type="Texture2D" uid="uid://d2pdd2uvy3ra8" path="res://assets/sprites/wolf-hen-idle-6x1.png" id="15_vjgi4"]
+[ext_resource type="Script" uid="uid://dhi7d28iec3tn" path="res://scripts/StockGraph.gd" id="20_stock_graph"]
+[ext_resource type="Script" uid="uid://bk6ykmr8aoe67" path="res://scripts/DayClock.gd" id="22_day_clock"]
+[ext_resource type="Texture2D" uid="uid://ctw8iynocrk2q" path="res://assets/ui/farm-ui/settings_gear.png" id="24_farm_gear"]
+[ext_resource type="Texture2D" path="res://assets/ui/mail.png" id="24_mail"]
+[ext_resource type="Texture2D" uid="uid://d00oxm8m62cec" path="res://assets/ui/farm-ui/speech.png" id="25_farm_speech"]
+[ext_resource type="StyleBox" uid="uid://6pypfowebb81" path="res://themes/frame_tall_panel.tres" id="26_frame_tall"]
+[ext_resource type="StyleBox" path="res://themes/frame_ticker_panel.tres" id="27_frame_ticker"]
+[ext_resource type="Texture2D" uid="uid://cuxi31y8w0vqe" path="res://icons/coin.png" id="28_coin"]
+[ext_resource type="PackedScene" path="res://scenes/SettlementCard.tscn" id="28_settle"]
+[ext_resource type="Texture2D" uid="uid://by5ro48bc6kkp" path="res://assets/ui/settlement/layers/00-moon.png" id="29_moon"]
+[ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="29_stock"]
+[ext_resource type="Texture2D" path="res://assets/ui/settlement/layers/22-quest-stamp.png" id="30_stamp"]
+[ext_resource type="Texture2D" path="res://assets/ui/farm-ui/dock_panel.png" id="32_dock_panel"]
+[ext_resource type="Texture2D" uid="uid://ckxrk1xtwb71" path="res://assets/ui/close.png" id="33_close"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_a8wo8"]
+atlas = ExtResource("7_sv1m6")
+region = Rect2(0, 0, 128, 128)
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_attvq"]
+atlas = ExtResource("15_vjgi4")
+region = Rect2(4096, 0, 1024, 1024)
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wolf"]
+
+[sub_resource type="StyleBoxTexture" id="SB_dock"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+texture = ExtResource("32_dock_panel")
+texture_margin_left = 24.0
+texture_margin_top = 22.0
+texture_margin_right = 24.0
+texture_margin_bottom = 22.0
+axis_stretch_horizontal = 0
+axis_stretch_vertical = 0
+
+[node name="Game" type="Control" unique_id=2062613579]
+clip_contents = true
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_game")
+
+[node name="Bg" type="ColorRect" parent="." unique_id=290297964]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.776, 0.847, 0.714, 1)
+
+[node name="Map" type="TextureRect" parent="." unique_id=384116726]
+texture_filter = 6
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = -36.0
+offset_right = -6.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.08, 1.08)
+mouse_filter = 2
+texture = ExtResource("2_map")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Flock" type="Control" parent="." unique_id=1733068219]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="EditorAssetPlacement" type="Control" parent="." unique_id=1027009438]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("14_editor_placement")
+
+[node name="HenPreview" type="TextureRect" parent="EditorAssetPlacement" unique_id=991464482]
+layout_mode = 0
+offset_left = 218.0
+offset_top = 558.0
+offset_right = 311.0
+offset_bottom = 676.0
+mouse_filter = 2
+texture = ExtResource("12_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChickPreview" type="TextureRect" parent="EditorAssetPlacement" unique_id=1239079706]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 602.0
+offset_right = 388.0
+offset_bottom = 668.0
+mouse_filter = 2
+texture = ExtResource("13_chick_character")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HatchEgg" parent="." unique_id=1839245178 instance=ExtResource("10_sheet")]
+visible = false
+anchors_preset = -1
+anchor_left = 0.03
+anchor_top = 0.41
+anchor_right = 0.16
+anchor_bottom = 0.54
+texture = SubResource("AtlasTexture_a8wo8")
+play = "hold"
+sheet_path = "res://assets/sprites/hatch-8.png"
+rows = 1
+
+[node name="HUD" type="HBoxContainer" parent="." unique_id=1200989770]
+z_index = 40
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 8.0
+offset_right = -10.0
+offset_bottom = 118.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ClockBox" type="VBoxContainer" parent="HUD" unique_id=912531961]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Clock" type="Control" parent="HUD/ClockBox" unique_id=363376132]
+custom_minimum_size = Vector2(96, 96)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+script = ExtResource("22_day_clock")
+
+[node name="DayLabel" type="Label" parent="HUD/ClockBox/Clock" unique_id=1494423282]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -12.0
+offset_top = 2.0
+offset_right = 12.0
+offset_bottom = 24.0
+grow_horizontal = 2
+theme_override_colors/font_color = Color(1, 0.98, 0.93, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.3, 0.16, 0.88)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+text = "1/8天"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="HUD" unique_id=2081159395]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HudBar" type="HBoxContainer" parent="HUD" unique_id=2112537473]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="CashChip" type="PanelContainer" parent="HUD/HudBar" unique_id=1817911350]
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="HUD/HudBar/CashChip" unique_id=1370661450]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HUD/HudBar/CashChip/Row" unique_id=562353338]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("28_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CashBox" type="VBoxContainer" parent="HUD/HudBar/CashChip/Row" unique_id=278142496]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="CashTitle" type="Label" parent="HUD/HudBar/CashChip/Row/CashBox" unique_id=1889098116]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 11
+text = "现金"
+
+[node name="Cash" type="Label" parent="HUD/HudBar/CashChip/Row/CashBox" unique_id=1191747389]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "140"
+vertical_alignment = 1
+
+[node name="StockChip" type="PanelContainer" parent="HUD/HudBar" unique_id=2060065385]
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="HUD/HudBar/StockChip" unique_id=2138327225]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HUD/HudBar/StockChip/Row" unique_id=1642029791]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("29_stock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StockBox" type="VBoxContainer" parent="HUD/HudBar/StockChip/Row" unique_id=1824677829]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="StockTitle" type="Label" parent="HUD/HudBar/StockChip/Row/StockBox" unique_id=702880102]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 11
+text = "股票"
+
+[node name="Stock" type="Label" parent="HUD/HudBar/StockChip/Row/StockBox" unique_id=968205905]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "0"
+vertical_alignment = 1
+
+[node name="SpacerEnd" type="Control" parent="HUD"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="QuestBtn" type="TextureButton" parent="HUD"]
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("24_mail")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="UnreadDot" type="Panel" parent="HUD/QuestBtn"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -8.0
+offset_top = 2.0
+offset_right = 6.0
+offset_bottom = 16.0
+grow_horizontal = 0
+mouse_filter = 2
+
+[node name="SettingsBtn" type="TextureButton" parent="HUD" unique_id=505223869]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("24_farm_gear")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="EggThought" type="Button" parent="." unique_id=1996070115]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.22
+anchor_top = 0.22
+anchor_right = 0.22
+anchor_bottom = 0.22
+offset_left = 47.28
+offset_top = -41.28
+offset_right = 111.28
+offset_bottom = 22.720001
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.97, 0.9, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+icon = ExtResource("7_egg")
+expand_icon = true
+
+[node name="CakeThought" type="Button" parent="." unique_id=1951030530]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.66
+anchor_top = 0.26
+anchor_right = 0.66
+anchor_bottom = 0.26
+offset_left = 35.839996
+offset_top = -12.23999
+offset_right = 99.84
+offset_bottom = 51.76001
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.97, 0.9, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+icon = ExtResource("8_cake")
+expand_icon = true
+
+[node name="BakeBar" type="Panel" parent="CakeThought" unique_id=1637884619]
+visible = false
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 7.0
+offset_top = -16.0
+offset_right = -7.0
+offset_bottom = -7.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+
+[node name="Fill" type="Panel" parent="CakeThought/BakeBar" unique_id=1724704069]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HatchThought" type="Button" parent="." unique_id=841997818]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.375
+anchor_right = 0.025
+anchor_bottom = 0.375
+offset_left = 5.5999994
+offset_top = 14.0
+offset_right = 65.6
+offset_bottom = 74.0
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.97, 0.9, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+icon = ExtResource("7_egg")
+expand_icon = true
+
+[node name="ChickThought" type="Button" parent="." unique_id=1142802700]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.375
+anchor_right = 0.025
+anchor_bottom = 0.375
+offset_left = 5.5999994
+offset_top = 14.0
+offset_right = 65.6
+offset_bottom = 74.0
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.97, 0.9, 0.9)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 16
+expand_icon = true
+
+[node name="BakeryEggs" type="Label" parent="." unique_id=959712103]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.56
+anchor_top = 0.445
+anchor_right = 0.78
+anchor_bottom = 0.485
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.96, 0.88, 0.9)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 15
+text = "蛋 0"
+horizontal_alignment = 1
+
+[node name="BakeryUpgrade" type="Button" parent="." unique_id=1508762077]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.70
+anchor_top = 0.472
+anchor_right = 0.985
+anchor_bottom = 0.568
+theme_override_font_sizes/font_size = 15
+text = "升级烤炉 Lv.1→2
+200 金币"
+
+[node name="WolfShop" type="Control" parent="." unique_id=174529187]
+layout_mode = 1
+anchor_left = 0.08
+anchor_top = 0.52
+anchor_right = 0.36
+anchor_bottom = 0.76
+mouse_filter = 2
+
+[node name="MerchantVisualGroup" type="Control" parent="WolfShop" unique_id=649817135]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Wolf" parent="WolfShop/MerchantVisualGroup" unique_id=1569005626 instance=ExtResource("10_sheet")]
+anchors_preset = -1
+anchor_left = 0.15
+anchor_top = 0.2
+anchor_right = 1.0
+anchor_bottom = 1.03
+offset_left = -251.09601
+offset_top = -146.19202
+offset_right = 31.40001
+offset_bottom = 92.32318
+scale = Vector2(1.32, 1.32)
+texture = SubResource("AtlasTexture_attvq")
+sheet_path = "res://assets/sprites/wolf-hen-idle-6x1.png"
+columns = 6
+rows = 1
+frame_count = 6
+frame_step = 0.166667
+
+[node name="WolfHit" type="Button" parent="WolfShop" unique_id=1113340919]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -18.0
+offset_top = -8.0
+offset_right = 22.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wolf")
+flat = true
+
+[node name="Talk" type="NinePatchRect" parent="WolfShop" unique_id=1455287345]
+visible = false
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+texture = ExtResource("25_farm_speech")
+
+[node name="Dock" type="PanelContainer" parent="."]
+z_index = 8
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.01
+anchor_top = 0.786
+anchor_right = 0.99
+anchor_bottom = 0.996
+theme_override_styles/panel = SubResource("SB_dock")
+
+[node name="Row" type="HBoxContainer" parent="Dock"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+alignment = 0
+
+[node name="Animals" type="VBoxContainer" parent="Dock/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 0.92
+theme_override_constants/separation = 5
+alignment = 0
+
+[node name="WolfBuy" type="Button" parent="Dock/Row/Animals"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+clip_text = false
+text = "买 50"
+
+[node name="WolfSell" type="Button" parent="Dock/Row/Animals"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 20
+clip_text = false
+text = "卖 40"
+
+[node name="Day" type="VBoxContainer" parent="Dock/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.28
+theme_override_constants/separation = 5
+alignment = 0
+
+[node name="DayEnd" type="Button" parent="Dock/Row/Day"]
+custom_minimum_size = Vector2(0, 58)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_font_sizes/font_size = 22
+clip_text = false
+text = "结束本日"
+
+[node name="DayTrack" type="ColorRect" parent="Dock/Row/Day"]
+custom_minimum_size = Vector2(0, 12)
+layout_mode = 2
+color = Color(0.29, 0.216, 0.149, 0.91)
+
+[node name="Fill" type="ColorRect" parent="Dock/Row/Day/DayTrack"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 0.2
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = -1.0
+mouse_filter = 2
+color = Color(0.91, 0.639, 0.22, 1)
+
+[node name="Ticker" type="VBoxContainer" parent="Dock/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+size_flags_stretch_ratio = 1.16
+theme_override_constants/separation = 5
+
+[node name="TradeRow" type="HBoxContainer" parent="Dock/Row/Ticker"]
+layout_mode = 2
+theme_override_constants/separation = 5
+
+[node name="ShareBuy" type="Button" parent="Dock/Row/Ticker/TradeRow"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+clip_text = false
+text = "买1股"
+
+[node name="ShareSell" type="Button" parent="Dock/Row/Ticker/TradeRow"]
+custom_minimum_size = Vector2(0, 42)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 16
+clip_text = false
+text = "卖1股"
+
+[node name="Face" type="HBoxContainer" parent="Dock/Row/Ticker"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 6
+
+[node name="StockGraph" type="Control" parent="Dock/Row/Ticker/Face"]
+custom_minimum_size = Vector2(72, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+script = ExtResource("20_stock_graph")
+header_pad = 4.0
+values = PackedFloat32Array(108, 96, 132, 114, 120)
+
+[node name="Col" type="VBoxContainer" parent="Dock/Row/Ticker/Face"]
+custom_minimum_size = Vector2(68, 0)
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="TickerPrice" type="Label" parent="Dock/Row/Ticker/Face/Col"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 30
+text = "120"
+horizontal_alignment = 1
+
+[node name="TickerDelta" type="Label" parent="Dock/Row/Ticker/Face/Col"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "▲0"
+horizontal_alignment = 1
+
+[node name="TickerHold" type="Label" parent="Dock/Row/Ticker/Face/Col"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 13
+text = "0股"
+horizontal_alignment = 1
+
+[node name="QuestPop" type="Control" parent="." unique_id=1804649814]
+visible = false
+z_index = 110
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="QuestPop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.16, 0.48)
+
+[node name="Card" type="PanelContainer" parent="QuestPop"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.46
+anchor_right = 0.5
+anchor_bottom = 0.46
+offset_left = -252.0
+offset_right = 252.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("26_frame_tall")
+
+[node name="Box" type="VBoxContainer" parent="QuestPop/Card" unique_id=1225856466]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="Head" type="Label" parent="QuestPop/Card/Box" unique_id=189503210]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.61, 0.53, 0.42, 1)
+theme_override_font_sizes/font_size = 16
+text = "农场任务"
+horizontal_alignment = 1
+
+[node name="QuestTitle" type="Label" parent="QuestPop/Card/Box" unique_id=1920249423]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.27, 0.18, 1)
+theme_override_font_sizes/font_size = 22
+text = "资产 3000，同时养 15 只鸡"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="WealthCard" type="PanelContainer" parent="QuestPop/Card/Box"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="QuestPop/Card/Box/WealthCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="QuestPop/Card/Box/WealthCard/Row"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("28_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Col" type="VBoxContainer" parent="QuestPop/Card/Box/WealthCard/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Top" type="HBoxContainer" parent="QuestPop/Card/Box/WealthCard/Row/Col"]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="QuestPop/Card/Box/WealthCard/Row/Col/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 16
+text = "总资产"
+
+[node name="QuestWealth" type="Label" parent="QuestPop/Card/Box/WealthCard/Row/Col/Top" unique_id=631309623]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "140 / 3000"
+
+[node name="Track" type="Panel" parent="QuestPop/Card/Box/WealthCard/Row/Col"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Fill" type="Panel" parent="QuestPop/Card/Box/WealthCard/Row/Col/Track"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="QuestPop/Card/Box/WealthCard/Row/Col"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.45, 0.32, 1)
+theme_override_font_sizes/font_size = 14
+text = "还差 2860"
+
+[node name="FlockCard" type="PanelContainer" parent="QuestPop/Card/Box"]
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="QuestPop/Card/Box/FlockCard"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Icon" type="TextureRect" parent="QuestPop/Card/Box/FlockCard/Row"]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("13_chick_character")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Col" type="VBoxContainer" parent="QuestPop/Card/Box/FlockCard/Row"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Top" type="HBoxContainer" parent="QuestPop/Card/Box/FlockCard/Row/Col"]
+layout_mode = 2
+
+[node name="Name" type="Label" parent="QuestPop/Card/Box/FlockCard/Row/Col/Top"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 16
+text = "拥有鸡"
+
+[node name="QuestFlock" type="Label" parent="QuestPop/Card/Box/FlockCard/Row/Col/Top" unique_id=694961753]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "1 / 15"
+
+[node name="Track" type="Panel" parent="QuestPop/Card/Box/FlockCard/Row/Col"]
+custom_minimum_size = Vector2(0, 10)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Fill" type="Panel" parent="QuestPop/Card/Box/FlockCard/Row/Col/Track"]
+layout_mode = 1
+anchors_preset = 9
+anchor_bottom = 1.0
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Hint" type="Label" parent="QuestPop/Card/Box/FlockCard/Row/Col"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.45, 0.32, 1)
+theme_override_font_sizes/font_size = 14
+text = "还差 14 只"
+
+[node name="QuestNews" type="Label" parent="QuestPop/Card/Box" unique_id=1655668744]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "今夜告示 · 蛋糕热销"
+horizontal_alignment = 1
+
+[node name="QuestNote" type="Label" parent="QuestPop/Card/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.55, 0.45, 0.32, 1)
+theme_override_font_sizes/font_size = 15
+text = "两项要同时达到。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Stamp" type="TextureRect" parent="QuestPop/Card"]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.68
+anchor_top = 0.04
+anchor_right = 0.96
+anchor_bottom = 0.34
+mouse_filter = 2
+texture = ExtResource("30_stamp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CloseBtn" type="TextureButton" parent="QuestPop"]
+z_index = 4
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 0
+offset_left = 470.0
+offset_top = 24.0
+offset_right = 522.0
+offset_bottom = 76.0
+focus_mode = 0
+mouse_filter = 0
+texture_normal = ExtResource("33_close")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="FlyLayer" type="Control" parent="." unique_id=1498860078]
+z_index = 20
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Night" type="ColorRect" parent="." unique_id=642279398]
+visible = false
+z_index = 100
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.16, 0.72)
+
+[node name="Moon" type="TextureRect" parent="Night" unique_id=135506867]
+z_index = 0
+texture_filter = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.74
+anchor_top = 0.02
+anchor_right = 0.97
+anchor_bottom = 0.14
+mouse_filter = 2
+texture = ExtResource("29_moon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Card" parent="Night" unique_id=955667597 instance=ExtResource("28_settle")]
+visible = false
+
+[node name="SettingsPop" type="Control" parent="." unique_id=710912420]
+visible = false
+z_index = 115
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="SettingsPop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.16, 0.48)
+
+[node name="Card" type="PanelContainer" parent="SettingsPop"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.06
+anchor_top = 0.12
+anchor_right = 0.94
+anchor_bottom = 0.82
+theme_override_styles/panel = ExtResource("26_frame_tall")
+
+[node name="Col" type="VBoxContainer" parent="SettingsPop/Card" unique_id=1751803989]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Title" type="Label" parent="SettingsPop/Card/Col" unique_id=1124346400]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "设置"
+horizontal_alignment = 1
+
+[node name="SfxBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=172113610]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "音效 开/关"
+
+[node name="AmbBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=237323119]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "环境音 开/关"
+
+[node name="LangBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=542696830]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "English / 中文"
+
+[node name="Help" type="Label" parent="SettingsPop/Card/Col" unique_id=1854942255]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "只点气泡和按钮。长按可以连续收、买、卖。八日挑战：资产 3000，同时养 15 只鸡。"
+autowrap_mode = 3
+
+[node name="Restart" type="Button" parent="SettingsPop/Card/Col" unique_id=65099796]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "重新开始"
+
+[node name="FooterPad" type="Control" parent="SettingsPop/Card/Col"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Credits" type="Label" parent="SettingsPop/Card/Col"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 15
+text = "制作人：hhhhhnicaia@gmail.com"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="CloseBtn" type="TextureButton" parent="SettingsPop"]
+z_index = 4
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 0
+offset_left = 470.0
+offset_top = 24.0
+offset_right = 522.0
+offset_bottom = 76.0
+focus_mode = 0
+mouse_filter = 0
+texture_normal = ExtResource("33_close")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="Toasts" type="VBoxContainer" parent="." unique_id=1966947139]
+z_index = 130
+z_as_relative = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12
+anchor_top = 0.13
+anchor_right = 0.88
+anchor_bottom = 0.28
+mouse_filter = 2
+theme_override_constants/separation = 6

@@ -1,0 +1,612 @@
+[gd_scene load_steps=33 format=3]
+
+[ext_resource type="Texture2D" path="res://icons/coin.png" id="1_coin"]
+[ext_resource type="Texture2D" path="res://icons/coins.png" id="2_coins"]
+[ext_resource type="Texture2D" path="res://icons/egg.png" id="3_egg"]
+[ext_resource type="Texture2D" path="res://icons/egg_basket.png" id="4_egg_basket"]
+[ext_resource type="Texture2D" path="res://icons/cake.png" id="5_cake"]
+[ext_resource type="Texture2D" path="res://icons/stock.png" id="6_stock"]
+[ext_resource type="Texture2D" path="res://icons/share.png" id="7_share"]
+[ext_resource type="Texture2D" path="res://icons/heart.png" id="8_heart"]
+[ext_resource type="Texture2D" path="res://icons/chick.png" id="9_chick"]
+[ext_resource type="Texture2D" path="res://icons/hen.png" id="10_hen"]
+[ext_resource type="Texture2D" path="res://icons/hatch.png" id="11_hatch"]
+[ext_resource type="Texture2D" path="res://icons/wolf.png" id="12_wolf"]
+[ext_resource type="Texture2D" path="res://icons/flock.png" id="13_flock"]
+[ext_resource type="Texture2D" path="res://icons/rotten_egg.png" id="14_rotten_egg"]
+[ext_resource type="Texture2D" path="res://icons/buy_chick.png" id="15_buy_chick"]
+[ext_resource type="Texture2D" path="res://icons/sell_hen.png" id="16_sell_hen"]
+[ext_resource type="Texture2D" path="res://icons/sun.png" id="17_sun"]
+[ext_resource type="Texture2D" path="res://icons/moon.png" id="18_moon"]
+[ext_resource type="Texture2D" path="res://icons/cloud.png" id="19_cloud"]
+[ext_resource type="Texture2D" path="res://icons/rain.png" id="20_rain"]
+[ext_resource type="Texture2D" path="res://icons/clock.png" id="21_clock"]
+[ext_resource type="Texture2D" path="res://icons/settings.png" id="22_settings"]
+[ext_resource type="Texture2D" path="res://icons/sfx.png" id="23_sfx"]
+[ext_resource type="Texture2D" path="res://icons/breeze.png" id="24_breeze"]
+[ext_resource type="Texture2D" path="res://icons/trophy.png" id="25_trophy"]
+[ext_resource type="Texture2D" path="res://icons/crown.png" id="26_crown"]
+[ext_resource type="Texture2D" path="res://icons/gem.png" id="27_gem"]
+[ext_resource type="Texture2D" path="res://icons/ribbon.png" id="28_ribbon"]
+[ext_resource type="Texture2D" path="res://icons/check.png" id="29_check"]
+[ext_resource type="Texture2D" path="res://icons/alert.png" id="30_alert"]
+[ext_resource type="Texture2D" path="res://icons/price_up.png" id="31_price_up"]
+[ext_resource type="Texture2D" path="res://icons/price_down.png" id="32_price_down"]
+
+[node name="IconsPreview" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Bg" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.18, 0.14, 0.11, 1)
+
+[node name="Grid" type="GridContainer" parent="."]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -268.0
+offset_top = -420.0
+offset_right = 268.0
+offset_bottom = 420.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 4
+
+[node name="coin" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/coin"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("1_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/coin"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "金币"
+horizontal_alignment = 1
+
+[node name="coins" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/coins"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("2_coins")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/coins"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "金堆"
+horizontal_alignment = 1
+
+[node name="egg" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/egg"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("3_egg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/egg"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "鸡蛋"
+horizontal_alignment = 1
+
+[node name="egg_basket" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/egg_basket"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("4_egg_basket")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/egg_basket"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "蛋筐"
+horizontal_alignment = 1
+
+[node name="cake" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/cake"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("5_cake")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/cake"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "蛋糕"
+horizontal_alignment = 1
+
+[node name="stock" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/stock"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("6_stock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/stock"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "股票"
+horizontal_alignment = 1
+
+[node name="share" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/share"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("7_share")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/share"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "股份"
+horizontal_alignment = 1
+
+[node name="heart" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/heart"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("8_heart")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/heart"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "心脏"
+horizontal_alignment = 1
+
+[node name="chick" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/chick"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("9_chick")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/chick"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "小鸡"
+horizontal_alignment = 1
+
+[node name="hen" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/hen"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("10_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/hen"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "母鸡"
+horizontal_alignment = 1
+
+[node name="hatch" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/hatch"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("11_hatch")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/hatch"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "出壳"
+horizontal_alignment = 1
+
+[node name="wolf" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/wolf"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("12_wolf")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/wolf"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "狼商"
+horizontal_alignment = 1
+
+[node name="flock" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/flock"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("13_flock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/flock"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "鸡群"
+horizontal_alignment = 1
+
+[node name="rotten_egg" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/rotten_egg"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("14_rotten_egg")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/rotten_egg"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "坏蛋"
+horizontal_alignment = 1
+
+[node name="buy_chick" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/buy_chick"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("15_buy_chick")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/buy_chick"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "买鸡"
+horizontal_alignment = 1
+
+[node name="sell_hen" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/sell_hen"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("16_sell_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/sell_hen"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "卖鸡"
+horizontal_alignment = 1
+
+[node name="sun" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/sun"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("17_sun")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/sun"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "太阳"
+horizontal_alignment = 1
+
+[node name="moon" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/moon"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("18_moon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/moon"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "月亮"
+horizontal_alignment = 1
+
+[node name="cloud" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/cloud"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("19_cloud")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/cloud"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "云"
+horizontal_alignment = 1
+
+[node name="rain" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/rain"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("20_rain")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/rain"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "雨"
+horizontal_alignment = 1
+
+[node name="clock" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/clock"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("21_clock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/clock"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "时钟"
+horizontal_alignment = 1
+
+[node name="settings" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/settings"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("22_settings")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/settings"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "设置"
+horizontal_alignment = 1
+
+[node name="sfx" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/sfx"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("23_sfx")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/sfx"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "音效"
+horizontal_alignment = 1
+
+[node name="breeze" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/breeze"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("24_breeze")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/breeze"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "微风"
+horizontal_alignment = 1
+
+[node name="trophy" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/trophy"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("25_trophy")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/trophy"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "奖杯"
+horizontal_alignment = 1
+
+[node name="crown" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/crown"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("26_crown")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/crown"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "王冠"
+horizontal_alignment = 1
+
+[node name="gem" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/gem"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("27_gem")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/gem"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "宝石"
+horizontal_alignment = 1
+
+[node name="ribbon" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/ribbon"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("28_ribbon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/ribbon"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "红绒"
+horizontal_alignment = 1
+
+[node name="check" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/check"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("29_check")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/check"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "完成"
+horizontal_alignment = 1
+
+[node name="alert" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/alert"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("30_alert")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/alert"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "提示"
+horizontal_alignment = 1
+
+[node name="price_up" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/price_up"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("31_price_up")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/price_up"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "上涨"
+horizontal_alignment = 1
+
+[node name="price_down" type="VBoxContainer" parent="Grid"]
+layout_mode = 2
+
+[node name="Icon" type="TextureRect" parent="Grid/price_down"]
+custom_minimum_size = Vector2(72, 72)
+layout_mode = 2
+texture = ExtResource("32_price_down")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Name" type="Label" parent="Grid/price_down"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.86, 1)
+theme_override_font_sizes/font_size = 12
+text = "下跌"
+horizontal_alignment = 1

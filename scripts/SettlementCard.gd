@@ -1,0 +1,533 @@
+extends Control
+
+signal confirmed
+signal ad_rewind
+signal notice(text: String)
+
+const UiGreenButton := preload("res://assets/ui/farm-ui/button_green.png")
+const UiEmptyBeige := preload("res://assets/ui/farm-ui/button_empty_beige.png")
+const ShareIcon := preload("res://icons/share.png")
+const PipEmpty := preload("res://assets/ui/settlement/layers/23-pip-empty.png")
+const PipHit := preload("res://assets/ui/settlement/layers/24-pip-hit.png")
+const PipNow := preload("res://assets/ui/settlement/layers/25-pip-now.png")
+const PriceUp := preload("res://icons/price_up.png")
+const PriceDown := preload("res://icons/price_down.png")
+
+const INK := Color("4a321f")
+const MUTED := Color("8b633f")
+const RISE := Color("3f8a52")
+const FALL := Color("c45a4c")
+const GOLD := Color("c4962a")
+const FINALE_INK := Color("5c241c")
+const FINALE_MUTED := Color("8a4a32")
+const CTA_WAIT := 3.0
+
+var _rank_lv := 1
+var _wealth_pts: Array[int] = []
+var _wealth_goal := 3000
+var _sharing := false
+var _rank_title := ""
+var _cta_wait_id := 0
+var _finale_cta_ready := true
+
+func _ready() -> void:
+	_style_beige($Daily/Actions/AdBtn)
+	_style_share($Finale/Actions/ShareBtn)
+	_style_green($Daily/Actions/Cta)
+	_style_green($Finale/Actions/Cta)
+	$Daily/Actions/AdBtn.add_theme_font_size_override("font_size", 27)
+	$Daily/Actions/Cta.add_theme_font_size_override("font_size", 30)
+	if not $Daily/Actions/Cta.pressed.is_connected(_on_cta):
+		$Daily/Actions/Cta.pressed.connect(_on_cta)
+		$Finale/Actions/Cta.pressed.connect(_on_cta)
+		$Daily/Actions/AdBtn.pressed.connect(_on_ad)
+		$Finale/Actions/ShareBtn.pressed.connect(_on_share)
+	$Daily.visible = true
+	$Finale.visible = false
+	apply_locale()
+
+func apply_locale() -> void:
+	$Daily/Title.text = Loc.t("daily_title")
+	$Daily/StatsCap.text = Loc.t("report_stats")
+	$Daily/PriceWell/Col/CapRow/Cap.text = Loc.t("close_price")
+	$Daily/Ledger/Row/Broken/Cap.text = Loc.t("broken")
+	$Daily/Ledger/Row/Grown/Cap.text = Loc.t("grown")
+	$Daily/Ledger/Row/Cake/Cap.text = Loc.t("cakes")
+	$Daily/Actions/Cta.text = Loc.t("start_new_day")
+	$Daily/Actions/AdBtn.text = Loc.t("watch_ad")
+	$Finale/Title.text = Loc.t("finale_title")
+	$Finale/Hook.text = Loc.t("finale_hook")
+	$Finale/Scores/Wealth/Col/Cap.text = Loc.t("wealth_cap")
+	$Finale/Scores/Flock/Col/Cap.text = Loc.t("flock_cap")
+	$Finale/ChartWell/Cap.text = Loc.t("chart_cap")
+	$Finale/Watermark.text = Loc.t("share_mark")
+	$Finale/Actions/ShareBtn.text = Loc.t("share_card")
+	if _finale_cta_ready or not $Finale.visible:
+		$Finale/Actions/Cta.text = Loc.t("retry_eight")
+
+func show_daily(p: Dictionary) -> void:
+	$Daily.visible = true
+	$Finale.visible = false
+	$Daily/Actions/Cta.disabled = false
+	$Daily/Actions/AdBtn.disabled = false
+	$Daily/Actions/AdBtn.visible = bool(p.get("rewind", true))
+	_finale_cta_ready = true
+	_cta_wait_id += 1
+	_tint_shell(false)
+	_fit_shell(false)
+	call_deferred("_fit_shell", false)
+	$HangTag.visible = false
+	var from_day := int(p.get("from_day", 1))
+	var to_day := int(p.get("to_day", from_day + 1))
+	$HangTag/TagLabel.text = Loc.t("night_n", [from_day])
+	$Daily/Kicker.text = Loc.t("night_n", [from_day])
+	$Daily/DayLine.text = Loc.t("day_to_day", [from_day, to_day])
+	var up := bool(p.get("news_up", true))
+	var arrow := "▲" if up else "▼"
+	$Daily/NewsChip/Row/Txt.text = "%s   %s" % [Loc.t("tonight_news", [str(p.get("news_text", ""))]), arrow]
+	$Daily/NewsChip/Row/Txt.add_theme_color_override("font_color", RISE if up else FALL)
+	var weather := str(p.get("weather", "cloud"))
+	var wtex: Texture2D = load("res://assets/ui/weather-%s.png" % weather)
+	if wtex:
+		$Daily/NewsChip/Row/Weather.texture = wtex
+	var old_p := int(p.get("old_price", 0))
+	var new_p := int(p.get("new_price", 0))
+	var rose := new_p >= old_p
+	var tone := RISE if rose else FALL
+	$Daily/PriceWell/Col/Num.text = str(new_p)
+	$Daily/PriceWell/Col/Num.add_theme_color_override("font_color", tone)
+	$Daily/PriceWell/Col/DeltaRow/Icon.texture = PriceUp if rose else PriceDown
+	$Daily/PriceWell/Col/DeltaRow/Delta.text = str(absi(new_p - old_p))
+	$Daily/PriceWell/Col/DeltaRow/Delta.add_theme_color_override("font_color", tone)
+	var broken := int(p.get("broken", 0))
+	$Daily/Ledger/Row/Broken/Num.text = str(broken)
+	$Daily/Ledger/Row/Broken/Num.add_theme_color_override("font_color", FALL if broken > 0 else INK)
+	$Daily/Ledger/Row/Grown/Num.text = str(int(p.get("grown", 0)))
+	$Daily/Ledger/Row/Cake/Num.text = str(int(p.get("cakes", 0)))
+	$Daily/Footnote/Row/Txt.text = Loc.t("wealth_flow", [int(p.get("old_wealth", 0)), int(p.get("new_wealth", 0))])
+	var hatched := int(p.get("hatched", 0))
+	$Daily/HatchNote.visible = hatched > 0
+	$Daily/HatchNote/Txt.text = Loc.t("hatch_note", [hatched])
+
+func show_finale(p: Dictionary) -> void:
+	$Daily.visible = false
+	$Finale.visible = true
+	$Daily/Actions/Cta.disabled = true
+	$Finale/Actions/Cta.disabled = true
+	$Finale/Actions/ShareBtn.disabled = false
+	_tint_shell(true)
+	_fit_shell(true)
+	call_deferred("_fit_shell", true)
+	$HangTag.visible = true
+	_rank_lv = clampi(int(p.get("rank_lv", 1)), 1, 10)
+	_rank_title = str(p.get("rank_title", ""))
+	$HangTag/TagLabel.text = Loc.t("rank_n", [_rank_lv])
+	$Finale/RankTitle.text = _rank_title
+	$Finale/RankTitle.add_theme_color_override("font_color", _rank_color(_rank_lv))
+	$Finale/Copy.text = str(p.get("rank_copy", ""))
+	var wealth := int(p.get("wealth", 0))
+	var birds := int(p.get("birds", 0))
+	_wealth_goal = int(p.get("wealth_goal", 3000))
+	var wealth_goal := _wealth_goal
+	var flock_goal := int(p.get("flock_goal", 15))
+	$Finale/Scores/Wealth/Col/Num.text = str(wealth)
+	$Finale/Scores/Flock/Col/Num.text = Loc.t("birds_n", [birds])
+	var wealth_hit := wealth >= wealth_goal
+	var flock_hit := birds >= flock_goal
+	$Finale/Scores/Wealth/Col/Num.add_theme_color_override("font_color", GOLD if wealth_hit else FALL)
+	$Finale/Scores/Flock/Col/Num.add_theme_color_override("font_color", GOLD if flock_hit else FALL)
+	if wealth_hit:
+		var extra := wealth - wealth_goal
+		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("quest_hit") if extra <= 0 else Loc.t("goal_over", [extra])
+	else:
+		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("goal_gap", [wealth_goal - wealth])
+	if flock_hit:
+		var extra_b := birds - flock_goal
+		$Finale/Scores/Flock/Col/Goal.text = Loc.t("quest_hit") if extra_b <= 0 else Loc.t("goal_over", [extra_b])
+	else:
+		$Finale/Scores/Flock/Col/Goal.text = Loc.t("quest_need_birds", [flock_goal - birds])
+	$Finale/Scores/Wealth/Col/Goal.add_theme_color_override("font_color", RISE if wealth_hit else FALL)
+	$Finale/Scores/Flock/Col/Goal.add_theme_color_override("font_color", RISE if flock_hit else FALL)
+	var quest := bool(p.get("quest", false))
+	$Finale/StampRow/Stamp.visible = quest
+	$Finale/StampRow/StampTxt.text = Loc.t("quest_stamp") if quest else Loc.t("quest_miss")
+	$Finale/StampRow/StampTxt.add_theme_color_override("font_color", RISE if quest else FALL)
+	$Finale/StampRow/StampTxt.add_theme_font_size_override("font_size", 22 if quest else 24)
+	$Finale/Split.text = Loc.t("wealth_split", [int(p.get("cash", 0)), int(p.get("stock", 0))])
+	_wealth_pts.clear()
+	var raw = p.get("wealth_pts", [])
+	if raw is Array and not raw.is_empty():
+		for x in raw:
+			_wealth_pts.append(int(x))
+	else:
+		_wealth_pts.append(wealth)
+	_rebuild_pips()
+	call_deferred("_draw_wealth_curve")
+	_begin_cta_wait()
+
+func _fit_shell(finale: bool) -> void:
+	offset_left = 0.0
+	offset_top = 0.0
+	offset_right = 0.0
+	offset_bottom = 0.0
+	if finale:
+		anchor_left = 0.07
+		anchor_right = 0.93
+		anchor_top = 0.08
+		anchor_bottom = 0.93
+		return
+	# Parchment page 958×1398 — lock that ratio so the report never squashes.
+	const PAGE_ASPECT := 958.0 / 1398.0
+	var parent_c := get_parent() as Control
+	var pw := parent_c.size.x if parent_c and parent_c.size.x > 8.0 else 576.0
+	var ph := parent_c.size.y if parent_c and parent_c.size.y > 8.0 else 1024.0
+	var max_w := pw * 0.84
+	var max_h := ph * 0.76
+	var w := max_w
+	var h := w / PAGE_ASPECT
+	if h > max_h:
+		h = max_h
+		w = h * PAGE_ASPECT
+	var left := (pw - w) * 0.5
+	var top := ph * 0.10
+	if top + h > ph * 0.90:
+		top = (ph - h) * 0.42
+	anchor_left = left / pw
+	anchor_right = (left + w) / pw
+	anchor_top = top / ph
+	anchor_bottom = (top + h) / ph
+
+func _tint_shell(finale: bool) -> void:
+	$PaperStack.visible = finale
+	if finale:
+		$CardBody.modulate = Color(1.18, 0.86, 0.58)
+		$PaperStack.modulate = Color(1.14, 0.82, 0.55)
+		$HangTag.modulate = Color(1.22, 0.84, 0.48)
+		$Finale/Title.add_theme_color_override("font_color", FINALE_INK)
+		$Finale/Hook.add_theme_color_override("font_color", FINALE_MUTED)
+		$Finale/Copy.add_theme_color_override("font_color", FINALE_MUTED)
+		$Finale/Split.add_theme_color_override("font_color", FINALE_MUTED)
+		$Finale/Watermark.add_theme_color_override("font_color", Color(0.541, 0.29, 0.196, 0.88))
+		$Finale/ChartWell/Cap.add_theme_color_override("font_color", FINALE_MUTED)
+		$Finale/ChartWell/Curve.default_color = Color("c4842a")
+		$HangTag/TagLabel.add_theme_color_override("font_color", Color("4a2218"))
+	else:
+		$CardBody.modulate = Color(0.98, 0.99, 1.02)
+		$HangTag.modulate = Color(0.96, 0.98, 1.04)
+		$HangTag/TagLabel.add_theme_color_override("font_color", INK)
+
+func _begin_cta_wait() -> void:
+	_finale_cta_ready = false
+	_cta_wait_id += 1
+	var token := _cta_wait_id
+	var cta: Button = $Finale/Actions/Cta
+	cta.disabled = true
+	_run_cta_wait(token)
+
+func _run_cta_wait(token: int) -> void:
+	var cta: Button = $Finale/Actions/Cta
+	var left := int(ceil(CTA_WAIT))
+	while left > 0:
+		if token != _cta_wait_id or not is_inside_tree() or not $Finale.visible:
+			return
+		cta.text = str(left)
+		await get_tree().create_timer(1.0).timeout
+		left -= 1
+	if token != _cta_wait_id or not is_inside_tree() or not $Finale.visible:
+		return
+	_finale_cta_ready = true
+	cta.disabled = false
+	cta.text = Loc.t("retry_eight")
+
+func _rank_color(lv: int) -> Color:
+	if lv >= 10:
+		return Color("7a4eb5")
+	if lv >= 8:
+		return GOLD
+	if lv >= 6:
+		return Color("568458")
+	if lv >= 3:
+		return Color("8a6a3a")
+	return Color("b9574c")
+
+func _rebuild_pips() -> void:
+	var box: HBoxContainer = $Finale/Pips
+	while box.get_child_count():
+		var c := box.get_child(0)
+		box.remove_child(c)
+		c.free()
+	for i in 10:
+		var lv := i + 1
+		var t := TextureRect.new()
+		t.texture = PipNow if lv == _rank_lv else (PipHit if lv < _rank_lv else PipEmpty)
+		t.custom_minimum_size = Vector2(36, 36) if lv == _rank_lv else Vector2(28, 28)
+		t.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		t.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		t.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		t.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		t.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+		box.add_child(t)
+
+func _draw_wealth_curve() -> void:
+	var well: Control = $Finale/ChartWell
+	var line: Line2D = well.get_node("Curve")
+	var fill: Polygon2D = well.get_node("Fill")
+	var goal_line: Line2D = well.get_node("Goal")
+	var goal_lab: Label = well.get_node("GoalLab")
+	var end_dot: ColorRect = well.get_node("EndDot")
+	var end_lab: Label = well.get_node("EndLab")
+	var pts := _wealth_pts
+	if pts.is_empty():
+		line.points = PackedVector2Array()
+		fill.polygon = PackedVector2Array()
+		goal_line.points = PackedVector2Array()
+		end_dot.visible = false
+		end_lab.visible = false
+		goal_lab.visible = false
+		return
+	var sz := well.size
+	if sz.x < 8.0 or sz.y < 8.0:
+		sz = Vector2(280, well.custom_minimum_size.y)
+	var r := Rect2(Vector2(16, 32), sz - Vector2(32, 44))
+	var peak := 1.0
+	for n in pts:
+		peak = maxf(peak, float(n))
+	var goal := float(maxi(1, _wealth_goal))
+	var show_goal := peak >= goal * 0.28
+	var lo := 0.0
+	var hi: float
+	if show_goal:
+		hi = maxf(peak, goal) * 1.08
+	else:
+		hi = maxf(peak * 1.32, peak + 80.0)
+	hi = maxf(hi, lo + 1.0)
+	var draw_pts := pts.duplicate()
+	if draw_pts.size() == 1:
+		draw_pts.append(draw_pts[0])
+	var out: PackedVector2Array = []
+	var last := maxi(1, draw_pts.size() - 1)
+	for i in draw_pts.size():
+		var x := r.position.x + r.size.x * float(i) / float(last)
+		var y := r.position.y + r.size.y * (1.0 - clampf((float(draw_pts[i]) - lo) / (hi - lo), 0.0, 1.0))
+		out.append(Vector2(x, y))
+	line.points = out
+	line.width = 4.0
+	var poly := PackedVector2Array()
+	for p in out:
+		poly.append(p)
+	poly.append(Vector2(out[out.size() - 1].x, r.position.y + r.size.y))
+	poly.append(Vector2(out[0].x, r.position.y + r.size.y))
+	fill.polygon = poly
+	goal_lab.visible = true
+	goal_lab.text = Loc.t("chart_goal", [int(goal)])
+	if show_goal:
+		var gy := r.position.y + r.size.y * (1.0 - clampf((goal - lo) / (hi - lo), 0.0, 1.0))
+		goal_line.points = PackedVector2Array([Vector2(r.position.x, gy), Vector2(r.position.x + r.size.x, gy)])
+		goal_line.default_color = Color("c45a4c88") if peak < goal else Color("3f8a5288")
+		goal_lab.position = Vector2(r.position.x + 4.0, gy - 18.0)
+		goal_lab.size = Vector2(132, 20)
+	else:
+		goal_line.points = PackedVector2Array()
+		goal_lab.position = Vector2(r.position.x + r.size.x - 120.0, r.position.y - 2.0)
+		goal_lab.size = Vector2(120, 20)
+	var ep := out[out.size() - 1]
+	end_dot.visible = true
+	end_dot.size = Vector2(10, 10)
+	end_dot.position = ep - Vector2(5, 5)
+	end_lab.visible = true
+	end_lab.text = str(pts[pts.size() - 1])
+	var lab_pos := Vector2(ep.x + 8.0, ep.y - 18.0)
+	if lab_pos.x > r.position.x + r.size.x - 44.0:
+		lab_pos.x = ep.x - 48.0
+	if lab_pos.y < r.position.y:
+		lab_pos.y = ep.y + 6.0
+	end_lab.position = lab_pos
+	end_lab.size = Vector2(64, 22)
+
+func _on_cta() -> void:
+	if $Finale.visible:
+		if $Finale/Actions/Cta.disabled or not _finale_cta_ready:
+			return
+	elif $Daily/Actions/Cta.disabled:
+		return
+	_lock_actions()
+	confirmed.emit()
+
+func _on_ad() -> void:
+	_lock_actions()
+	ad_rewind.emit()
+
+func _on_share() -> void:
+	if _sharing or not $Finale.visible:
+		return
+	_share_card()
+
+func _share_card() -> void:
+	_sharing = true
+	var share_btn: Button = $Finale/Actions/ShareBtn
+	var cta: Button = $Finale/Actions/Cta
+	share_btn.disabled = true
+	cta.disabled = true
+	var img := await _grab_card_image()
+	if not is_inside_tree():
+		_sharing = false
+		return
+	var ok := false
+	if img != null and img.get_width() > 8:
+		ok = _export_png(img)
+	_sharing = false
+	share_btn.disabled = false
+	cta.disabled = not _finale_cta_ready
+	if ok:
+		share_btn.text = Loc.t("share_saved")
+		notice.emit(Loc.t("toast_card_saved"))
+		get_tree().create_timer(1.4).timeout.connect(func():
+			if is_instance_valid(share_btn):
+				share_btn.text = Loc.t("share_card")
+		)
+	else:
+		notice.emit(Loc.t("toast_card_fail"))
+
+func _poster_bounds() -> Rect2:
+	var r := Rect2(Vector2.ZERO, size)
+	r = r.merge($PaperStack.get_rect())
+	r = r.merge($HangTag.get_rect())
+	return r.grow(6.0)
+
+func _grab_card_image() -> Image:
+	var bounds := _poster_bounds()
+	if bounds.size.x < 8.0 or bounds.size.y < 8.0:
+		return null
+	var px := 2.0
+	var sv := SubViewport.new()
+	sv.size = Vector2i(maxi(1, int(ceil(bounds.size.x * px))), maxi(1, int(ceil(bounds.size.y * px))))
+	sv.transparent_bg = true
+	sv.disable_3d = true
+	sv.gui_disable_input = true
+	sv.render_target_update_mode = SubViewport.UPDATE_ALWAYS
+	sv.canvas_item_default_texture_filter = Viewport.DEFAULT_CANVAS_ITEM_TEXTURE_FILTER_LINEAR
+	var wrap := Control.new()
+	wrap.size = bounds.size
+	wrap.scale = Vector2(px, px)
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var copy := duplicate() as Control
+	copy.set_script(null)
+	copy.modulate = Color.WHITE
+	copy.scale = Vector2.ONE
+	copy.rotation = 0.0
+	copy.layout_mode = 0
+	copy.position = -bounds.position
+	copy.size = size
+	copy.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var finale_actions := copy.get_node_or_null("Finale/Actions") as Control
+	if finale_actions:
+		finale_actions.visible = false
+	var daily_actions := copy.get_node_or_null("Daily/Actions") as Control
+	if daily_actions:
+		daily_actions.visible = false
+	get_tree().root.add_child(sv)
+	sv.add_child(wrap)
+	wrap.add_child(copy)
+	await get_tree().process_frame
+	await RenderingServer.frame_post_draw
+	var img: Image = null
+	if is_instance_valid(sv):
+		var tex := sv.get_texture()
+		if tex:
+			img = tex.get_image()
+		sv.queue_free()
+	return img
+
+func _export_png(img: Image) -> bool:
+	var buf := img.save_png_to_buffer()
+	if buf.is_empty():
+		return false
+	var fname := _share_filename()
+	if OS.has_feature("web") and Engine.has_singleton("JavaScriptBridge"):
+		Engine.get_singleton("JavaScriptBridge").download_buffer(buf, fname, "image/png")
+		return true
+	var path := "user://%s" % fname
+	var err := img.save_png(path)
+	if err != OK:
+		return false
+	var abs_path := ProjectSettings.globalize_path(path)
+	if abs_path != "":
+		OS.shell_open(abs_path)
+	return true
+
+func _share_filename() -> String:
+	var title := _rank_title if _rank_title != "" else "rank"
+	var clean := ""
+	for ch in title:
+		if ch in "/\\:*?\"<>|":
+			continue
+		clean += ch
+	if clean.strip_edges() == "":
+		clean = "rank"
+	return "小鸡股市-%s.png" % clean.strip_edges()
+
+func unlock_actions() -> void:
+	$Daily/Actions/Cta.disabled = false
+	$Daily/Actions/AdBtn.disabled = false
+	if _finale_cta_ready:
+		$Finale/Actions/Cta.disabled = false
+	$Finale/Actions/ShareBtn.disabled = false
+
+func _lock_actions() -> void:
+	$Daily/Actions/Cta.disabled = true
+	$Daily/Actions/AdBtn.disabled = true
+	$Finale/Actions/Cta.disabled = true
+	$Finale/Actions/ShareBtn.disabled = true
+
+func _style_share(b: Button) -> void:
+	_style_beige(b)
+	b.icon = ShareIcon
+	b.expand_icon = true
+	b.clip_text = false
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_constant_override("h_separation", 10)
+	b.add_theme_constant_override("icon_max_width", 36)
+
+func _style_beige(b: Button) -> void:
+	b.add_theme_font_size_override("font_size", 18)
+	b.add_theme_color_override("font_color", Color("4e3d2c"))
+	b.add_theme_color_override("font_hover_color", Color("4e3d2c"))
+	b.add_theme_color_override("font_pressed_color", Color("4e3d2c"))
+	b.add_theme_color_override("font_disabled_color", Color("4e3d2c88"))
+	var sb := StyleBoxTexture.new()
+	sb.texture = UiEmptyBeige
+	sb.texture_margin_left = 24
+	sb.texture_margin_top = 16
+	sb.texture_margin_right = 24
+	sb.texture_margin_bottom = 16
+	sb.content_margin_left = 12
+	sb.content_margin_top = 8
+	sb.content_margin_right = 12
+	sb.content_margin_bottom = 8
+	b.add_theme_stylebox_override("normal", sb)
+	b.add_theme_stylebox_override("hover", sb)
+	b.add_theme_stylebox_override("pressed", sb)
+	b.add_theme_stylebox_override("disabled", sb)
+
+func _style_green(b: Button) -> void:
+	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_color_override("font_color", Color("fff8e8"))
+	b.add_theme_color_override("font_hover_color", Color("fff8e8"))
+	b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
+	b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
+	var sb := StyleBoxTexture.new()
+	sb.texture = UiGreenButton
+	sb.texture_margin_left = 20
+	sb.texture_margin_top = 12
+	sb.texture_margin_right = 20
+	sb.texture_margin_bottom = 12
+	sb.content_margin_left = 20
+	sb.content_margin_top = 12
+	sb.content_margin_right = 20
+	sb.content_margin_bottom = 12
+	b.add_theme_stylebox_override("normal", sb)
+	b.add_theme_stylebox_override("hover", sb)
+	b.add_theme_stylebox_override("pressed", sb)
+	b.add_theme_stylebox_override("disabled", sb)
