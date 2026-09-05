@@ -1,0 +1,15 @@
+---
+description: 美术进游戏：透明底、无框无字、一件一文件；定稿前不要覆盖运行时贴图
+globs: assets/**, icons/**, tools/*.py, scenes/ArtScene.tscn, scenes/AssetGallery.tscn, scenes/SettlementPreview.tscn
+alwaysApply: false
+---
+
+# 美术资产
+
+详细步骤见 `AGENTS.md`「美术资产生成 SOP」。
+
+- 图标：透明 PNG，不要羊皮纸底、木框、烤进去的字。字走 `Loc.gd`。
+- 一件一文件。只有动画才用等宽图集，格子必须是整数、脚底对齐。
+- 生成后验 alpha；白底用现成 knockout 脚本抠，不要当成品。
+- 草稿放 `assets/ui/farm-ui/generated-v2/`。运行时路径：`icons/`、`assets/ui/farm-ui/`、`assets/sprites/`、`assets/ui/settlement/layers/`。
+- 画风留给太阳海。对版用 AssetGallery / ArtScene / SettlementPreview，定稿看手机网页。

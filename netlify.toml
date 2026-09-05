@@ -1,0 +1,16 @@
+# Git 连接到 Netlify 时使用：发布目录是 Godot 网页导出结果。
+# 手动拖拽部署时，把 export/web 整个文件夹丢到 Netlify 即可。
+
+[build]
+  publish = "export/web"
+
+[[headers]]
+  for = "/*"
+  [headers.values]
+    Cross-Origin-Opener-Policy = "same-origin"
+    Cross-Origin-Embedder-Policy = "require-corp"
+
+[[headers]]
+  for = "/*.wasm"
+  [headers.values]
+    Content-Type = "application/wasm"

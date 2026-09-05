@@ -1,0 +1,813 @@
+[gd_scene format=3 uid="uid://7ro1y3tgxliq"]
+
+[ext_resource type="Script" uid="uid://cvih5goe5cpvr" path="res://scripts/SettlementCard.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://gyi607sxyl62" path="res://assets/ui/settlement/layers/01-paper-stack.png" id="4_stack"]
+[ext_resource type="Texture2D" uid="uid://dds57rwxqj3nw" path="res://assets/ui/settlement/layers/02-card-body.png" id="5_card"]
+[ext_resource type="Texture2D" uid="uid://c2lborwvv2e1w" path="res://assets/ui/settlement/layers/03-hang-tag.png" id="6_tag"]
+[ext_resource type="Texture2D" uid="uid://dr5m8p4d5avbw" path="res://assets/ui/settlement/layers/20-score-cell.png" id="11_score"]
+[ext_resource type="Texture2D" uid="uid://bqndnb4s3802" path="res://assets/ui/settlement/layers/21-chart-well.png" id="12_chart"]
+[ext_resource type="Texture2D" uid="uid://dnbtopvardq2p" path="res://assets/ui/settlement/layers/22-quest-stamp.png" id="13_stamp"]
+[ext_resource type="Texture2D" uid="uid://c423qca7p36bf" path="res://assets/ui/weather-cloud.png" id="15_weather"]
+[ext_resource type="Texture2D" uid="uid://de8o0rlwost8m" path="res://icons/rotten_egg.png" id="16_rotten"]
+[ext_resource type="Texture2D" uid="uid://syf3bfkt52pq" path="res://icons/hen.png" id="17_hen"]
+[ext_resource type="Texture2D" uid="uid://bxiw6xexquu7e" path="res://icons/cake.png" id="18_cake"]
+[ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="19_stock"]
+[ext_resource type="Texture2D" uid="uid://5mgopwa4nu8i" path="res://assets/ui/farm-ui/icon_coin.png" id="20_coin"]
+[ext_resource type="Texture2D" uid="uid://bgkqxevip5w3y" path="res://icons/hatch.png" id="21_hatch"]
+[ext_resource type="Texture2D" uid="uid://csnnevohbsw2y" path="res://icons/flock.png" id="22_flock"]
+[ext_resource type="Texture2D" uid="uid://6xoau5dpek7e" path="res://icons/price_up.png" id="23_up"]
+[ext_resource type="Texture2D" uid="uid://cooi1ugnpm3pt" path="res://icons/share.png" id="25_share"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_none"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_field"]
+content_margin_left = 10.0
+content_margin_top = 6.0
+content_margin_right = 10.0
+content_margin_bottom = 6.0
+bg_color = Color(0.93, 0.86, 0.72, 0.4)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.545, 0.388, 0.247, 0.38)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_hero"]
+content_margin_left = 8.0
+content_margin_top = 8.0
+content_margin_right = 8.0
+content_margin_bottom = 8.0
+bg_color = Color(0.93, 0.86, 0.72, 0.28)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.545, 0.388, 0.247, 0.32)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBox_table"]
+content_margin_left = 4.0
+content_margin_top = 8.0
+content_margin_right = 4.0
+content_margin_bottom = 8.0
+bg_color = Color(0.93, 0.86, 0.72, 0.38)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.545, 0.388, 0.247, 0.38)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="SettlementCard" type="Control" unique_id=1589760883]
+layout_mode = 3
+anchor_left = 0.09
+anchor_top = 0.1
+anchor_right = 0.91
+anchor_bottom = 0.82
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="PaperStack" type="TextureRect" parent="." unique_id=78827952]
+visible = false
+texture_filter = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.07
+anchor_top = 0.06
+anchor_right = 0.16
+anchor_bottom = 0.9
+mouse_filter = 2
+texture = ExtResource("4_stack")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CardBody" type="TextureRect" parent="." unique_id=1712095604]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("5_card")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Daily" type="VBoxContainer" parent="." unique_id=642535470]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12
+anchor_top = 0.05
+anchor_right = 0.88
+anchor_bottom = 0.92
+theme_override_constants/separation = 7
+
+[node name="Kicker" type="Label" parent="Daily"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 20
+text = "第 3 夜"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="Daily" unique_id=1949514435]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_colors/font_outline_color = Color(1, 0.91, 0.76, 0.55)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 39
+text = "晚间报告"
+horizontal_alignment = 1
+
+[node name="DayLine" type="Label" parent="Daily" unique_id=1896614304]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 21
+text = "第 3 天  →  第 4 天"
+horizontal_alignment = 1
+
+[node name="RuleA" type="ColorRect" parent="Daily"]
+custom_minimum_size = Vector2(0, 1)
+layout_mode = 2
+size_flags_vertical = 0
+mouse_filter = 2
+color = Color(0.545, 0.388, 0.247, 0.35)
+
+[node name="NewsChip" type="PanelContainer" parent="Daily" unique_id=1001821804]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_field")
+
+[node name="Row" type="HBoxContainer" parent="Daily/NewsChip"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Weather" type="TextureRect" parent="Daily/NewsChip/Row" unique_id=2130135984]
+texture_filter = 2
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("15_weather")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Txt" type="Label" parent="Daily/NewsChip/Row" unique_id=954925101]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
+theme_override_font_sizes/font_size = 23
+text = "今夜告示 · 狼商囤粮   ▲"
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="PriceWell" type="PanelContainer" parent="Daily" unique_id=990855990]
+custom_minimum_size = Vector2(0, 124)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_hero")
+
+[node name="Col" type="VBoxContainer" parent="Daily/PriceWell" unique_id=868965879]
+layout_mode = 2
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="CapRow" type="HBoxContainer" parent="Daily/PriceWell/Col" unique_id=714788399]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/PriceWell/Col/CapRow" unique_id=1853199634]
+custom_minimum_size = Vector2(33, 33)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("19_stock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cap" type="Label" parent="Daily/PriceWell/Col/CapRow" unique_id=666730189]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 20
+text = "收盘股价"
+vertical_alignment = 1
+
+[node name="Num" type="Label" parent="Daily/PriceWell/Col" unique_id=1939775435]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
+theme_override_font_sizes/font_size = 66
+text = "186"
+horizontal_alignment = 1
+
+[node name="DeltaRow" type="HBoxContainer" parent="Daily/PriceWell/Col" unique_id=1411686780]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/PriceWell/Col/DeltaRow" unique_id=2029621771]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("23_up")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Delta" type="Label" parent="Daily/PriceWell/Col/DeltaRow" unique_id=850139197]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
+theme_override_font_sizes/font_size = 24
+text = "42"
+vertical_alignment = 1
+
+[node name="StatsCap" type="Label" parent="Daily"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "本日账目"
+horizontal_alignment = 1
+
+[node name="Ledger" type="PanelContainer" parent="Daily" unique_id=2138018503]
+custom_minimum_size = Vector2(0, 118)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_table")
+
+[node name="Row" type="HBoxContainer" parent="Daily/Ledger"]
+layout_mode = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Broken" type="VBoxContainer" parent="Daily/Ledger/Row" unique_id=1486231885]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/Ledger/Row/Broken" unique_id=288149962]
+custom_minimum_size = Vector2(33, 33)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("16_rotten")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Num" type="Label" parent="Daily/Ledger/Row/Broken" unique_id=1974827128]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
+theme_override_font_sizes/font_size = 36
+text = "2"
+horizontal_alignment = 1
+
+[node name="Cap" type="Label" parent="Daily/Ledger/Row/Broken" unique_id=796164519]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "碎蛋"
+horizontal_alignment = 1
+
+[node name="SepA" type="ColorRect" parent="Daily/Ledger/Row"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+color = Color(0.545, 0.388, 0.247, 0.28)
+
+[node name="Grown" type="VBoxContainer" parent="Daily/Ledger/Row" unique_id=163519606]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/Ledger/Row/Grown" unique_id=323796089]
+custom_minimum_size = Vector2(33, 33)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("17_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Num" type="Label" parent="Daily/Ledger/Row/Grown" unique_id=960933115]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 36
+text = "3"
+horizontal_alignment = 1
+
+[node name="Cap" type="Label" parent="Daily/Ledger/Row/Grown" unique_id=1627888558]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "长成"
+horizontal_alignment = 1
+
+[node name="SepB" type="ColorRect" parent="Daily/Ledger/Row"]
+custom_minimum_size = Vector2(1, 0)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+color = Color(0.545, 0.388, 0.247, 0.28)
+
+[node name="Cake" type="VBoxContainer" parent="Daily/Ledger/Row" unique_id=429736761]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/Ledger/Row/Cake" unique_id=779249564]
+custom_minimum_size = Vector2(33, 33)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("18_cake")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Num" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=1091686711]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 36
+text = "1"
+horizontal_alignment = 1
+
+[node name="Cap" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=952938634]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "蛋糕"
+horizontal_alignment = 1
+
+[node name="Footnote" type="PanelContainer" parent="Daily" unique_id=1816045462]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_styles/panel = SubResource("StyleBox_field")
+
+[node name="Row" type="HBoxContainer" parent="Daily/Footnote" unique_id=1683583140]
+layout_mode = 2
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/Footnote/Row" unique_id=371203521]
+custom_minimum_size = Vector2(33, 33)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("20_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Txt" type="Label" parent="Daily/Footnote/Row" unique_id=1906119586]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 21
+text = "总资产  980  →  1,120"
+vertical_alignment = 1
+horizontal_alignment = 1
+
+[node name="BeatLine" type="Label" parent="Daily" unique_id=1928374650]
+visible = false
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 16
+text = "你打败了 10% 的农场主。超过了一小撮人。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="HatchNote" type="HBoxContainer" parent="Daily" unique_id=1605347382]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Daily/HatchNote" unique_id=395847634]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("21_hatch")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Txt" type="Label" parent="Daily/HatchNote" unique_id=1111809538]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
+theme_override_font_sizes/font_size = 20
+text = "新孵 1 只，天亮后点孵蛋器领取"
+vertical_alignment = 1
+autowrap_mode = 2
+
+[node name="Spacer" type="Control" parent="Daily"]
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+
+[node name="Actions" type="HBoxContainer" parent="Daily" unique_id=156633668]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_vertical = 0
+theme_override_constants/separation = 8
+
+[node name="AdBtn" type="Button" parent="Daily/Actions" unique_id=2140593737]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+clip_text = false
+text = "正在招商…"
+
+[node name="Cta" type="Button" parent="Daily/Actions" unique_id=894574164]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+clip_text = false
+text = "下一天"
+
+[node name="Finale" type="VBoxContainer" parent="." unique_id=1765688085]
+visible = false
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.09
+anchor_top = 0.045
+anchor_right = 0.91
+anchor_bottom = 0.875
+theme_override_constants/separation = 6
+
+[node name="Title" type="Label" parent="Finale" unique_id=60650209]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.361, 0.141, 0.11, 1)
+theme_override_colors/font_outline_color = Color(1, 0.91, 0.76, 0.75)
+theme_override_constants/outline_size = 3
+theme_override_font_sizes/font_size = 18
+text = "小鸡股市"
+horizontal_alignment = 1
+
+[node name="Hook" type="Label" parent="Finale" unique_id=488973358]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.29, 0.196, 1)
+theme_override_font_sizes/font_size = 16
+text = "我在八日挑战里混成了"
+horizontal_alignment = 1
+
+[node name="RankTitle" type="Label" parent="Finale" unique_id=154406576]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
+theme_override_colors/font_outline_color = Color(1, 0.94, 0.82, 0.9)
+theme_override_constants/outline_size = 8
+theme_override_font_sizes/font_size = 42
+text = "流浪小鸡"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Pips" type="HBoxContainer" parent="Finale" unique_id=1750520277]
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="StampRow" type="HBoxContainer" parent="Finale" unique_id=1807539733]
+custom_minimum_size = Vector2(0, 48)
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Stamp" type="TextureRect" parent="Finale/StampRow" unique_id=73925536]
+visible = false
+custom_minimum_size = Vector2(48, 48)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("13_stamp")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StampTxt" type="Label" parent="Finale/StampRow" unique_id=1023202147]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
+theme_override_colors/font_outline_color = Color(1, 0.91, 0.76, 0.7)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 24
+text = "八日翻车"
+vertical_alignment = 1
+
+[node name="Copy" type="Label" parent="Finale" unique_id=735085202]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.29, 0.196, 1)
+theme_override_font_sizes/font_size = 17
+text = "八天空手而归。鸡：这人我都不认识。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Scores" type="HBoxContainer" parent="Finale" unique_id=1382202145]
+custom_minimum_size = Vector2(0, 148)
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="Wealth" type="Control" parent="Finale/Scores" unique_id=751717883]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Bg" type="TextureRect" parent="Finale/Scores/Wealth" unique_id=1283025542]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("11_score")
+expand_mode = 1
+
+[node name="Col" type="VBoxContainer" parent="Finale/Scores/Wealth" unique_id=2098036957]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 8.0
+offset_right = -6.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Finale/Scores/Wealth/Col" unique_id=829329549]
+custom_minimum_size = Vector2(42, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("20_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cap" type="Label" parent="Finale/Scores/Wealth/Col" unique_id=263707492]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "总资产"
+horizontal_alignment = 1
+
+[node name="Num" type="Label" parent="Finale/Scores/Wealth/Col" unique_id=1577613103]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 38
+text = "140"
+horizontal_alignment = 1
+
+[node name="Goal" type="Label" parent="Finale/Scores/Wealth/Col" unique_id=707085773]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
+theme_override_font_sizes/font_size = 16
+text = "还差 2860"
+horizontal_alignment = 1
+
+[node name="Flock" type="Control" parent="Finale/Scores" unique_id=535392432]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="Bg" type="TextureRect" parent="Finale/Scores/Flock" unique_id=1879036150]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("11_score")
+expand_mode = 1
+
+[node name="Col" type="VBoxContainer" parent="Finale/Scores/Flock" unique_id=301696079]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 6.0
+offset_top = 8.0
+offset_right = -6.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Finale/Scores/Flock/Col" unique_id=1287648476]
+custom_minimum_size = Vector2(42, 42)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("22_flock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Cap" type="Label" parent="Finale/Scores/Flock/Col" unique_id=812716795]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 18
+text = "鸡群"
+horizontal_alignment = 1
+
+[node name="Num" type="Label" parent="Finale/Scores/Flock/Col" unique_id=1700868829]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 38
+text = "2 只"
+horizontal_alignment = 1
+
+[node name="Goal" type="Label" parent="Finale/Scores/Flock/Col" unique_id=1606408912]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
+theme_override_font_sizes/font_size = 16
+text = "还差 13 只"
+horizontal_alignment = 1
+
+[node name="ChartWell" type="Control" parent="Finale" unique_id=744579660]
+custom_minimum_size = Vector2(0, 126)
+layout_mode = 2
+
+[node name="Bg" type="TextureRect" parent="Finale/ChartWell" unique_id=820940882]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("12_chart")
+expand_mode = 1
+
+[node name="Fill" type="Polygon2D" parent="Finale/ChartWell"]
+color = Color(0.769, 0.518, 0.165, 0.34)
+antialiased = true
+
+[node name="Goal" type="Line2D" parent="Finale/ChartWell"]
+width = 2.0
+default_color = Color(0.769, 0.353, 0.298, 0.55)
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="Cap" type="Label" parent="Finale/ChartWell" unique_id=264488040]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.06
+anchor_top = 0.02
+anchor_right = 0.94
+anchor_bottom = 0.28
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 16
+text = "八日资产曲线"
+horizontal_alignment = 1
+
+[node name="Curve" type="Line2D" parent="Finale/ChartWell" unique_id=1919294131]
+width = 4.0
+default_color = Color(0.769, 0.518, 0.165, 1)
+joint_mode = 2
+begin_cap_mode = 2
+end_cap_mode = 2
+
+[node name="GoalLab" type="Label" parent="Finale/ChartWell"]
+visible = false
+layout_mode = 0
+theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
+theme_override_font_sizes/font_size = 14
+text = "目标 3000"
+mouse_filter = 2
+
+[node name="EndDot" type="ColorRect" parent="Finale/ChartWell"]
+visible = false
+custom_minimum_size = Vector2(10, 10)
+layout_mode = 0
+color = Color(0.769, 0.518, 0.165, 1)
+mouse_filter = 2
+
+[node name="EndLab" type="Label" parent="Finale/ChartWell"]
+visible = false
+layout_mode = 0
+theme_override_colors/font_color = Color(0.361, 0.141, 0.11, 1)
+theme_override_colors/font_outline_color = Color(1, 0.94, 0.82, 0.9)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+text = "140"
+mouse_filter = 2
+
+[node name="Split" type="Label" parent="Finale" unique_id=28921654]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 17
+text = "现金 140  ·  股票 0"
+horizontal_alignment = 1
+
+[node name="BeatLine" type="Label" parent="Finale" unique_id=1928374651]
+visible = false
+custom_minimum_size = Vector2(0, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
+theme_override_font_sizes/font_size = 16
+text = "八日收官，你打败了 45% 的挑战者。快摸到中位了。"
+horizontal_alignment = 1
+autowrap_mode = 3
+
+[node name="Watermark" type="Label" parent="Finale"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.541, 0.29, 0.196, 0.85)
+theme_override_font_sizes/font_size = 15
+text = "小鸡股市 · 敢不敢比"
+horizontal_alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="Finale" unique_id=409987208]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShareBtn" type="Button" parent="Finale/Actions" unique_id=230133044]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 0.8
+theme_override_constants/h_separation = 10
+theme_override_constants/icon_max_width = 36
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+text = "晒成绩"
+icon = ExtResource("25_share")
+expand_icon = true
+
+[node name="Cta" type="Button" parent="Finale/Actions" unique_id=1017288247]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+text = "再战八天"
+
+[node name="EndlessBtn" type="Button" parent="Finale/Actions" unique_id=1847293651]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.25
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+text = "继续挑战 (无尽模式)"
+autowrap_mode = 3
+
+[node name="HangTag" type="Control" parent="." unique_id=1323238133]
+layout_mode = 1
+anchor_left = 0.58
+anchor_top = 0.87
+anchor_right = 1.06
+anchor_bottom = 1.05
+mouse_filter = 2
+
+[node name="Bg" type="TextureRect" parent="HangTag" unique_id=333025172]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("6_tag")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TagLabel" type="Label" parent="HangTag" unique_id=604635331]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.06
+anchor_top = 0.12
+anchor_right = 0.68
+anchor_bottom = 0.88
+theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_font_sizes/font_size = 18
+text = "第 3 夜"
+horizontal_alignment = 1
+vertical_alignment = 1

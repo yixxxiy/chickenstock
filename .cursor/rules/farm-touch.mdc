@@ -1,0 +1,17 @@
+---
+description: 手机触摸会打两次 pressed，开关必须防抖并吞 ScreenTouch
+globs: scripts/Game.gd, scripts/Loc.gd
+alwaysApply: false
+---
+
+# 手机双击
+
+`emulate_touch_from_mouse` + `Game._input` 合成 `pressed` = 一次点击触发两次。
+
+开关（信封、语言、音效）必须：
+
+1. 命中 `BaseButton` 时 `set_input_as_handled()` 掉多余 `InputEventScreenTouch`
+2. 约 280ms 防抖（见 `_toggle_quest`、`Loc.toggle`）
+3. 打开邮件后短时忽略 Dim 关闭（`_quest_ignore_close`）
+
+不要只连 `pressed` 就当开关做完。不要删现有吞事件逻辑除非真机证明不再双击。

@@ -1,0 +1,45 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="小鸡股市"
+run/main_scene="res://scenes/Game.tscn"
+config/features=PackedStringArray("4.7", "Forward Plus")
+boot_splash/bg_color=Color(0, 0, 0, 1)
+boot_splash/image="uid://ji8mtsejhrcw"
+config/icon="res://icon.png"
+
+[display]
+
+window/size/viewport_width=576
+window/size/viewport_height=1024
+window/stretch/mode="canvas_items"
+window/handheld/orientation=1
+window/vsync/vsync_mode=0
+
+[gui]
+
+theme/lcd_subpixel_layout=0
+theme/custom="res://themes/mobile.tres"
+theme/custom_font="res://fonts/game_zh.ttf"
+
+[input_devices]
+
+pointing/emulate_touch_from_mouse=true
+
+[physics]
+
+3d/physics_engine="Jolt Physics"
+
+[rendering]
+
+rendering_device/driver.windows="d3d12"
+rendering/textures/canvas_textures/default_texture_filter=1

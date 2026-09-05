@@ -1,0 +1,7 @@
+[gd_resource type="ShaderMaterial" format=3 uid="uid://dpvlrxfn4sj5x"]
+
+[ext_resource type="Shader" uid="uid://cpu2anx53nk5s" path="res://shaders/bird_ghost.gdshader" id="1_ghost"]
+
+[resource]
+shader = ExtResource("1_ghost")
+shader_parameter/fill_color = Color(0.96, 0.88, 0.52, 0.52)

@@ -1,0 +1,26 @@
+[gd_resource type="Theme" format=3 uid="uid://b7meoloim23ul"]
+
+[ext_resource type="FontFile" uid="uid://c2aewqf5pvc2j" path="res://fonts/game_zh.ttf" id="1_zh"]
+
+[resource]
+default_font = ExtResource("1_zh")
+default_font_size = 16
+Button/colors/font_color = Color(1, 0.97, 0.91, 1)
+Button/colors/font_disabled_color = Color(1, 0.97, 0.91, 0.55)
+Button/colors/font_hover_color = Color(1, 0.98, 0.93, 1)
+Button/colors/font_outline_color = Color(0.22, 0.18, 0.12, 0.45)
+Button/colors/font_pressed_color = Color(1, 0.95, 0.86, 1)
+Button/constants/outline_size = 2
+Button/font_sizes/font_size = 16
+Button/fonts/font = ExtResource("1_zh")
+Label/colors/font_color = Color(0.31, 0.24, 0.17, 1)
+Label/colors/font_shadow_color = Color(1, 0.97, 0.9, 0.55)
+Label/constants/shadow_offset_x = 0
+Label/constants/shadow_offset_y = 1
+Label/font_sizes/font_size = 16
+Label/fonts/font = ExtResource("1_zh")
+RichTextLabel/colors/default_color = Color(0.31, 0.24, 0.17, 1)
+RichTextLabel/font_sizes/bold_font_size = 22
+RichTextLabel/font_sizes/normal_font_size = 18
+RichTextLabel/fonts/bold_font = ExtResource("1_zh")
+RichTextLabel/fonts/normal_font = ExtResource("1_zh")
