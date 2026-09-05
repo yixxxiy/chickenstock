@@ -106,13 +106,12 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Daily" type="VBoxContainer" parent="." unique_id=642535470]
-clip_contents = true
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.12
 anchor_top = 0.05
 anchor_right = 0.88
-anchor_bottom = 0.95
+anchor_bottom = 0.92
 theme_override_constants/separation = 7
 
 [node name="Kicker" type="Label" parent="Daily"]
@@ -441,7 +440,7 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
 clip_text = false
-text = "开始新一天"
+text = "下一天"
 
 [node name="Finale" type="VBoxContainer" parent="." unique_id=1765688085]
 visible = false

@@ -1,4 +1,4 @@
-[gd_scene format=3 uid="uid://bjperk0t7t1yv"]
+[gd_scene format=3 uid="uid://bqo1e7v26jg0v"]
 
 [ext_resource type="Script" uid="uid://bjxr5gmc8x154" path="res://scripts/Game.gd" id="1_game"]
 [ext_resource type="Texture2D" uid="uid://6p3gunmmb80d" path="res://assets/map/farm-background.png" id="2_map"]
@@ -14,6 +14,8 @@
 [ext_resource type="Script" uid="uid://bk6ykmr8aoe67" path="res://scripts/DayClock.gd" id="22_day_clock"]
 [ext_resource type="Texture2D" uid="uid://ctw8iynocrk2q" path="res://assets/ui/farm-ui/settings_gear.png" id="24_farm_gear"]
 [ext_resource type="Texture2D" path="res://assets/ui/mail.png" id="24_mail"]
+[ext_resource type="Texture2D" path="res://assets/ui/logo_wordmark.png" id="40_logo_wordmark"]
+[ext_resource type="Texture2D" path="res://assets/ui/logo_icon.png" id="41_logo_icon"]
 [ext_resource type="Texture2D" uid="uid://d00oxm8m62cec" path="res://assets/ui/farm-ui/speech.png" id="25_farm_speech"]
 [ext_resource type="StyleBox" uid="uid://6pypfowebb81" path="res://themes/frame_tall_panel.tres" id="26_frame_tall"]
 [ext_resource type="StyleBox" path="res://themes/frame_ticker_panel.tres" id="27_frame_ticker"]
@@ -21,9 +23,15 @@
 [ext_resource type="PackedScene" path="res://scenes/SettlementCard.tscn" id="28_settle"]
 [ext_resource type="Texture2D" uid="uid://by5ro48bc6kkp" path="res://assets/ui/settlement/layers/00-moon.png" id="29_moon"]
 [ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="29_stock"]
+[ext_resource type="Texture2D" path="res://icons/hen.png" id="34_hen"]
+[ext_resource type="Texture2D" path="res://icons/chick.png" id="35_chick"]
 [ext_resource type="Texture2D" path="res://assets/ui/settlement/layers/22-quest-stamp.png" id="30_stamp"]
 [ext_resource type="Texture2D" path="res://assets/ui/farm-ui/dock_panel.png" id="32_dock_panel"]
 [ext_resource type="Texture2D" uid="uid://ckxrk1xtwb71" path="res://assets/ui/close.png" id="33_close"]
+[ext_resource type="Texture2D" path="res://assets/ui/guide-board-cut.png" id="36_guide_board"]
+[ext_resource type="Texture2D" path="res://assets/ui/egg-basket.png" id="37_guide_eggs"]
+[ext_resource type="Texture2D" path="res://assets/ui/guide-chick.png" id="38_guide_chick"]
+[ext_resource type="Texture2D" path="res://assets/ui/guide-stock.png" id="39_guide_stock"]
 
 [sub_resource type="AtlasTexture" id="AtlasTexture_a8wo8"]
 atlas = ExtResource("7_sv1m6")
@@ -34,6 +42,22 @@ atlas = ExtResource("15_vjgi4")
 region = Rect2(4096, 0, 1024, 1024)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wolf"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tutorial_hint"]
+bg_color = Color(0.08, 0.11, 0.10, 0.72)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.92, 0.78, 0.42, 0.75)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
 
 [sub_resource type="StyleBoxTexture" id="SB_dock"]
 content_margin_left = 8.0
@@ -146,12 +170,12 @@ layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
 offset_left = 10.0
-offset_top = 8.0
+offset_top = 10.0
 offset_right = -10.0
-offset_bottom = 118.0
+offset_bottom = 104.0
 grow_horizontal = 2
 mouse_filter = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="ClockBox" type="VBoxContainer" parent="HUD" unique_id=912531961]
@@ -162,7 +186,7 @@ theme_override_constants/separation = 0
 alignment = 1
 
 [node name="Clock" type="Control" parent="HUD/ClockBox" unique_id=363376132]
-custom_minimum_size = Vector2(96, 96)
+custom_minimum_size = Vector2(72, 72)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -174,15 +198,15 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -12.0
+offset_left = -8.0
 offset_top = 2.0
-offset_right = 12.0
-offset_bottom = 24.0
+offset_right = 8.0
+offset_bottom = 21.0
 grow_horizontal = 2
 theme_override_colors/font_color = Color(1, 0.98, 0.93, 1)
 theme_override_colors/font_outline_color = Color(0.22, 0.3, 0.16, 0.88)
-theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 16
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 14
 text = "1/8天"
 horizontal_alignment = 1
 
@@ -192,25 +216,25 @@ size_flags_horizontal = 3
 mouse_filter = 2
 
 [node name="HudBar" type="HBoxContainer" parent="HUD" unique_id=2112537473]
-custom_minimum_size = Vector2(0, 44)
+custom_minimum_size = Vector2(292, 52)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 0
 
 [node name="CashChip" type="PanelContainer" parent="HUD/HudBar" unique_id=1817911350]
-custom_minimum_size = Vector2(96, 44)
+custom_minimum_size = Vector2(72, 52)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Row" type="HBoxContainer" parent="HUD/HudBar/CashChip" unique_id=1370661450]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/CashChip/Row" unique_id=562353338]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -235,23 +259,23 @@ text = "现金"
 [node name="Cash" type="Label" parent="HUD/HudBar/CashChip/Row/CashBox" unique_id=1191747389]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
-theme_override_font_sizes/font_size = 24
-text = "140"
+theme_override_font_sizes/font_size = 22
+text = "120"
 vertical_alignment = 1
 
 [node name="StockChip" type="PanelContainer" parent="HUD/HudBar" unique_id=2060065385]
-custom_minimum_size = Vector2(96, 44)
+custom_minimum_size = Vector2(72, 52)
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Row" type="HBoxContainer" parent="HUD/HudBar/StockChip" unique_id=2138327225]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 3
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/StockChip/Row" unique_id=1642029791]
-custom_minimum_size = Vector2(30, 30)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -276,7 +300,63 @@ text = "股票"
 [node name="Stock" type="Label" parent="HUD/HudBar/StockChip/Row/StockBox" unique_id=968205905]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
+text = "0"
+vertical_alignment = 1
+
+[node name="HenChip" type="PanelContainer" parent="HUD/HudBar"]
+custom_minimum_size = Vector2(70, 52)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="HUD/HudBar/HenChip"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HUD/HudBar/HenChip/Row"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("34_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Num" type="Label" parent="HUD/HudBar/HenChip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 21
+text = "1"
+vertical_alignment = 1
+
+[node name="ChickChip" type="PanelContainer" parent="HUD/HudBar"]
+custom_minimum_size = Vector2(70, 52)
+layout_mode = 2
+mouse_filter = 2
+
+[node name="Row" type="HBoxContainer" parent="HUD/HudBar/ChickChip"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HUD/HudBar/ChickChip/Row"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("35_chick")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Num" type="Label" parent="HUD/HudBar/ChickChip/Row"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 21
 text = "0"
 vertical_alignment = 1
 
@@ -286,7 +366,7 @@ size_flags_horizontal = 3
 mouse_filter = 2
 
 [node name="QuestBtn" type="TextureButton" parent="HUD"]
-custom_minimum_size = Vector2(52, 52)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 4
 texture_normal = ExtResource("24_mail")
@@ -306,14 +386,21 @@ grow_horizontal = 0
 mouse_filter = 2
 
 [node name="SettingsBtn" type="TextureButton" parent="HUD" unique_id=505223869]
-custom_minimum_size = Vector2(56, 56)
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_vertical = 4
 texture_normal = ExtResource("24_farm_gear")
 ignore_texture_size = true
 stretch_mode = 5
 
+[node name="HudBarBg" type="Panel" parent="."]
+z_index = 39
+z_as_relative = false
+mouse_filter = 2
+
 [node name="EggThought" type="Button" parent="." unique_id=1996070115]
+z_index = 300
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.22
@@ -332,6 +419,8 @@ icon = ExtResource("7_egg")
 expand_icon = true
 
 [node name="CakeThought" type="Button" parent="." unique_id=1951030530]
+z_index = 300
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.66
@@ -372,6 +461,8 @@ grow_vertical = 2
 mouse_filter = 2
 
 [node name="HatchThought" type="Button" parent="." unique_id=841997818]
+z_index = 300
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.025
@@ -390,6 +481,8 @@ icon = ExtResource("7_egg")
 expand_icon = true
 
 [node name="ChickThought" type="Button" parent="." unique_id=1142802700]
+z_index = 300
+z_as_relative = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.025
@@ -805,6 +898,7 @@ text = "还差 14 只"
 [node name="QuestNews" type="Label" parent="QuestPop/Card/Box" unique_id=1655668744]
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+theme_override_constants/outline_size = 0
 text = "今夜告示 · 蛋糕热销"
 horizontal_alignment = 1
 
@@ -907,14 +1001,14 @@ color = Color(0.05, 0.08, 0.16, 0.48)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.06
-anchor_top = 0.12
+anchor_top = 0.06
 anchor_right = 0.94
-anchor_bottom = 0.82
+anchor_bottom = 0.9
 theme_override_styles/panel = ExtResource("26_frame_tall")
 
 [node name="Col" type="VBoxContainer" parent="SettingsPop/Card" unique_id=1751803989]
 layout_mode = 2
-theme_override_constants/separation = 10
+theme_override_constants/separation = 12
 
 [node name="Title" type="Label" parent="SettingsPop/Card/Col" unique_id=1124346400]
 layout_mode = 2
@@ -923,34 +1017,67 @@ text = "设置"
 horizontal_alignment = 1
 
 [node name="SfxBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=172113610]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "音效 开/关"
 
 [node name="AmbBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=237323119]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
 text = "环境音 开/关"
 
-[node name="LangBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=542696830]
-custom_minimum_size = Vector2(0, 52)
+[node name="LangRow" type="HBoxContainer" parent="SettingsPop/Card/Col"]
+custom_minimum_size = Vector2(0, 62)
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="LangTitle" type="Label" parent="SettingsPop/Card/Col/LangRow"]
+custom_minimum_size = Vector2(110, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "English / 中文"
+vertical_alignment = 1
+text = "语言"
+
+[node name="ZhBtn" type="Button" parent="SettingsPop/Card/Col/LangRow"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "中文"
+
+[node name="EnBtn" type="Button" parent="SettingsPop/Card/Col/LangRow"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_font_sizes/font_size = 18
+text = "English"
+
+[node name="GuideBtn" type="Button" parent="SettingsPop/Card/Col"]
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "新手关卡"
+
+[node name="TutorialBtn" type="Button" parent="SettingsPop/Card/Col"]
+custom_minimum_size = Vector2(0, 62)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "重玩三日新手关"
 
 [node name="Help" type="Label" parent="SettingsPop/Card/Col" unique_id=1854942255]
+visible = false
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "只点气泡和按钮。长按可以连续收、买、卖。八日挑战：资产 3000，同时养 15 只鸡。"
 autowrap_mode = 3
 
 [node name="Restart" type="Button" parent="SettingsPop/Card/Col" unique_id=65099796]
-custom_minimum_size = Vector2(0, 52)
+custom_minimum_size = Vector2(0, 62)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
-text = "重新开始"
+text = "重置游戏"
 
 [node name="FooterPad" type="Control" parent="SettingsPop/Card/Col"]
 layout_mode = 2
@@ -978,6 +1105,339 @@ mouse_filter = 0
 texture_normal = ExtResource("33_close")
 ignore_texture_size = true
 stretch_mode = 5
+
+[node name="GuidePop" type="Control" parent="."]
+visible = false
+z_index = 116
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="GuidePop"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.08, 0.16, 0.62)
+
+[node name="GuideCard" type="TextureRect" parent="GuidePop"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.1
+anchor_top = 0.035
+anchor_right = 0.9
+anchor_bottom = 0.86
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+texture = ExtResource("36_guide_board")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Content" type="VBoxContainer" parent="GuidePop/GuideCard"]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.11
+anchor_top = 0.15
+anchor_right = 0.89
+anchor_bottom = 0.89
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 12
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="GuidePop/GuideCard/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.24, 0.13, 0.06, 1)
+theme_override_font_sizes/font_size = 25
+text = "小鸡股市 · 新手攻略"
+horizontal_alignment = 1
+
+[node name="SubTitle" type="Label" parent="GuidePop/GuideCard/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.38, 0.25, 0.12, 1)
+theme_override_font_sizes/font_size = 14
+text = "三步让农场和股票一起赚钱"
+horizontal_alignment = 1
+
+[node name="StepEggs" type="PanelContainer" parent="GuidePop/GuideCard/Content"]
+custom_minimum_size = Vector2(0, 135)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="GuidePop/GuideCard/Content/StepEggs"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Copy" type="VBoxContainer" parent="GuidePop/GuideCard/Content/StepEggs/Row"]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="GuidePop/GuideCard/Content/StepEggs/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "1  收蛋做蛋糕"
+
+[node name="Desc" type="Label" parent="GuidePop/GuideCard/Content/StepEggs/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+text = "点击鸡蛋气泡收蛋；两颗蛋能烤成蛋糕出售。"
+
+[node name="Art" type="TextureRect" parent="GuidePop/GuideCard/Content/StepEggs/Row"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("37_guide_eggs")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StepChick" type="PanelContainer" parent="GuidePop/GuideCard/Content"]
+custom_minimum_size = Vector2(0, 135)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="GuidePop/GuideCard/Content/StepChick"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Copy" type="VBoxContainer" parent="GuidePop/GuideCard/Content/StepChick/Row"]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="GuidePop/GuideCard/Content/StepChick/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 24
+text = "2  养鸡扩产"
+
+[node name="Desc" type="Label" parent="GuidePop/GuideCard/Content/StepChick/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+autowrap_mode = 2
+text = "留下一枚蛋孵小鸡，鸡群越大，每天产蛋越多。"
+
+[node name="Art" type="TextureRect" parent="GuidePop/GuideCard/Content/StepChick/Row"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("38_guide_chick")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StepStock" type="PanelContainer" parent="GuidePop/GuideCard/Content"]
+custom_minimum_size = Vector2(0, 135)
+layout_mode = 2
+
+[node name="Row" type="HBoxContainer" parent="GuidePop/GuideCard/Content/StepStock"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Copy" type="VBoxContainer" parent="GuidePop/GuideCard/Content/StepStock/Row"]
+custom_minimum_size = Vector2(190, 0)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="GuidePop/GuideCard/Content/StepStock/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "3  低买高卖"
+
+[node name="Desc" type="Label" parent="GuidePop/GuideCard/Content/StepStock/Row/Copy"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+autowrap_mode = 2
+text = "看告示和走势图，再用多余金币低买高卖。"
+
+[node name="Art" type="TextureRect" parent="GuidePop/GuideCard/Content/StepStock/Row"]
+custom_minimum_size = Vector2(128, 128)
+layout_mode = 2
+texture = ExtResource("39_guide_stock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CloseBtn" type="TextureButton" parent="GuidePop"]
+z_index = 4
+custom_minimum_size = Vector2(52, 52)
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -72.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 72.0
+grow_horizontal = 0
+focus_mode = 0
+mouse_filter = 0
+texture_normal = ExtResource("33_close")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="TutorialLayer" type="Control" parent="."]
+visible = false
+z_index = 200
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Card" type="PanelContainer" parent="TutorialLayer"]
+z_index = 1
+scale = Vector2(0.82, 0.82)
+ pivot_offset = Vector2(0, 0)
+mouse_filter = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.12
+anchor_top = 0.74
+anchor_right = 0.88
+anchor_bottom = 0.96
+theme_override_styles/panel = SubResource("StyleBoxFlat_tutorial_hint")
+
+[node name="Box" type="VBoxContainer" parent="TutorialLayer/Card"]
+mouse_filter = 2
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="TutorialLayer/Card/Box"]
+mouse_filter = 2
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_font_sizes/font_size = 18
+text = "狼商的三日委托 · 第 1 天"
+horizontal_alignment = 1
+
+[node name="Body" type="Label" parent="TutorialLayer/Card/Box"]
+mouse_filter = 2
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_constants/outline_size = 0
+text = "先让农场运转起来。"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="Actions" type="HBoxContainer" parent="TutorialLayer/Card/Box"]
+mouse_filter = 2
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Exit" type="Button" parent="TutorialLayer/Card/Box/Actions"]
+custom_minimum_size = Vector2(108, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_constants/outline_size = 0
+text = "退出教学"
+
+[node name="Spacer" type="Control" parent="TutorialLayer/Card/Box/Actions"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Next" type="Button" parent="TutorialLayer/Card/Box/Actions"]
+custom_minimum_size = Vector2(108, 32)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+theme_override_constants/outline_size = 0
+text = "开始"
+
+[node name="StartMenuLayer" type="Control" parent="."]
+visible = false
+z_index = 500
+z_as_relative = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+
+[node name="Dim" type="ColorRect" parent="StartMenuLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.04, 0.08, 0.06, 0.42)
+mouse_filter = 1
+
+[node name="Card" type="PanelContainer" parent="StartMenuLayer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -170.0
+offset_top = -205.0
+offset_right = 170.0
+offset_bottom = 205.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = ExtResource("26_frame_tall")
+
+[node name="Box" type="VBoxContainer" parent="StartMenuLayer/Card"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="LogoIcon" type="TextureRect" parent="StartMenuLayer/Card/Box"]
+custom_minimum_size = Vector2(0, 92)
+layout_mode = 2
+texture = ExtResource("41_logo_icon")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="LogoWordmark" type="TextureRect" parent="StartMenuLayer/Card/Box"]
+custom_minimum_size = Vector2(0, 74)
+layout_mode = 2
+texture = ExtResource("40_logo_wordmark")
+expand_mode = 1
+stretch_mode = 5
+mouse_filter = 2
+
+[node name="Title" type="Label" parent="StartMenuLayer/Card/Box"]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_font_sizes/font_size = 24
+text = "小鸡股市"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="StartMenuLayer/Card/Box"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_font_sizes/font_size = 14
+text = "选择你的开始方式"
+horizontal_alignment = 1
+
+[node name="Tutorial" type="Button" parent="StartMenuLayer/Card/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "新手教学"
+
+[node name="Direct" type="Button" parent="StartMenuLayer/Card/Box"]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "直接开始"
 
 [node name="Toasts" type="VBoxContainer" parent="." unique_id=1966947139]
 z_index = 130

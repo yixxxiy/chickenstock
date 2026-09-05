@@ -14,6 +14,7 @@ const UiFrameTall := preload("res://themes/frame_tall_panel.tres")
 const UiFrameTicker := preload("res://themes/frame_ticker_panel.tres")
 
 const DAY_MS := 20000.0
+const TUTORIAL_DAY_MS := 60000.0
 const DUSK_WARN_MS := 5000.0
 const WEALTH_GOAL := 3000
 const FLOCK_GOAL := 15
@@ -25,6 +26,7 @@ const BAKERY_MAX_LEVEL := 4
 const BAKERY_UPGRADE_COSTS := [0, 200, 500, 950]
 const BAKERY_SPEED_MULTIPLIERS := [1.0, 0.75, 0.55, 0.40]
 const SAVE_PATH := "user://cluck-farm-v7.json"
+const TUTORIAL_PATH := "user://cluck-tutorial.json"
 const ZOOM_MIN := 1.0
 const ZOOM_MAX := 2.4
 const ZOOM_WHEEL := 1.08
@@ -62,7 +64,7 @@ const FENCE_POLY := [
 var _walk_poly_pts: Array = []
 var _yard_spot_cache: Array[Vector2] = []
 
-var coins := 140
+var coins := 120
 var eggs := 0
 var ready_eggs := 3
 var pending_eggs := 0
@@ -75,7 +77,7 @@ var price := 120
 var day := 1
 var left_ms := DAY_MS
 var history: Array[int] = [108, 96, 132, 114, 120]
-var wealth_log: Array[int] = [140]
+var wealth_log: Array[int] = [120]
 var baking := 0
 var bakery_level := 1
 var hatching := 0
@@ -113,10 +115,17 @@ var _hold_btn: BaseButton
 var _sweep_hit: Control = null
 var _manual_button: BaseButton = null
 var _flock_sig := ""
-var _cash_shown := 140.0
+var _cash_shown := 120.0
 var _stock_shown := 0.0
 var _dusk_hurry := false
 var _fx := 0
+var tutorial_mode := false
+var tutorial_day := 0
+var tutorial_step := 0
+var tutorial_eggs_stored := 0
+var tutorial_eggs_tapped := 0
+var _tutorial_return_has_save := false
+var _had_main_save := false
 
 var sfx: Node
 var juice: Node
@@ -134,6 +143,10 @@ var _mmb_pan := false
 @onready var chick_placement: TextureRect = $EditorAssetPlacement/ChickPreview
 @onready var hud_cash: Label = $HUD/HudBar/CashChip/Row/CashBox/Cash
 @onready var hud_stock: Label = $HUD/HudBar/StockChip/Row/StockBox/Stock
+@onready var hud_hens: Label = $HUD/HudBar/HenChip/Row/Num
+@onready var hud_chicks: Label = $HUD/HudBar/ChickChip/Row/Num
+@onready var hud_bar: Control = $HUD/HudBar
+@onready var hud_bar_bg: Panel = $HudBarBg
 @onready var day_label: Label = $HUD/ClockBox/Clock/DayLabel
 @onready var day_clock: DayClock = $HUD/ClockBox/Clock
 @onready var toast_box: VBoxContainer = $Toasts
@@ -143,6 +156,8 @@ var _mmb_pan := false
 @onready var quest_card: PanelContainer = $QuestPop/Card
 @onready var settings_pop: Control = $SettingsPop
 @onready var settings_card: PanelContainer = $SettingsPop/Card
+@onready var guide_pop: Control = $GuidePop
+@onready var guide_card: TextureRect = $GuidePop/GuideCard
 @onready var egg_btn: Button = $EggThought
 @onready var cake_btn: Button = $CakeThought
 @onready var hatch_btn: Button = $HatchThought
@@ -177,6 +192,14 @@ var _mmb_pan := false
 @onready var flock_fill: Panel = $QuestPop/Card/Box/FlockCard/Row/Col/Track/Fill
 @onready var wealth_hint: Label = $QuestPop/Card/Box/WealthCard/Row/Col/Hint
 @onready var flock_hint: Label = $QuestPop/Card/Box/FlockCard/Row/Col/Hint
+@onready var tutorial_layer: Control = $TutorialLayer
+@onready var tutorial_title: Label = $TutorialLayer/Card/Box/Title
+@onready var tutorial_body: Label = $TutorialLayer/Card/Box/Body
+@onready var tutorial_next: Button = $TutorialLayer/Card/Box/Actions/Next
+@onready var tutorial_exit: Button = $TutorialLayer/Card/Box/Actions/Exit
+@onready var start_menu: Control = $StartMenuLayer
+@onready var start_menu_tutorial: Button = $StartMenuLayer/Card/Box/Tutorial
+@onready var start_menu_direct: Button = $StartMenuLayer/Card/Box/Direct
 
 func _ready() -> void:
 	_lock_web_gestures()
@@ -187,11 +210,14 @@ func _ready() -> void:
 	juice = preload("res://scripts/Juice.gd").new()
 	add_child(juice)
 	_connect_ui()
+	start_menu_tutorial.pressed.connect(_start_menu_tutorial_pressed)
+	start_menu_direct.pressed.connect(_start_menu_direct_pressed)
 	_raise_home_buttons()
 	_raise_hud_chrome()
 	juice.bind(self)
 	_setup_world_zoom()
 	Loc.load_settings()
+	_had_main_save = FileAccess.file_exists(SAVE_PATH)
 	_load()
 	_cash_shown = float(cash())
 	_stock_shown = float(held() * maxi(1, price))
@@ -206,25 +232,62 @@ func _ensure_cjk_fallback() -> void:
 	var theme := ThemeDB.get_project_theme()
 	if theme == null:
 		return
-	var base := theme.default_font
-	if base == null or not (base is Font):
-		return
-	var font := base as Font
-	if not font.fallbacks.is_empty():
-		return
 	var sys := SystemFont.new()
 	sys.font_names = PackedStringArray([
-		"Noto Sans CJK SC", "Noto Sans SC", "Source Han Sans SC",
-		"PingFang SC", "Hiragino Sans GB", "Microsoft YaHei",
-		"Noto Sans CJK", "DroidSansFallback", "sans-serif",
+		"PingFang SC", "Hiragino Sans GB", "Heiti SC", "STHeiti",
+		"Microsoft YaHei", "Microsoft YaHei UI", "Noto Sans CJK SC",
+		"Noto Sans SC", "Source Han Sans SC", "DroidSansFallback",
+		"Noto Sans CJK", "sans-serif",
 	])
-	font.fallbacks = [sys]
+	sys.allow_system_fallback = true
+	var fonts: Array[Font] = []
+	if theme.default_font:
+		fonts.append(theme.default_font)
+	for key in ["font", "normal_font", "bold_font"]:
+		var typed := theme.get_font(key, "Label")
+		if typed:
+			fonts.append(typed)
+		typed = theme.get_font(key, "Button")
+		if typed:
+			fonts.append(typed)
+		typed = theme.get_font(key, "RichTextLabel")
+		if typed:
+			fonts.append(typed)
+	for font in fonts:
+		if font == null:
+			continue
+		var found := false
+		for fb in font.fallbacks:
+			if fb is SystemFont:
+				found = true
+				break
+		if found:
+			continue
+		var next: Array[Font] = font.fallbacks
+		next.append(sys)
+		font.fallbacks = next
+	_normalize_ui_fonts(theme)
+
+func _normalize_ui_fonts(theme: Theme) -> void:
+	# Keep Chinese UI glyphs on one font face. Mixing the theme font with
+	# platform fallbacks makes some labels appear faux-bold or unexpectedly thin.
+	var base: Font = theme.default_font
+	if base == null:
+		base = theme.get_font("font", "Label")
+	if base == null:
+		return
+	for node in find_children("*", "Control", true, false):
+		if node is Label or node is Button:
+			node.add_theme_font_override("font", base)
+		if node is RichTextLabel:
+			node.add_theme_font_override("normal_font", base)
+			node.add_theme_font_override("bold_font", base)
 
 func _lock_web_gestures() -> void:
 	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
 		return
 	Engine.get_singleton("JavaScriptBridge").eval(
-		"(function(){var s=document.getElementById('cluck-no-select');if(!s){s=document.createElement('style');s.id='cluck-no-select';s.textContent='html,body,#canvas{-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent;touch-action:none!important;overscroll-behavior:none}';document.head.appendChild(s);}var stop=function(e){e.preventDefault();};var pinch=function(e){if(e.touches&&e.touches.length>1)e.preventDefault();};document.addEventListener('contextmenu',stop,{passive:false});document.addEventListener('selectstart',stop,{passive:false});document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('gestureend',stop,{passive:false});document.addEventListener('touchmove',pinch,{passive:false});window.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)e.preventDefault();},{passive:false});var c=document.getElementById('canvas');if(c){c.style.touchAction='none';c.addEventListener('contextmenu',stop,{passive:false});c.addEventListener('touchmove',stop,{passive:false});}})();",
+		"(function(){var s=document.getElementById('cluck-no-select');if(!s){s=document.createElement('style');s.id='cluck-no-select';s.textContent='html,body,#canvas{height:100%!important;height:100dvh!important;width:100%!important;max-height:100dvh!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent;touch-action:none!important;overscroll-behavior:none}#netlify-badge,.netlify-badge,a[href*=netlify]{display:none!important}';document.head.appendChild(s);}var stop=function(e){e.preventDefault();};var pinch=function(e){if(e.touches&&e.touches.length>1)e.preventDefault();};document.addEventListener('contextmenu',stop,{passive:false});document.addEventListener('selectstart',stop,{passive:false});document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('gestureend',stop,{passive:false});document.addEventListener('touchmove',pinch,{passive:false});window.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)e.preventDefault();},{passive:false});var c=document.getElementById('canvas');if(c){c.style.touchAction='none';c.style.height='100dvh';c.addEventListener('contextmenu',stop,{passive:false});c.addEventListener('touchmove',stop,{passive:false});}})();",
 		true
 	)
 
@@ -258,6 +321,8 @@ func _raise_hud_chrome() -> void:
 	var hud := get_node("HUD") as Control
 	hud.z_index = 40
 	hud.z_as_relative = false
+	hud_bar_bg.z_index = 39
+	hud_bar_bg.z_as_relative = false
 	night.z_index = 100
 	night.z_as_relative = false
 	quest_btn.z_index = 120
@@ -303,7 +368,7 @@ func _fit_worlds() -> void:
 	_clamp_world()
 
 func _zoom_blocked() -> bool:
-	return settings_pop.visible or quest_pop.visible or night.visible
+	return settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible
 
 func _reset_zoom() -> void:
 	_zoom = 1.0
@@ -424,7 +489,7 @@ func _magnify_factor(raw: float) -> float:
 	return 1.0
 
 func _hud_button_at(pos: Vector2) -> BaseButton:
-	if settings_pop.visible or quest_pop.visible or night.visible:
+	if settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible:
 		return null
 	for b in [quest_btn, get_node_or_null("HUD/SettingsBtn") as BaseButton]:
 		if b != null and b.is_visible_in_tree() and not b.disabled and b.get_global_rect().grow(12.0).has_point(pos):
@@ -501,12 +566,21 @@ func _input(event: InputEvent) -> void:
 		get_viewport().set_input_as_handled()
 
 func _button_at(pos: Vector2) -> BaseButton:
+	if guide_pop.visible:
+		return _control_button_at(guide_pop, pos)
 	if settings_pop.visible:
 		return _control_button_at(settings_pop, pos)
 	if quest_pop.visible:
 		return _control_button_at(quest_pop, pos)
 	if night.visible:
 		return _control_button_at(night, pos)
+	# Tutorial controls must win hit-testing over the game controls beneath them.
+	# Without this priority, the bottom tutorial card can overlap the day dock
+	# and clicks are routed to the wrong control (or swallowed by the card).
+	if tutorial_layer.visible:
+		var tutorial_btn := _control_button_at(tutorial_layer, pos)
+		if tutorial_btn != null:
+			return tutorial_btn
 	var hud_btn := _hud_button_at(pos)
 	if hud_btn != null:
 		return hud_btn
@@ -525,6 +599,52 @@ func _finish_boot() -> void:
 	_ensure_dawn_snap()
 	_apply_locale()
 	_booted = true
+	# Resume an interrupted first-time lesson even though its safe checkpoint
+	# created a normal-game save. A player who explicitly exits is not forced
+	# back in; they can replay it from Settings.
+	var tutorial_status := _tutorial_status()
+	if tutorial_status == "in_progress":
+		call_deferred("_start_tutorial")
+	elif tutorial_status == "" and not _had_main_save:
+		start_menu.visible = true
+
+func _start_menu_tutorial_pressed() -> void:
+	start_menu.visible = false
+	_start_tutorial()
+
+func _start_menu_direct_pressed() -> void:
+	start_menu.visible = false
+	# Direct start is a clean formal first day, independent of tutorial state.
+	_reset_new_game_data()
+	left_ms = TUTORIAL_DAY_MS
+	tutorial_mode = false
+	_write_tutorial_status("dismissed")
+	_capture_dawn()
+	_refresh()
+	_save()
+
+func _tutorial_status() -> String:
+	if not FileAccess.file_exists(TUTORIAL_PATH):
+		return ""
+	var f := FileAccess.open(TUTORIAL_PATH, FileAccess.READ)
+	if f == null:
+		return ""
+	var parsed = JSON.parse_string(f.get_as_text())
+	if parsed is Dictionary:
+		var status := str(parsed.get("status", ""))
+		if status != "":
+			return status
+		# Compatibility with the older marker format.
+		if bool(parsed.get("completed", false)):
+			return "completed"
+		if bool(parsed.get("started", false)):
+			return "in_progress"
+	return ""
+
+func _write_tutorial_status(status: String) -> void:
+	var f := FileAccess.open(TUTORIAL_PATH, FileAccess.WRITE)
+	if f:
+		f.store_string(JSON.stringify({"status": status}))
 
 func _process(delta: float) -> void:
 	if not _booted:
@@ -543,9 +663,11 @@ func _process(delta: float) -> void:
 	if settling or game_result != "" or fanfare:
 		return
 	if left_ms > 0.0:
+		# Tutorial days use the same live clock as the normal game so the
+		# player learns the real pacing immediately after pressing Start.
 		left_ms = maxf(0.0, left_ms - delta * 1000.0)
 		_tick_day_ui()
-		if left_ms <= DUSK_WARN_MS and not panic_told and leftover_eggs() > 0:
+		if not tutorial_mode and left_ms <= DUSK_WARN_MS and not panic_told and leftover_eggs() > 0:
 			panic_told = true
 			_toast(Loc.t("toast_dusk"))
 			sfx.warn()
@@ -565,6 +687,8 @@ func _process(delta: float) -> void:
 				cakes += 1
 				sfx.bake_done()
 				juice.punch(cake_btn, 1.22)
+				if tutorial_mode:
+					_tutorial_refresh_prompt()
 			_refresh_thoughts()
 	elif baking >= 100:
 		_bake_hold += delta
@@ -573,7 +697,7 @@ func _process(delta: float) -> void:
 			baking = 0
 			_refresh()
 			_save()
-	elif baking == 0 and eggs >= 2 and left_ms > 0:
+	elif baking == 0 and eggs >= 2 and left_ms > 0 and not (tutorial_mode and tutorial_day == 1 and tutorial_step < 3):
 		_egg_acc += delta
 		if _egg_acc >= 0.45:
 			_egg_acc = 0.0
@@ -705,12 +829,19 @@ func _connect_ui() -> void:
 	_bind_hold(share_sell, sell_shares)
 	bakery_upgrade.pressed.connect(upgrade_bakery)
 	_style_dock_green(day_end_btn, 22, true)
-	_style_beige(get_node("SettingsPop/Card/Col/Restart"))
+	_style_red(get_node("SettingsPop/Card/Col/Restart"))
 	get_node("SettingsPop/Card/Col/Restart").add_theme_font_size_override("font_size", 18)
 	_style_beige(get_node("SettingsPop/Card/Col/SfxBtn"))
 	_style_beige(get_node("SettingsPop/Card/Col/AmbBtn"))
-	_style_beige(get_node("SettingsPop/Card/Col/LangBtn"))
-	get_node("SettingsPop/Card/Col/LangBtn").add_theme_font_size_override("font_size", 18)
+	_style_green(get_node("SettingsPop/Card/Col/GuideBtn"))
+	_style_beige(get_node("SettingsPop/Card/Col/TutorialBtn"))
+	get_node("SettingsPop/Card/Col/GuideBtn").add_theme_font_size_override("font_size", 20)
+	get_node("SettingsPop/Card/Col/TutorialBtn").add_theme_font_size_override("font_size", 18)
+	_style_guide_step($GuidePop/GuideCard/Content/StepEggs)
+	_style_guide_step($GuidePop/GuideCard/Content/StepChick)
+	_style_guide_step($GuidePop/GuideCard/Content/StepStock)
+	_style_beige(tutorial_exit)
+	_style_green(tutorial_next)
 	_style_dock_green(wolf_buy, 20)
 	_style_dock_red(wolf_sell, 20)
 	_style_dock_green(share_buy, 16)
@@ -738,6 +869,8 @@ func _connect_ui() -> void:
 	day_end_btn.pressed.connect(_next_day)
 	_bind_close_x($QuestPop/CloseBtn, quest_card, _close_quest)
 	_bind_close_x($SettingsPop/CloseBtn, settings_card, _close_settings)
+	$GuidePop/CloseBtn.pressed.connect(_close_guide)
+	$GuidePop/Dim.gui_input.connect(_on_guide_dim_input)
 	get_node("SettingsPop/Card/Col/SfxBtn").pressed.connect(func():
 		sfx.set_sfx(not sfx.sfx_on)
 		sfx.egg()
@@ -747,10 +880,20 @@ func _connect_ui() -> void:
 		sfx.set_amb(not sfx.amb_on)
 		_apply_settings_labels()
 	)
-	get_node("SettingsPop/Card/Col/LangBtn").pressed.connect(func():
-		Loc.toggle()
-		_apply_locale()
+	get_node("SettingsPop/Card/Col/LangRow/ZhBtn").pressed.connect(func():
+		if Loc.lang != "zh":
+			Loc.toggle()
+			_apply_locale()
 	)
+	get_node("SettingsPop/Card/Col/LangRow/EnBtn").pressed.connect(func():
+		if Loc.lang != "en":
+			Loc.toggle()
+			_apply_locale()
+	)
+	get_node("SettingsPop/Card/Col/GuideBtn").pressed.connect(_open_guide)
+	get_node("SettingsPop/Card/Col/TutorialBtn").pressed.connect(_start_tutorial)
+	tutorial_next.pressed.connect(_tutorial_next_pressed)
+	tutorial_exit.pressed.connect(func(): _leave_tutorial(false))
 	get_node("SettingsPop/Card/Col/Restart").pressed.connect(_restart)
 	_style_thought(egg_btn)
 	_style_thought(cake_btn)
@@ -759,6 +902,9 @@ func _connect_ui() -> void:
 	_ensure_bake_bar()
 	_style_hud_chip(get_node("HUD/HudBar/CashChip"))
 	_style_hud_chip(get_node("HUD/HudBar/StockChip"))
+	_style_hud_chip(get_node("HUD/HudBar/HenChip"))
+	_style_hud_chip(get_node("HUD/HudBar/ChickChip"))
+	_style_top_hud_bar()
 	_style_mail_dot()
 	_style_dock(get_node("Dock"))
 	_wood_frame_panel(quest_card, true)
@@ -838,15 +984,38 @@ func _pin_close_x(btn: Control, card: Control) -> void:
 
 func _style_hud_chip(c: PanelContainer) -> void:
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("fff6e6cc")
-	sb.border_color = Color("ead9b08c")
-	sb.set_border_width_all(1)
-	sb.set_corner_radius_all(22)
-	sb.content_margin_left = 8
-	sb.content_margin_right = 10
-	sb.content_margin_top = 4
-	sb.content_margin_bottom = 4
+	sb.bg_color = Color.TRANSPARENT
+	if c.get_index() > 0:
+		sb.border_color = Color("cfad78")
+		sb.border_width_left = 1
+	sb.content_margin_left = 4
+	sb.content_margin_right = 4
+	sb.content_margin_top = 5
+	sb.content_margin_bottom = 5
 	c.add_theme_stylebox_override("panel", sb)
+
+func _style_top_hud_bar() -> void:
+	var sb := StyleBoxFlat.new()
+	sb.bg_color = Color("f8ecd1f5")
+	sb.border_color = Color("b98d55")
+	sb.set_border_width_all(2)
+	sb.set_corner_radius_all(26)
+	sb.shadow_color = Color("3d2b1d66")
+	sb.shadow_size = 4
+	sb.shadow_offset = Vector2(0, 3)
+	hud_bar_bg.add_theme_stylebox_override("panel", sb)
+	var sync := func():
+		hud_bar_bg.global_position = hud_bar.global_position - Vector2(8, 2)
+		hud_bar_bg.size = hud_bar.size + Vector2(16, 4)
+	if not hud_bar.resized.is_connected(sync):
+		hud_bar.resized.connect(sync)
+	call_deferred("_sync_top_hud_bar")
+
+func _sync_top_hud_bar() -> void:
+	if hud_bar == null or hud_bar_bg == null:
+		return
+	hud_bar_bg.global_position = hud_bar.global_position - Vector2(8, 2)
+	hud_bar_bg.size = hud_bar.size + Vector2(16, 4)
 
 func _style_metric_card(c: PanelContainer, hit: bool) -> void:
 	var sb := StyleBoxFlat.new()
@@ -1290,6 +1459,7 @@ func _deny(n: Control) -> void:
 
 func _apply_locale() -> void:
 	_apply_settings_labels()
+	_apply_guide_labels()
 	get_node("HUD/HudBar/CashChip/Row/CashBox/CashTitle").text = Loc.t("cash")
 	get_node("HUD/HudBar/StockChip/Row/StockBox/StockTitle").text = Loc.t("stock")
 	get_node("QuestPop/Card/Box/Head").text = Loc.t("quest_head")
@@ -1309,16 +1479,33 @@ func _apply_settings_labels() -> void:
 	get_node("SettingsPop/Card/Col/Title").text = Loc.t("settings")
 	get_node("SettingsPop/Card/Col/SfxBtn").text = Loc.t("sfx_on" if sfx.sfx_on else "sfx_off")
 	get_node("SettingsPop/Card/Col/AmbBtn").text = Loc.t("amb_on" if sfx.amb_on else "amb_off")
-	get_node("SettingsPop/Card/Col/LangBtn").text = Loc.t("lang_en" if Loc.lang == "en" else "lang_zh")
+	get_node("SettingsPop/Card/Col/LangRow/LangTitle").text = Loc.t("language")
+	get_node("SettingsPop/Card/Col/LangRow/ZhBtn").text = "中文"
+	get_node("SettingsPop/Card/Col/LangRow/EnBtn").text = "English"
+	_style_lang_buttons()
+	get_node("SettingsPop/Card/Col/GuideBtn").text = Loc.t("guide")
+	get_node("SettingsPop/Card/Col/TutorialBtn").text = Loc.t("tutorial_replay")
 	get_node("SettingsPop/Card/Col/Help").text = Loc.t("help")
 	get_node("SettingsPop/Card/Col/Restart").text = Loc.t("restart")
 	var credits := get_node("SettingsPop/Card/Col/Credits") as Label
 	credits.text = Loc.t("credits")
 	var col := credits.get_parent()
 	col.move_child(credits, col.get_child_count() - 1)
+	if tutorial_mode:
+		_tutorial_refresh_prompt()
+
+func _apply_guide_labels() -> void:
+	get_node("GuidePop/GuideCard/Content/Title").text = Loc.t("guide_title")
+	get_node("GuidePop/GuideCard/Content/SubTitle").text = Loc.t("guide_subtitle")
+	get_node("GuidePop/GuideCard/Content/StepEggs/Row/Copy/Title").text = Loc.t("guide_step_eggs")
+	get_node("GuidePop/GuideCard/Content/StepEggs/Row/Copy/Desc").text = Loc.t("guide_step_eggs_desc")
+	get_node("GuidePop/GuideCard/Content/StepChick/Row/Copy/Title").text = Loc.t("guide_step_chick")
+	get_node("GuidePop/GuideCard/Content/StepChick/Row/Copy/Desc").text = Loc.t("guide_step_chick_desc")
+	get_node("GuidePop/GuideCard/Content/StepStock/Row/Copy/Title").text = Loc.t("guide_step_stock")
+	get_node("GuidePop/GuideCard/Content/StepStock/Row/Copy/Desc").text = Loc.t("guide_step_stock_desc")
 
 func _tick_day_ui() -> void:
-	day_label.text = Loc.t("day_frac", [day])
+	day_label.text = Loc.t("tutorial_day_frac", [day]) if tutorial_mode else Loc.t("day_frac", [day])
 	var gone := 1.0 - left_ms / DAY_MS
 	day_track_fill.anchor_right = gone
 	var panic := not settling and game_result == "" and left_ms > 0.0 and left_ms <= DUSK_WARN_MS and leftover_eggs() > 0
@@ -1538,6 +1725,8 @@ func _refresh() -> void:
 	_refresh_thoughts()
 	_refresh_flock()
 	sfx.set_flock(hens, young_chicks + hatched)
+	hud_hens.text = str(hens)
+	hud_chicks.text = str(young_chicks + hatched)
 	_refresh_quest()
 	_sync_mail_dot()
 	ticker_price.text = str(price)
@@ -1547,6 +1736,7 @@ func _refresh() -> void:
 	ticker_delta.add_theme_color_override("font_color", Color("3f8a52") if d >= 0 else Color("c45a4c"))
 	ticker_hold.text = Loc.t("shares_n", [held()])
 	stock_graph.set_history(history)
+	_tutorial_apply_locks()
 	if quest_complete() and not quest_done and game_result == "" and not settling:
 		quest_done = true
 		_start_fanfare()
@@ -1620,11 +1810,16 @@ func next_price(current: int, n: String) -> int:
 func collect_egg(quiet := false) -> bool:
 	if blocked():
 		return false
+	if tutorial_mode and not (tutorial_day == 1 and tutorial_step == 1):
+		return false
 	if ready_eggs < 1:
 		if not quiet:
 			_toast(Loc.t("toast_eggs_done")); _deny(egg_btn)
 		return false
 	ready_eggs -= 1
+	if tutorial_mode and tutorial_day == 1 and tutorial_step == 1:
+		tutorial_eggs_tapped = mini(3, tutorial_eggs_tapped + 1)
+		_tutorial_refresh_prompt()
 	sfx.egg()
 	juice.fly("egg")
 	juice.punch(egg_btn, 1.14)
@@ -1632,6 +1827,7 @@ func collect_egg(quiet := false) -> bool:
 	_save()
 	_later(0.65, func():
 		eggs += 1
+		_tutorial_action("egg_stored")
 		juice.punch(bakery_eggs, 1.18)
 		_refresh(); _save()
 	, true)
@@ -1639,6 +1835,8 @@ func collect_egg(quiet := false) -> bool:
 
 func collect_chick(quiet := false) -> bool:
 	if blocked():
+		return false
+	if tutorial_mode and not (tutorial_day == 2 and tutorial_step == 0):
 		return false
 	if hatched < 1:
 		if not quiet:
@@ -1652,12 +1850,15 @@ func collect_chick(quiet := false) -> bool:
 	_save()
 	_later(0.65, func():
 		young_chicks += 1
+		_tutorial_action("chick_collected")
 		_refresh(); _save()
 	, true)
 	return true
 
 func start_hatch(quiet := false) -> bool:
 	if blocked():
+		return false
+	if tutorial_mode and not (tutorial_day == 1 and tutorial_step == 2):
 		return false
 	if hatching >= 1:
 		if not quiet:
@@ -1669,6 +1870,7 @@ func start_hatch(quiet := false) -> bool:
 		return false
 	eggs -= 1
 	hatching = 1
+	_tutorial_action("hatch_started")
 	sfx.hatch()
 	juice.punch(hatch_sprite, 1.2)
 	if not quiet:
@@ -1678,6 +1880,8 @@ func start_hatch(quiet := false) -> bool:
 
 func sell_cake(quiet := false) -> bool:
 	if blocked():
+		return false
+	if tutorial_mode and not (tutorial_day == 1 and tutorial_step == 3):
 		return false
 	if cakes < 1:
 		if not quiet:
@@ -1692,6 +1896,7 @@ func sell_cake(quiet := false) -> bool:
 	_save()
 	_later(0.72, func():
 		coins += CAKE_SALE
+		_tutorial_action("cake_sold")
 		sfx.coin()
 		juice.wealth_pop(true)
 		_refresh(); _save()
@@ -1701,12 +1906,15 @@ func sell_cake(quiet := false) -> bool:
 func buy_shares(quiet := false) -> bool:
 	if blocked():
 		return false
+	if tutorial_mode and not (tutorial_day == 2 and tutorial_step == 2):
+		return false
 	if price <= 0 or coins < price:
 		if not quiet:
 			_toast(Loc.t("toast_need_gold_share")); _deny(share_buy)
 		return false
 	coins -= price
 	shares += 1
+	_tutorial_action("share_bought")
 	sfx.buy_share()
 	juice.fly("spend")
 	juice.punch(share_buy)
@@ -1716,6 +1924,8 @@ func buy_shares(quiet := false) -> bool:
 
 func sell_shares(quiet := false) -> bool:
 	if blocked():
+		return false
+	if tutorial_mode and not (tutorial_day == 3 and tutorial_step == 1):
 		return false
 	if shares < 1:
 		if not quiet:
@@ -1729,6 +1939,7 @@ func sell_shares(quiet := false) -> bool:
 	_refresh(); _save()
 	_later(0.72, func():
 		coins += gain
+		_tutorial_action("share_sold")
 		juice.wealth_pop(true)
 		_refresh(); _save()
 	)
@@ -1737,12 +1948,15 @@ func sell_shares(quiet := false) -> bool:
 func buy_chick(quiet := false) -> bool:
 	if blocked():
 		return false
+	if tutorial_mode and not (tutorial_day == 1 and tutorial_step == 4):
+		return false
 	if coins < CHICK_COST:
 		if not quiet:
 			_toast(Loc.t("toast_need_gold_chick")); _deny(wolf_buy)
 		return false
 	coins -= CHICK_COST
 	young_chicks += 1
+	_tutorial_action("chick_bought")
 	sfx.spend(); sfx.chick()
 	juice.fly("spend_wolf")
 	juice.fly("chick_wolf")
@@ -1770,6 +1984,8 @@ func upgrade_bakery() -> void:
 func sell_hen(quiet := false) -> bool:
 	if blocked():
 		return false
+	if tutorial_mode:
+		return false
 	if hens < 1:
 		if not quiet:
 			_toast(Loc.t("toast_no_hen")); _deny(wolf_sell)
@@ -1790,6 +2006,12 @@ func sell_hen(quiet := false) -> bool:
 func _next_day() -> void:
 	if settling or game_result != "":
 		return
+	if tutorial_mode:
+		var can_end := (tutorial_day == 1 and tutorial_step == 5) or (tutorial_day == 2 and tutorial_step == 3)
+		if not can_end:
+			_tutorial_refresh_prompt()
+			return
+		tutorial_layer.visible = false
 	settling = true
 	_set_settle_chrome(true)
 	_fx += 1
@@ -1823,6 +2045,8 @@ func _next_day() -> void:
 	var old_p := price
 	var old_wealth := cash() + held() * old_p
 	var p := next_price(price, tonight)
+	if tutorial_mode:
+		p = 120 if tutorial_day == 1 else 150
 	price = p
 	history.append(p)
 	if history.size() > 8:
@@ -1863,6 +2087,8 @@ func _set_settle_chrome(hidden: bool) -> void:
 	var hud := get_node_or_null("HUD") as Control
 	if hud:
 		hud.visible = not hidden
+	if hud_bar_bg:
+		hud_bar_bg.visible = not hidden
 	if hidden:
 		egg_btn.visible = false
 		cake_btn.visible = false
@@ -1924,6 +2150,62 @@ func _open_settings() -> void:
 func _close_settings() -> void:
 	show_settings = false
 	settings_pop.visible = false
+
+func _open_guide() -> void:
+	_close_settings()
+	_close_quest()
+	guide_pop.visible = true
+	guide_card.modulate.a = 1.0
+	guide_card.scale = Vector2.ONE
+	juice.pop_in(guide_card)
+
+func _style_guide_step(panel: PanelContainer) -> void:
+	var style := StyleBoxFlat.new()
+	style.bg_color = Color("f8e7bb")
+	style.border_color = Color("9a6330")
+	style.set_border_width_all(2)
+	style.corner_radius_top_left = 14
+	style.corner_radius_top_right = 14
+	style.corner_radius_bottom_left = 14
+	style.corner_radius_bottom_right = 14
+	style.content_margin_left = 14
+	style.content_margin_right = 10
+	style.content_margin_top = 6
+	style.content_margin_bottom = 6
+	panel.add_theme_stylebox_override("panel", style)
+	for label in panel.find_children("*", "Label", true, false):
+		label.add_theme_color_override("font_color", Color("4b2d16"))
+
+func _style_lang_buttons() -> void:
+	var zh := get_node("SettingsPop/Card/Col/LangRow/ZhBtn") as Button
+	var en := get_node("SettingsPop/Card/Col/LangRow/EnBtn") as Button
+	if Loc.lang == "zh":
+		_style_green(zh)
+		_style_beige(en)
+	else:
+		_style_beige(zh)
+		_style_green(en)
+	zh.add_theme_font_size_override("font_size", 18)
+	en.add_theme_font_size_override("font_size", 18)
+
+func _close_guide() -> void:
+	guide_pop.visible = false
+	guide_card.modulate.a = 1.0
+	guide_card.scale = Vector2.ONE
+
+func _on_guide_dim_input(event: InputEvent) -> void:
+	if not guide_pop.visible:
+		return
+	var tap := false
+	var pos := Vector2.ZERO
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		tap = true
+		pos = event.global_position
+	elif event is InputEventScreenTouch and event.pressed:
+		tap = true
+		pos = event.position
+	if tap and not guide_card.get_global_rect().has_point(pos):
+		_close_guide()
 
 func _on_settings_dim_input(event: InputEvent) -> void:
 	if not settings_pop.visible:
@@ -2052,7 +2334,7 @@ func _rewind_to_dawn() -> void:
 		wealth_log.clear()
 		for x in d.wealthLog:
 			wealth_log.append(int(x))
-	left_ms = DAY_MS
+	left_ms = TUTORIAL_DAY_MS if tutorial_mode else DAY_MS
 	summary = {}
 	game_result = ""
 	just_grown = 0
@@ -2152,7 +2434,7 @@ func _wake() -> void:
 	hatched += new_hatch
 	hatching = 0
 	day = int(summary.get("day", day + 1))
-	left_ms = DAY_MS
+	left_ms = TUTORIAL_DAY_MS if tutorial_mode else DAY_MS
 	ready_eggs = 1 if hens > 0 else 0
 	pending_eggs = maxi(0, hens - 1)
 	eggs = 0
@@ -2160,6 +2442,8 @@ func _wake() -> void:
 	summary = {}
 	panic_told = false
 	news = pick_news(price)
+	if tutorial_mode:
+		news = "cake"
 	sfx.set_night(false)
 	sfx.dawn()
 	if grown > 0:
@@ -2171,6 +2455,11 @@ func _wake() -> void:
 	await juice.dawn_out(night, card)
 	settling = false
 	_set_settle_chrome(false)
+	if tutorial_mode:
+		tutorial_day = day
+		tutorial_step = 0
+		tutorial_layer.visible = true
+		_tutorial_refresh_prompt()
 	_capture_dawn()
 	_refresh()
 	_save()
@@ -2202,18 +2491,258 @@ func _rank_of(wealth: int) -> Dictionary:
 			r = x
 	return r
 
+func _reset_new_game_data() -> void:
+	coins = 120; eggs = 0; ready_eggs = 3; pending_eggs = 0
+	hens = 1; young_chicks = 0; cakes = 0; cakes_sold = 0; shares = 0
+	price = 120; day = 1; left_ms = DAY_MS
+	history = [108, 96, 114, 120]
+	wealth_log = [120]
+	_cash_shown = 120.0
+	_stock_shown = 0.0
+	baking = 0; bakery_level = 1; hatching = 0; hatched = 0
+	_bake_acc = 0.0; _egg_acc = 0.0; _egg_ready_acc = 0.0; _bake_hold = 0.0
+	settling = false; game_result = ""; summary = {}
+	just_grown = 0; fanfare = false; quest_done = false
+	show_quest = false; show_settings = false
+	seen_goal = 0; mail_seen = ""; news = "cake"
+	panic_told = false; _dusk_hurry = false
+
+func _start_tutorial() -> void:
+	if tutorial_mode:
+		return
+	_write_tutorial_status("in_progress")
+	_fx += 1
+	_reset_new_game_data()
+	tutorial_mode = true
+	tutorial_day = 1
+	tutorial_step = 0
+	tutorial_eggs_stored = 0
+	tutorial_eggs_tapped = 0
+	_close_settings()
+	_close_quest()
+	_set_settle_chrome(false)
+	night.visible = false
+	card.visible = false
+	wolf_talk.visible = false
+	sfx.set_night(false)
+	tutorial_layer.visible = true
+	_tutorial_refresh_prompt()
+	# The intro step must always expose a clear entry action; otherwise a
+	# fresh player sees only the exit control and cannot reach the first
+	# resource-bubble step.
+	if tutorial_day == 1 and tutorial_step == 0:
+		tutorial_next.visible = true
+		tutorial_next.text = Loc.t("tutorial_begin")
+	_refresh()
+	_capture_dawn()
+	_apply_locale()
+	_rebuild_flock()
+
+func _leave_tutorial(completed: bool) -> void:
+	if not tutorial_mode:
+		return
+	var toast_key := "tutorial_complete_toast" if completed else "tutorial_exit_toast"
+	_fx += 1
+	_write_tutorial_status("completed" if completed else "dismissed")
+	tutorial_mode = false
+	tutorial_layer.visible = false
+	_reset_new_game_data()
+	_capture_dawn()
+	if completed:
+		# Completing the tutorial starts a fresh formal first day; never restore
+		# the save that existed before entering the tutorial.
+		_save()
+	else:
+		# Exiting tutorial returns to the route menu without touching formal save.
+		start_menu.visible = true
+	night.visible = false
+	card.visible = false
+	quest_pop.visible = false
+	settings_pop.visible = false
+	wolf_talk.visible = false
+	_set_settle_chrome(false)
+	sfx.set_night(false)
+	_cash_shown = float(cash())
+	_stock_shown = float(held() * maxi(1, price))
+	_apply_locale()
+	_rebuild_flock()
+	_restore_settlement()
+	_toast(Loc.t(toast_key))
+
+func _complete_tutorial() -> void:
+	_leave_tutorial(true)
+
+func _tutorial_next_pressed() -> void:
+	if not tutorial_mode:
+		return
+	if tutorial_day == 1 and tutorial_step == 0:
+		_tutorial_set_step(1)
+	elif tutorial_day == 2 and tutorial_step == 1:
+		_tutorial_set_step(2)
+	elif tutorial_day == 3 and tutorial_step == 0:
+		_tutorial_set_step(1)
+	elif tutorial_day == 3 and tutorial_step == 2:
+		_complete_tutorial()
+
+func _tutorial_action(action: String) -> void:
+	if not tutorial_mode:
+		return
+	# The player completed the currently highlighted instruction. Clear its
+	# glow immediately so only the next required target draws attention.
+	_tutorial_clear_highlights()
+	if tutorial_day == 1:
+		if tutorial_step == 1 and action == "egg_stored":
+			tutorial_eggs_stored = mini(3, tutorial_eggs_stored + 1)
+			if tutorial_eggs_stored >= 3:
+				_tutorial_set_step(2)
+			else:
+				_tutorial_refresh_prompt()
+		elif tutorial_step == 2 and action == "hatch_started":
+			_tutorial_set_step(3)
+		elif tutorial_step == 3 and action == "cake_sold":
+			_tutorial_set_step(4)
+		elif tutorial_step == 4 and action == "chick_bought":
+			_tutorial_set_step(5)
+	elif tutorial_day == 2:
+		if tutorial_step == 0 and action == "chick_collected":
+			_tutorial_set_step(1)
+		elif tutorial_step == 2 and action == "share_bought":
+			_tutorial_set_step(3)
+	elif tutorial_day == 3 and tutorial_step == 1 and action == "share_sold":
+		_tutorial_set_step(2)
+
+func _tutorial_set_step(next_step: int) -> void:
+	tutorial_step = next_step
+	_tutorial_refresh_prompt()
+	_tutorial_apply_locks()
+	call_deferred("_tutorial_focus_target")
+
+func _tutorial_apply_locks() -> void:
+	# Reset tutorial-controlled buttons before applying the current step.
+	# Using `old_disabled or current_lock` made a button stay disabled forever
+	# after the first tutorial step, so the highlighted target looked clickable
+	# but could never receive input.
+	for item in [egg_btn, hatch_btn, cake_btn, chick_btn, wolf_buy, wolf_sell, share_buy, share_sell, day_end_btn, bakery_upgrade]:
+		if item != null:
+			item.disabled = false
+	if not tutorial_mode:
+		wolf_buy.visible = true
+		wolf_sell.visible = true
+		share_buy.visible = true
+		share_sell.visible = true
+		day_end_btn.visible = true
+		day_end_btn.disabled = false
+		_tutorial_clear_highlights()
+		return
+	wolf_buy.visible = tutorial_day == 1 and tutorial_step == 4
+	wolf_sell.visible = false
+	share_buy.visible = tutorial_day == 2 and tutorial_step == 2
+	share_sell.visible = tutorial_day == 3 and tutorial_step == 1
+	day_end_btn.visible = (tutorial_day == 1 and tutorial_step == 5) or (tutorial_day == 2 and tutorial_step == 3)
+	# Keep the same farm presentation as the formal level. Tutorial only locks
+	# actions; it does not hide the resource bubbles, so the scene never looks
+	# empty and players can see what will unlock next.
+	bakery_upgrade.visible = false
+	egg_btn.disabled = not (tutorial_day == 1 and tutorial_step == 1)
+	hatch_btn.disabled = not (tutorial_day == 1 and tutorial_step == 2)
+	cake_btn.disabled = not (tutorial_day == 1 and tutorial_step == 3)
+	chick_btn.disabled = not (tutorial_day == 2 and tutorial_step == 0)
+	wolf_buy.disabled = not (tutorial_day == 1 and tutorial_step == 4)
+	wolf_sell.disabled = true
+	share_buy.disabled = not (tutorial_day == 2 and tutorial_step == 2)
+	share_sell.disabled = not (tutorial_day == 3 and tutorial_step == 1)
+	bakery_upgrade.disabled = true
+	day_end_btn.disabled = not ((tutorial_day == 1 and tutorial_step == 5) or (tutorial_day == 2 and tutorial_step == 3))
+
+func _tutorial_clear_highlights() -> void:
+	for item in [egg_btn, hatch_btn, cake_btn, chick_btn, wolf_buy, wolf_sell, share_buy, share_sell, day_end_btn, stock_graph]:
+		if item != null:
+			item.modulate = Color.WHITE
+
+func _tutorial_refresh_prompt() -> void:
+	if not tutorial_mode:
+		return
+	tutorial_layer.visible = true
+	tutorial_layer.get_node("Card").visible = true
+	tutorial_title.text = Loc.t("tutorial_header", [tutorial_day])
+	tutorial_exit.text = Loc.t("tutorial_exit")
+	tutorial_next.visible = false
+	if tutorial_day == 1:
+		match tutorial_step:
+			0:
+				tutorial_body.text = Loc.t("tutorial_d1_intro")
+				tutorial_next.text = Loc.t("tutorial_begin")
+				tutorial_next.visible = true
+			1:
+				if tutorial_eggs_tapped >= 3 and tutorial_eggs_stored < 3:
+					tutorial_body.text = Loc.t("tutorial_d1_eggs_landing", [tutorial_eggs_tapped])
+				else:
+					tutorial_body.text = Loc.t("tutorial_d1_eggs", [tutorial_eggs_tapped])
+			2:
+				tutorial_body.text = Loc.t("tutorial_d1_hatch")
+			3:
+				tutorial_body.text = Loc.t("tutorial_d1_cake_sell") if cakes > 0 else Loc.t("tutorial_d1_cake_wait")
+			4:
+				tutorial_body.text = Loc.t("tutorial_d1_chick")
+			5:
+				tutorial_body.text = Loc.t("tutorial_d1_end")
+	elif tutorial_day == 2:
+		match tutorial_step:
+			0:
+				tutorial_body.text = Loc.t("tutorial_d2_collect")
+			1:
+				tutorial_body.text = Loc.t("tutorial_d2_stock_intro")
+				tutorial_next.text = Loc.t("tutorial_continue")
+				tutorial_next.visible = true
+			2:
+				tutorial_body.text = Loc.t("tutorial_d2_buy")
+			3:
+				tutorial_body.text = Loc.t("tutorial_d2_end")
+	else:
+		match tutorial_step:
+			0:
+				tutorial_body.text = Loc.t("tutorial_d3_intro")
+				tutorial_next.text = Loc.t("tutorial_continue")
+				tutorial_next.visible = true
+			1:
+				tutorial_body.text = Loc.t("tutorial_d3_sell")
+			2:
+				tutorial_body.text = Loc.t("tutorial_d3_done")
+				tutorial_next.text = Loc.t("tutorial_finish")
+				tutorial_next.visible = true
+	if not tutorial_next.visible and tutorial_step > 0:
+		tutorial_body.text += "\n" + Loc.t("tutorial_tap_hint") + "\n" + Loc.t("tutorial_locked_hint")
+
+func _tutorial_focus_target() -> void:
+	if not tutorial_mode:
+		return
+	_tutorial_clear_highlights()
+	var target: Control = null
+	if tutorial_day == 1:
+		target = [null, egg_btn, hatch_btn, cake_btn, wolf_buy, day_end_btn][tutorial_step]
+	elif tutorial_day == 2:
+		target = [chick_btn, stock_graph, share_buy, day_end_btn][tutorial_step]
+	elif tutorial_day == 3:
+		target = stock_graph if tutorial_step == 0 else (share_sell if tutorial_step == 1 else null)
+	if target != null and target.is_visible_in_tree():
+		target.modulate = Color(1.18, 1.08, 0.72, 1.0)
+		target.tooltip_text = "现在请点击这里"
+		juice.punch(target, 1.12)
+
 func _restart() -> void:
 	_fx += 1
+	tutorial_mode = false
+	tutorial_layer.visible = false
 	fanfare = false
 	quest_done = false
 	_dusk_hurry = false
 	juice.set_hurry(false)
-	coins = 140; eggs = 0; ready_eggs = 3; pending_eggs = 0
+	coins = 120; eggs = 0; ready_eggs = 3; pending_eggs = 0
 	hens = 1; young_chicks = 0; cakes = 0; cakes_sold = 0; shares = 0
 	price = 120; day = 1; left_ms = DAY_MS
 	history = [108, 96, 132, 114, 120]
-	wealth_log = [140]
-	_cash_shown = 140.0
+	wealth_log = [120]
+	_cash_shown = 120.0
 	_stock_shown = 0.0
 	baking = 0; bakery_level = 1; hatching = 0; hatched = 0
 	settling = false; game_result = ""; summary = {}
@@ -2233,9 +2762,16 @@ func _restart() -> void:
 	_capture_dawn()
 	if FileAccess.file_exists(SAVE_PATH):
 		DirAccess.remove_absolute(SAVE_PATH)
+	# Reset clears the tutorial marker too, then returns to the route-selection
+	# menu instead of forcing one of the two modes.
+	if FileAccess.file_exists(TUTORIAL_PATH):
+		DirAccess.remove_absolute(ProjectSettings.globalize_path(TUTORIAL_PATH))
 	_apply_locale()
+	start_menu.visible = true
 
 func _save() -> void:
+	if tutorial_mode:
+		return
 	var d := {
 		"coins": coins, "eggs": eggs, "readyEggs": ready_eggs, "pendingEggs": pending_eggs,
 		"hens": hens, "youngChicks": young_chicks, "cakes": cakes, "cakesSold": cakes_sold,

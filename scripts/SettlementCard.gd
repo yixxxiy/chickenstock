@@ -44,7 +44,16 @@ func _ready() -> void:
 		$Finale/Actions/ShareBtn.pressed.connect(_on_share)
 	$Daily.visible = true
 	$Finale.visible = false
+	$Daily.clip_contents = false
+	var host := get_parent() as Control
+	if host and not host.resized.is_connected(_on_shell_resized):
+		host.resized.connect(_on_shell_resized)
 	apply_locale()
+
+func _on_shell_resized() -> void:
+	if not is_visible_in_tree():
+		return
+	_fit_shell($Finale.visible)
 
 func apply_locale() -> void:
 	$Daily/Title.text = Loc.t("daily_title")
@@ -64,7 +73,31 @@ func apply_locale() -> void:
 	$Finale/Actions/ShareBtn.text = Loc.t("share_card")
 	if _finale_cta_ready or not $Finale.visible:
 		$Finale/Actions/Cta.text = Loc.t("retry_eight")
+	_fit_locale_type()
 
+func _fit_locale_type() -> void:
+	var en := Loc.lang == "en"
+	var title_sz := 32 if en else 39
+	var news_sz := 18 if en else 23
+	var ad_sz := 18 if en else 27
+	var cta_sz := 20 if en else 26
+	var hatch_sz := 16 if en else 20
+	var ledger_cap := 15 if en else 18
+	$Daily/Title.add_theme_font_size_override("font_size", title_sz)
+	$Daily/NewsChip/Row/Txt.add_theme_font_size_override("font_size", news_sz)
+	$Daily/NewsChip/Row/Txt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if en else TextServer.AUTOWRAP_OFF
+	$Daily/Actions/AdBtn.add_theme_font_size_override("font_size", ad_sz)
+	$Daily/Actions/Cta.add_theme_font_size_override("font_size", cta_sz)
+	$Daily/Actions/AdBtn.clip_text = true
+	$Daily/Actions/Cta.clip_text = true
+	$Daily/HatchNote/Txt.add_theme_font_size_override("font_size", hatch_sz)
+	$Daily/Ledger/Row/Broken/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Daily/Ledger/Row/Grown/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Daily/Ledger/Row/Cake/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Finale/Actions/Cta.add_theme_font_size_override("font_size", 18 if en else 20)
+	$Finale/Actions/ShareBtn.add_theme_font_size_override("font_size", 16 if en else 18)
+	$Finale/Hook.add_theme_font_size_override("font_size", 14 if en else 16)
+	$Finale/StampRow/StampTxt.add_theme_font_size_override("font_size", 18 if en else 22)
 func show_daily(p: Dictionary) -> void:
 	$Daily.visible = true
 	$Finale.visible = false
@@ -170,28 +203,37 @@ func _fit_shell(finale: bool) -> void:
 	offset_top = 0.0
 	offset_right = 0.0
 	offset_bottom = 0.0
-	if finale:
-		anchor_left = 0.07
-		anchor_right = 0.93
-		anchor_top = 0.08
-		anchor_bottom = 0.93
-		return
-	# Parchment page 958×1398 — lock that ratio so the report never squashes.
-	const PAGE_ASPECT := 958.0 / 1398.0
 	var parent_c := get_parent() as Control
 	var pw := parent_c.size.x if parent_c and parent_c.size.x > 8.0 else 576.0
 	var ph := parent_c.size.y if parent_c and parent_c.size.y > 8.0 else 1024.0
-	var max_w := pw * 0.84
-	var max_h := ph * 0.76
+	# Keep the parchment and CTAs inside the visible phone webview
+	# (address bar, home indicator, host badge).
+	const TOP_MIN := 0.05
+	const BOT_MAX := 0.84
+	const SIDE := 0.07
+	if finale:
+		anchor_left = SIDE
+		anchor_right = 1.0 - SIDE
+		anchor_top = 0.06
+		anchor_bottom = BOT_MAX
+		return
+	const PAGE_ASPECT := 958.0 / 1398.0
+	var max_w := pw * (1.0 - SIDE * 2.0)
+	var max_h := ph * (BOT_MAX - TOP_MIN)
 	var w := max_w
 	var h := w / PAGE_ASPECT
 	if h > max_h:
 		h = max_h
 		w = h * PAGE_ASPECT
 	var left := (pw - w) * 0.5
-	var top := ph * 0.10
-	if top + h > ph * 0.90:
-		top = (ph - h) * 0.42
+	var top := ph * TOP_MIN
+	if top + h > ph * BOT_MAX:
+		top = ph * BOT_MAX - h
+	if top < ph * 0.04:
+		top = ph * 0.04
+		h = minf(h, ph * BOT_MAX - top)
+		w = h * PAGE_ASPECT
+		left = (pw - w) * 0.5
 	anchor_left = left / pw
 	anchor_right = (left + w) / pw
 	anchor_top = top / ph

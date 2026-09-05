@@ -124,6 +124,7 @@ AssetGallery / ArtScene / 手机网页上看成片
 Godot：项目 → 导出 → Web → 导出项目
         ↓
 确认 export/web 里有 index.html / .wasm / .pck，以及 netlify.toml、_headers
+（预设已排除草稿和对版资源，不要清空排除项）
         ↓
 整包覆盖上传到站点 chickenstock
         ↓
