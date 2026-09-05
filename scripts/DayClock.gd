@@ -1,3 +1,4 @@
+@tool
 class_name DayClock
 extends Control
 
@@ -15,34 +16,46 @@ var _hand: TextureRect
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
-	_face = TextureRect.new()
-	_face.name = "Face"
+	_ensure_parts()
+	if not resized.is_connected(_layout):
+		resized.connect(_layout)
+	_layout()
+	_apply()
+
+func _ensure_parts() -> void:
+	_face = get_node_or_null("Face") as TextureRect
+	if _face == null:
+		_face = TextureRect.new()
+		_face.name = "Face"
+		add_child(_face)
 	_face.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_face.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_face.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_face.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_face.texture = FACE
-	add_child(_face)
+	if _face.texture == null:
+		_face.texture = FACE
 
-	_pie = ElapsedPie.new()
-	_pie.name = "Elapsed"
+	_pie = get_node_or_null("Elapsed") as ElapsedPie
+	if _pie == null:
+		_pie = ElapsedPie.new()
+		_pie.name = "Elapsed"
+		add_child(_pie)
 	_pie.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	var add_mat := CanvasItemMaterial.new()
-	add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
-	_pie.material = add_mat
-	add_child(_pie)
+	if _pie.material == null:
+		var add_mat := CanvasItemMaterial.new()
+		add_mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		_pie.material = add_mat
 
-	_hand = TextureRect.new()
-	_hand.name = "Hand"
+	_hand = get_node_or_null("Hand") as TextureRect
+	if _hand == null:
+		_hand = TextureRect.new()
+		_hand.name = "Hand"
+		add_child(_hand)
 	_hand.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_hand.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	_hand.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	_hand.texture = HAND
-	add_child(_hand)
-
-	resized.connect(_layout)
-	_layout()
-	_apply()
+	if _hand.texture == null:
+		_hand.texture = HAND
 
 func set_elapsed(amount: float, is_hurry := false) -> void:
 	elapsed = clampf(amount, 0.0, 1.0)
@@ -62,6 +75,11 @@ func _layout() -> void:
 	_hand.pivot_offset = _hand.size * 0.5
 
 func _process(delta: float) -> void:
+	if Engine.is_editor_hint():
+		if _face == null or _hand == null:
+			_ensure_parts()
+		_layout()
+		return
 	if absf(elapsed - _shown) > 0.5:
 		_shown = elapsed
 	else:

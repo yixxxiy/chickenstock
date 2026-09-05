@@ -54,7 +54,7 @@ func _style_board() -> void:
 	if board == null:
 		return
 	_style_green(board.get_node_or_null("DayEnd") as Button)
-	_style_green(board.get_node_or_null("BakeryUpgrade") as Button)
+	_style_plank(board.get_node_or_null("BakeryUpgrade") as Button)
 	_style_green(board.get_node_or_null("WolfShop/Talk/Col/WolfBuy") as Button)
 	_style_red(board.get_node_or_null("WolfShop/Talk/Col/WolfSell") as Button)
 	_style_plank(board.get_node_or_null("Ticker/TradeRow/ShareBuy") as Button)

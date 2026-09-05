@@ -1,19 +1,22 @@
 extends Control
 
+const UiLayout := preload("res://scripts/UiLayout.gd")
+const UiStyle := preload("res://scripts/UiStyle.gd")
+
 signal confirmed
 signal continue_endless
 signal ad_rewind
 signal notice(text: String)
 
-const UiGreenButton := preload("res://assets/ui/farm-ui/button_green.png")
-const UiRedButton := preload("res://assets/ui/farm-ui/button_red.png")
-const UiEmptyBeige := preload("res://assets/ui/farm-ui/button_empty_beige.png")
 const ShareIcon := preload("res://icons/share.png")
-const PipEmpty := preload("res://assets/ui/settlement/layers/23-pip-empty.png")
-const PipHit := preload("res://assets/ui/settlement/layers/24-pip-hit.png")
-const PipNow := preload("res://assets/ui/settlement/layers/25-pip-now.png")
-const PriceUp := preload("res://icons/price_up.png")
 const PriceDown := preload("res://icons/price_down.png")
+var UiGreenButton: Texture2D
+var UiRedButton: Texture2D
+var UiEmptyBeige: Texture2D
+var PipEmpty: Texture2D
+var PipHit: Texture2D
+var PipNow: Texture2D
+var PriceUp: Texture2D
 
 const INK := Color("4a321f")
 const MUTED := Color("8b633f")
@@ -34,11 +37,12 @@ var _cta_wait_id := 0
 var _finale_cta_ready := true
 
 func _ready() -> void:
+	_load_kit_textures()
 	_style_beige($Daily/Actions/AdBtn)
 	_style_share($Finale/Actions/ShareBtn)
 	_style_green($Daily/Actions/Cta)
-	_style_green($Finale/Actions/Cta)
-	_style_red($Finale/Actions/EndlessBtn)
+	_style_beige($Finale/Actions/Cta)
+	_style_green($Finale/Actions/EndlessBtn)
 	$Daily/Actions/AdBtn.add_theme_font_size_override("font_size", 27)
 	$Daily/Actions/Cta.add_theme_font_size_override("font_size", 30)
 	if not $Daily/Actions/Cta.pressed.is_connected(_on_cta):
@@ -53,7 +57,17 @@ func _ready() -> void:
 	var host := get_parent() as Control
 	if host and not host.resized.is_connected(_on_shell_resized):
 		host.resized.connect(_on_shell_resized)
+	UiLayout.report(self)
 	apply_locale()
+
+func _load_kit_textures() -> void:
+	UiGreenButton = UiLayout.kit_tex("res://assets/ui/settlement/kit/09-btn-green-wide.png")
+	UiRedButton = UiLayout.kit_tex("res://assets/ui/settlement/kit/11-btn-red-wide.png")
+	UiEmptyBeige = UiLayout.kit_tex("res://assets/ui/settlement/kit/10-btn-beige-wide.png")
+	PipEmpty = UiLayout.kit_tex("res://assets/ui/settlement/kit/22-pip-empty.png")
+	PipHit = UiLayout.kit_tex("res://assets/ui/settlement/kit/21-pip-filled-gold.png")
+	PipNow = PipHit
+	PriceUp = UiLayout.kit_tex("res://assets/ui/settlement/kit/24-icon-arrow-up.png")
 
 func _on_shell_resized() -> void:
 	if not is_visible_in_tree():
@@ -61,15 +75,34 @@ func _on_shell_resized() -> void:
 	_fit_shell($Finale.visible)
 
 func apply_locale() -> void:
-	$Daily/Title.text = Loc.t("daily_title")
-	$Daily/StatsCap.text = Loc.t("report_stats")
+	var daily_title := $Daily.get_node_or_null("TitleRow/Title") as Label
+	if daily_title == null:
+		daily_title = $Daily/Title
+	daily_title.text = Loc.t("daily_title")
+	if $Daily.has_node("StatsCap"):
+		$Daily/StatsCap.text = Loc.t("report_stats")
 	$Daily/PriceWell/Col/CapRow/Cap.text = Loc.t("close_price")
-	$Daily/Ledger/Row/Broken/Cap.text = Loc.t("broken")
-	$Daily/Ledger/Row/Grown/Cap.text = Loc.t("grown")
-	$Daily/Ledger/Row/Cake/Cap.text = Loc.t("cakes")
+	var broken_cap := $Daily.get_node_or_null("Ledger/Row/Broken/Col/Cap") as Label
+	if broken_cap == null:
+		broken_cap = $Daily.get_node_or_null("Ledger/Row/Broken/Cap") as Label
+	if broken_cap:
+		broken_cap.text = Loc.t("broken")
+	var grown_cap := $Daily.get_node_or_null("Ledger/Row/Grown/Col/Cap") as Label
+	if grown_cap == null:
+		grown_cap = $Daily.get_node_or_null("Ledger/Row/Grown/Cap") as Label
+	if grown_cap:
+		grown_cap.text = Loc.t("grown")
+	var cake_cap := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Cap") as Label
+	if cake_cap == null:
+		cake_cap = $Daily.get_node_or_null("Ledger/Row/Cake/Cap") as Label
+	if cake_cap:
+		cake_cap.text = Loc.t("cakes")
 	$Daily/Actions/Cta.text = Loc.t("start_new_day")
 	$Daily/Actions/AdBtn.text = Loc.t("watch_ad")
-	$Finale/Title.text = Loc.t("finale_title")
+	var finale_title := $Finale.get_node_or_null("Banner/Title") as Label
+	if finale_title == null:
+		finale_title = $Finale/Title
+	finale_title.text = Loc.t("finale_title")
 	$Finale/Hook.text = Loc.t("finale_hook")
 	$Finale/Scores/Wealth/Col/Cap.text = Loc.t("wealth_cap")
 	$Finale/Scores/Flock/Col/Cap.text = Loc.t("flock_cap")
@@ -83,13 +116,16 @@ func apply_locale() -> void:
 
 func _fit_locale_type() -> void:
 	var en := Loc.lang == "en"
-	var title_sz := 32 if en else 39
-	var news_sz := 18 if en else 23
-	var ad_sz := 18 if en else 27
-	var cta_sz := 20 if en else 26
-	var hatch_sz := 16 if en else 20
-	var ledger_cap := 15 if en else 18
-	$Daily/Title.add_theme_font_size_override("font_size", title_sz)
+	var title_sz := 28 if en else 34
+	var news_sz := 17 if en else 20
+	var ad_sz := 20 if en else 24
+	var cta_sz := 24 if en else 28
+	var hatch_sz := 15 if en else 18
+	var ledger_cap := 14 if en else 16
+	var daily_title := $Daily.get_node_or_null("TitleRow/Title") as Label
+	if daily_title == null:
+		daily_title = $Daily/Title
+	daily_title.add_theme_font_size_override("font_size", title_sz)
 	$Daily/NewsChip/Row/Txt.add_theme_font_size_override("font_size", news_sz)
 	$Daily/NewsChip/Row/Txt.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART if en else TextServer.AUTOWRAP_OFF
 	$Daily/Actions/AdBtn.add_theme_font_size_override("font_size", ad_sz)
@@ -99,12 +135,12 @@ func _fit_locale_type() -> void:
 	$Daily/HatchNote/Txt.add_theme_font_size_override("font_size", hatch_sz)
 	$Daily/BeatLine.add_theme_font_size_override("font_size", 14 if en else 16)
 	$Finale/BeatLine.add_theme_font_size_override("font_size", 13 if en else 15)
-	$Daily/Ledger/Row/Broken/Cap.add_theme_font_size_override("font_size", ledger_cap)
-	$Daily/Ledger/Row/Grown/Cap.add_theme_font_size_override("font_size", ledger_cap)
-	$Daily/Ledger/Row/Cake/Cap.add_theme_font_size_override("font_size", ledger_cap)
-	$Finale/Actions/Cta.add_theme_font_size_override("font_size", 16 if en else 18)
-	$Finale/Actions/EndlessBtn.add_theme_font_size_override("font_size", 13 if en else 15)
-	$Finale/Actions/ShareBtn.add_theme_font_size_override("font_size", 14 if en else 16)
+	$Daily/Ledger/Row/Broken/Col/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Daily/Ledger/Row/Grown/Col/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Daily/Ledger/Row/Cake/Col/Cap.add_theme_font_size_override("font_size", ledger_cap)
+	$Finale/Actions/Cta.add_theme_font_size_override("font_size", 20 if en else 22)
+	$Finale/Actions/EndlessBtn.add_theme_font_size_override("font_size", 20 if en else 22)
+	$Finale/Actions/ShareBtn.add_theme_font_size_override("font_size", 18 if en else 20)
 	$Finale/Hook.add_theme_font_size_override("font_size", 14 if en else 16)
 	$Finale/StampRow/StampTxt.add_theme_font_size_override("font_size", 18 if en else 22)
 func show_daily(p: Dictionary) -> void:
@@ -127,7 +163,7 @@ func show_daily(p: Dictionary) -> void:
 	var up := bool(p.get("news_up", true))
 	var arrow := "▲" if up else "▼"
 	$Daily/NewsChip/Row/Txt.text = "%s   %s" % [Loc.t("tonight_news", [str(p.get("news_text", ""))]), arrow]
-	$Daily/NewsChip/Row/Txt.add_theme_color_override("font_color", RISE if up else FALL)
+	$Daily/NewsChip/Row/Txt.add_theme_color_override("font_color", INK if up else FALL)
 	var weather := str(p.get("weather", "cloud"))
 	var wtex: Texture2D = load("res://assets/ui/weather-%s.png" % weather)
 	if wtex:
@@ -136,16 +172,31 @@ func show_daily(p: Dictionary) -> void:
 	var new_p := int(p.get("new_price", 0))
 	var rose := new_p >= old_p
 	var tone := RISE if rose else FALL
-	$Daily/PriceWell/Col/Num.text = str(new_p)
-	$Daily/PriceWell/Col/Num.add_theme_color_override("font_color", tone)
-	$Daily/PriceWell/Col/DeltaRow/Icon.texture = PriceUp if rose else PriceDown
-	$Daily/PriceWell/Col/DeltaRow/Delta.text = str(absi(new_p - old_p))
-	$Daily/PriceWell/Col/DeltaRow/Delta.add_theme_color_override("font_color", tone)
+	var price_num := $Daily/PriceWell/Col.get_node_or_null("HeroRow/Num") as Label
+	if price_num == null:
+		price_num = $Daily/PriceWell/Col/Num
+	var delta_row := $Daily/PriceWell/Col.get_node_or_null("HeroRow/DeltaRow") as Control
+	if delta_row == null:
+		delta_row = $Daily/PriceWell/Col/DeltaRow
+	price_num.text = str(new_p)
+	price_num.add_theme_color_override("font_color", tone)
+	delta_row.get_node("Icon").texture = PriceUp if rose else PriceDown
+	delta_row.get_node("Delta").text = str(absi(new_p - old_p))
+	delta_row.get_node("Delta").add_theme_color_override("font_color", tone)
 	var broken := int(p.get("broken", 0))
-	$Daily/Ledger/Row/Broken/Num.text = str(broken)
-	$Daily/Ledger/Row/Broken/Num.add_theme_color_override("font_color", FALL if broken > 0 else INK)
-	$Daily/Ledger/Row/Grown/Num.text = str(int(p.get("grown", 0)))
-	$Daily/Ledger/Row/Cake/Num.text = str(int(p.get("cakes", 0)))
+	var broken_num := $Daily.get_node_or_null("Ledger/Row/Broken/Col/Num") as Label
+	if broken_num == null:
+		broken_num = $Daily/Ledger/Row/Broken/Num
+	var grown_num := $Daily.get_node_or_null("Ledger/Row/Grown/Col/Num") as Label
+	if grown_num == null:
+		grown_num = $Daily/Ledger/Row/Grown/Num
+	var cake_num := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Num") as Label
+	if cake_num == null:
+		cake_num = $Daily/Ledger/Row/Cake/Num
+	broken_num.text = str(broken)
+	broken_num.add_theme_color_override("font_color", FALL if broken > 0 else INK)
+	grown_num.text = str(int(p.get("grown", 0)))
+	cake_num.text = str(int(p.get("cakes", 0)))
 	$Daily/Footnote/Row/Txt.text = Loc.t("wealth_flow", [int(p.get("old_wealth", 0)), int(p.get("new_wealth", 0))])
 	_set_beat_line($Daily/BeatLine, str(p.get("beat_text", "")))
 	var hatched := int(p.get("hatched", 0))
@@ -181,23 +232,32 @@ func show_finale(p: Dictionary) -> void:
 	var flock_hit := birds >= flock_goal
 	$Finale/Scores/Wealth/Col/Num.add_theme_color_override("font_color", GOLD if wealth_hit else FALL)
 	$Finale/Scores/Flock/Col/Num.add_theme_color_override("font_color", GOLD if flock_hit else FALL)
+	var wealth_target := $Finale/Scores/Wealth/Col.get_node_or_null("Target") as Label
+	var flock_target := $Finale/Scores/Flock/Col.get_node_or_null("Target") as Label
+	if wealth_target:
+		wealth_target.text = Loc.t("goal_n", [wealth_goal])
+	if flock_target:
+		flock_target.text = Loc.t("goal_n", [flock_goal])
 	if wealth_hit:
 		var extra := wealth - wealth_goal
-		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("quest_hit") if extra <= 0 else Loc.t("goal_over", [extra])
+		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("quest_hit") if extra <= 0 else Loc.t("goal_over_gold", [extra])
 	else:
-		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("goal_gap", [wealth_goal - wealth])
+		$Finale/Scores/Wealth/Col/Goal.text = Loc.t("goal_gap_gold", [wealth_goal - wealth])
 	if flock_hit:
 		var extra_b := birds - flock_goal
-		$Finale/Scores/Flock/Col/Goal.text = Loc.t("quest_hit") if extra_b <= 0 else Loc.t("goal_over", [extra_b])
+		$Finale/Scores/Flock/Col/Goal.text = Loc.t("quest_hit") if extra_b <= 0 else Loc.t("goal_over_birds", [extra_b])
 	else:
 		$Finale/Scores/Flock/Col/Goal.text = Loc.t("quest_need_birds", [flock_goal - birds])
 	$Finale/Scores/Wealth/Col/Goal.add_theme_color_override("font_color", RISE if wealth_hit else FALL)
 	$Finale/Scores/Flock/Col/Goal.add_theme_color_override("font_color", RISE if flock_hit else FALL)
 	var quest := bool(p.get("quest", false))
-	$Finale/StampRow/Stamp.visible = quest
+	var stamp := $Finale/StampRow/Stamp as TextureRect
+	stamp.visible = true
+	stamp.texture = load("res://icons/check.png") if quest else load("res://icons/alert.png")
+	stamp.modulate = Color.WHITE if quest else Color(1.05, 0.75, 0.7)
 	$Finale/StampRow/StampTxt.text = Loc.t("quest_stamp") if quest else Loc.t("quest_miss")
 	$Finale/StampRow/StampTxt.add_theme_color_override("font_color", RISE if quest else FALL)
-	$Finale/StampRow/StampTxt.add_theme_font_size_override("font_size", 22 if quest else 24)
+	$Finale/StampRow/StampTxt.add_theme_font_size_override("font_size", 20 if quest else 22)
 	$Finale/Split.text = Loc.t("wealth_split", [int(p.get("cash", 0)), int(p.get("stock", 0))])
 	_set_beat_line($Finale/BeatLine, str(p.get("beat_text", "")))
 	_wealth_pts.clear()
@@ -212,53 +272,33 @@ func show_finale(p: Dictionary) -> void:
 	_begin_cta_wait()
 
 func _fit_shell(finale: bool) -> void:
+	scale = Vector2.ONE
+	pivot_offset = Vector2.ZERO
 	offset_left = 0.0
 	offset_top = 0.0
 	offset_right = 0.0
 	offset_bottom = 0.0
-	var parent_c := get_parent() as Control
-	var pw := parent_c.size.x if parent_c and parent_c.size.x > 8.0 else 576.0
-	var ph := parent_c.size.y if parent_c and parent_c.size.y > 8.0 else 1024.0
-	# Keep the parchment and CTAs inside the visible phone webview
-	# (address bar, home indicator, host badge).
-	const TOP_MIN := 0.05
-	const BOT_MAX := 0.84
-	const SIDE := 0.07
+	# Settlement typography is fixed and does not follow the game's text-size
+	# preference. Keep the reusable nine-slice report centered in the phone safe area.
+	anchor_left = 0.08
+	anchor_right = 0.92
 	if finale:
-		anchor_left = SIDE
-		anchor_right = 1.0 - SIDE
-		anchor_top = 0.06
-		anchor_bottom = BOT_MAX
-		return
-	const PAGE_ASPECT := 958.0 / 1398.0
-	var max_w := pw * (1.0 - SIDE * 2.0)
-	var max_h := ph * (BOT_MAX - TOP_MIN)
-	var w := max_w
-	var h := w / PAGE_ASPECT
-	if h > max_h:
-		h = max_h
-		w = h * PAGE_ASPECT
-	var left := (pw - w) * 0.5
-	var top := ph * TOP_MIN
-	if top + h > ph * BOT_MAX:
-		top = ph * BOT_MAX - h
-	if top < ph * 0.04:
-		top = ph * 0.04
-		h = minf(h, ph * BOT_MAX - top)
-		w = h * PAGE_ASPECT
-		left = (pw - w) * 0.5
-	anchor_left = left / pw
-	anchor_right = (left + w) / pw
-	anchor_top = top / ph
-	anchor_bottom = (top + h) / ph
+		anchor_top = 0.10
+		anchor_bottom = 0.92
+	else:
+		anchor_top = 0.11
+		anchor_bottom = 0.91
 
 func _tint_shell(finale: bool) -> void:
-	$PaperStack.visible = finale
+	$PaperStack.visible = false
+	var finale_title := $Finale.get_node_or_null("Banner/Title") as Label
+	if finale_title == null:
+		finale_title = $Finale/Title
 	if finale:
-		$CardBody.modulate = Color(1.18, 0.86, 0.58)
-		$PaperStack.modulate = Color(1.14, 0.82, 0.55)
-		$HangTag.modulate = Color(1.22, 0.84, 0.48)
-		$Finale/Title.add_theme_color_override("font_color", FINALE_INK)
+		$CardBody.modulate = Color.WHITE
+		$PaperStack.modulate = Color.WHITE
+		$HangTag.modulate = Color.WHITE
+		finale_title.add_theme_color_override("font_color", Color("fff6e8"))
 		$Finale/Hook.add_theme_color_override("font_color", FINALE_MUTED)
 		$Finale/Copy.add_theme_color_override("font_color", FINALE_MUTED)
 		$Finale/Split.add_theme_color_override("font_color", FINALE_MUTED)
@@ -267,8 +307,8 @@ func _tint_shell(finale: bool) -> void:
 		$Finale/ChartWell/Curve.default_color = Color("c4842a")
 		$HangTag/TagLabel.add_theme_color_override("font_color", Color("4a2218"))
 	else:
-		$CardBody.modulate = Color(0.98, 0.99, 1.02)
-		$HangTag.modulate = Color(0.96, 0.98, 1.04)
+		$CardBody.modulate = Color.WHITE
+		$HangTag.modulate = Color.WHITE
 		$HangTag/TagLabel.add_theme_color_override("font_color", INK)
 
 func _set_beat_line(lab: Label, text: String) -> void:
@@ -572,25 +612,22 @@ func _style_share(b: Button) -> void:
 	b.add_theme_constant_override("icon_max_width", 36)
 
 func _style_beige(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", 18)
+	b.add_theme_font_size_override("font_size", 20)
 	b.add_theme_color_override("font_color", Color("4e3d2c"))
 	b.add_theme_color_override("font_hover_color", Color("4e3d2c"))
 	b.add_theme_color_override("font_pressed_color", Color("4e3d2c"))
 	b.add_theme_color_override("font_disabled_color", Color("4e3d2c88"))
 	var sb := StyleBoxTexture.new()
 	sb.texture = UiEmptyBeige
-	sb.texture_margin_left = 24
-	sb.texture_margin_top = 16
-	sb.texture_margin_right = 24
-	sb.texture_margin_bottom = 16
-	sb.content_margin_left = 12
-	sb.content_margin_top = 8
-	sb.content_margin_right = 12
-	sb.content_margin_bottom = 8
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
+	sb.texture_margin_left = 56
+	sb.texture_margin_top = 32
+	sb.texture_margin_right = 56
+	sb.texture_margin_bottom = 32
+	sb.content_margin_left = 16
+	sb.content_margin_top = 14
+	sb.content_margin_right = 16
+	sb.content_margin_bottom = 14
+	UiStyle.button_states(b, sb)
 
 func _style_red(b: Button) -> void:
 	b.add_theme_font_size_override("font_size", 15)
@@ -602,36 +639,30 @@ func _style_red(b: Button) -> void:
 	b.clip_text = true
 	var sb := StyleBoxTexture.new()
 	sb.texture = UiRedButton
-	sb.texture_margin_left = 20
-	sb.texture_margin_top = 12
-	sb.texture_margin_right = 20
-	sb.texture_margin_bottom = 12
-	sb.content_margin_left = 10
-	sb.content_margin_top = 8
-	sb.content_margin_right = 10
-	sb.content_margin_bottom = 8
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
+	sb.texture_margin_left = 56
+	sb.texture_margin_top = 32
+	sb.texture_margin_right = 56
+	sb.texture_margin_bottom = 32
+	sb.content_margin_left = 12
+	sb.content_margin_top = 10
+	sb.content_margin_right = 12
+	sb.content_margin_bottom = 10
+	UiStyle.button_states(b, sb)
 
 func _style_green(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", 20)
+	b.add_theme_font_size_override("font_size", 22)
 	b.add_theme_color_override("font_color", Color("fff8e8"))
 	b.add_theme_color_override("font_hover_color", Color("fff8e8"))
 	b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
 	b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
 	var sb := StyleBoxTexture.new()
 	sb.texture = UiGreenButton
-	sb.texture_margin_left = 20
-	sb.texture_margin_top = 12
-	sb.texture_margin_right = 20
-	sb.texture_margin_bottom = 12
-	sb.content_margin_left = 20
-	sb.content_margin_top = 12
-	sb.content_margin_right = 20
-	sb.content_margin_bottom = 12
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
+	sb.texture_margin_left = 56
+	sb.texture_margin_top = 32
+	sb.texture_margin_right = 56
+	sb.texture_margin_bottom = 32
+	sb.content_margin_left = 22
+	sb.content_margin_top = 14
+	sb.content_margin_right = 22
+	sb.content_margin_bottom = 14
+	UiStyle.button_states(b, sb)

@@ -1,17 +1,17 @@
 extends Control
 
+const UiLayout := preload("res://scripts/UiLayout.gd")
+const UiStyle := preload("res://scripts/UiStyle.gd")
+
 const SheetSpr := preload("res://scripts/SheetSprite.gd")
 const YardBirdScr := preload("res://scripts/YardBird.gd")
-const UiGreenButton := preload("res://assets/ui/farm-ui/button_green.png")
-const UiRedButton := preload("res://assets/ui/farm-ui/button_red.png")
-const UiBeigeButton := preload("res://assets/ui/farm-ui/button_neutral.png")
-const UiEmptyBeige := preload("res://assets/ui/farm-ui/button_empty_beige.png")
-const UiDockGreen := preload("res://assets/ui/farm-ui/dock_btn_green.png")
-const UiDockRed := preload("res://assets/ui/farm-ui/dock_btn_red.png")
-const UiDockGreenWide := preload("res://assets/ui/farm-ui/dock_btn_green_wide.png")
-const UiDockPanel := preload("res://assets/ui/farm-ui/dock_panel.png")
-const UiFrameTall := preload("res://themes/frame_tall_panel.tres")
-const UiFrameTicker := preload("res://themes/frame_ticker_panel.tres")
+const UiSimplePanel := preload("res://assets/ui/farm-ui/simple-ui/panel.png")
+const UiSimpleBeige := preload("res://assets/ui/farm-ui/simple-ui/button-beige.png")
+const UiSimpleGreen := preload("res://assets/ui/farm-ui/simple-ui/button-green.png")
+const UiSimpleRed := preload("res://assets/ui/farm-ui/simple-ui/button-red.png")
+const UiSimpleTag := preload("res://assets/ui/farm-ui/simple-ui/tag.png")
+const UiChipOn := preload("res://assets/ui/farm-ui/simple-ui/chip-on.png")
+const UiFlourish := preload("res://assets/ui/farm-ui/simple-ui/flourish.png")
 
 const DAY_MS := 20000.0
 const TUTORIAL_DAY_MS := 60000.0
@@ -150,6 +150,9 @@ var tutorial_eggs_stored := 0
 var tutorial_eggs_tapped := 0
 var _tutorial_return_has_save := false
 var _had_main_save := false
+var _tutorial_focused_target: Control
+var _tutorial_target_z_index := 0
+var _tutorial_target_z_as_relative := true
 
 var sfx: Node
 var juice: Node
@@ -170,8 +173,8 @@ var _mmb_pan := false
 @onready var hud_hens: Label = $HUD/HudBar/HenChip/Row/Num
 @onready var hud_chicks: Label = $HUD/HudBar/ChickChip/Row/Num
 @onready var hud_bar: Control = $HUD/HudBar
-@onready var hud_bar_bg: Panel = $HudBarBg
-@onready var day_label: Label = $HUD/ClockBox/Clock/DayLabel
+@onready var hud_bar_bg: Panel = $HUD/HudBar/HudBarBg
+@onready var day_label: Label = $HUD/ClockBox/DayChip/DayLabel
 @onready var day_clock: DayClock = $HUD/ClockBox/Clock
 @onready var toast_box: VBoxContainer = $Toasts
 @onready var night: ColorRect = $Night
@@ -190,20 +193,22 @@ var _mmb_pan := false
 @onready var ticker_hold: Label = $Dock/Row/Ticker/Face/Col/TickerHold
 @onready var ticker_delta: Label = $Dock/Row/Ticker/Face/Col/TickerDelta
 @onready var stock_graph = $Dock/Row/Ticker/Face/StockGraph
+@onready var ticker_price_cap: Label = $Dock/Row/Ticker/Face/Col/PriceCap
+@onready var ticker_hold_hint: Label = $Dock/Row/Ticker/Face/Col/HoldHint
 @onready var quest_btn: TextureButton = $HUD/QuestBtn
 @onready var mail_dot: Control = $HUD/QuestBtn/UnreadDot
-@onready var day_end_btn: Button = $Dock/Row/Day/DayEnd
+@onready var day_end_btn: Button = $Dock/Row/Day/TradeRow/DayEnd
 @onready var day_track: ColorRect = $Dock/Row/Day/DayTrack
 @onready var day_track_fill: ColorRect = $Dock/Row/Day/DayTrack/Fill
 @onready var bakery_eggs: Label = $BakeryEggs
 @onready var bakery_upgrade: Button = $BakeryUpgrade
 @onready var wolf_shop: Control = $WolfShop
-@onready var wolf_buy: Button = $Dock/Row/Animals/WolfBuy
-@onready var wolf_sell: Button = $Dock/Row/Animals/WolfSell
+@onready var wolf_buy: Button = $WolfShop/Animals/WolfBuy
+@onready var wolf_sell: Button = $WolfShop/Animals/WolfSell
 @onready var wolf_talk: Control = $WolfShop/Talk
 @onready var wolf_hit: Button = $WolfShop/WolfHit
-@onready var share_buy: Button = $Dock/Row/Ticker/TradeRow/ShareBuy
-@onready var share_sell: Button = $Dock/Row/Ticker/TradeRow/ShareSell
+@onready var share_buy: Button = $Dock/Row/Day/TradeRow/ShareBuy
+@onready var share_sell: Button = $Dock/Row/Day/TradeRow/ShareSell
 @onready var hatch_sprite = $HatchEgg
 @onready var quest_title: Label = $QuestPop/Card/Box/QuestTitle
 @onready var quest_wealth: Label = $QuestPop/Card/Box/WealthCard/Row/Col/Top/QuestWealth
@@ -218,6 +223,7 @@ var _mmb_pan := false
 @onready var wealth_hint: Label = $QuestPop/Card/Box/WealthCard/Row/Col/Hint
 @onready var flock_hint: Label = $QuestPop/Card/Box/FlockCard/Row/Col/Hint
 @onready var tutorial_layer: Control = $TutorialLayer
+@onready var tutorial_dim: ColorRect = $TutorialLayer/Dim
 @onready var tutorial_wolf: TextureRect = $TutorialLayer/TutorWolf
 @onready var tutorial_title: Label = $TutorialLayer/Card/Box/Title
 @onready var tutorial_body: Label = $TutorialLayer/Card/Box/Body
@@ -236,13 +242,14 @@ var _mmb_pan := false
 
 func _ready() -> void:
 	_lock_web_gestures()
-	_ensure_cjk_fallback()
 	hatch_sprite.texture_filter = TEXTURE_FILTER_NEAREST
 	sfx = preload("res://scripts/Sfx.gd").new()
 	add_child(sfx)
 	juice = preload("res://scripts/Juice.gd").new()
 	add_child(juice)
 	_connect_ui()
+	UiLayout.apply(self)
+	_style_top_hud_bar()
 	start_menu_tutorial.pressed.connect(_start_menu_tutorial_pressed)
 	start_menu_direct.pressed.connect(_start_menu_direct_pressed)
 	start_menu_endless.pressed.connect(_start_menu_endless_pressed)
@@ -264,61 +271,6 @@ func _ready() -> void:
 		if e is InputEventMouseButton and e.pressed:
 			sfx.unlock()
 	)
-
-func _ensure_cjk_fallback() -> void:
-	var theme := ThemeDB.get_project_theme()
-	if theme == null:
-		return
-	var sys := SystemFont.new()
-	sys.font_names = PackedStringArray([
-		"PingFang SC", "Hiragino Sans GB", "Heiti SC", "STHeiti",
-		"Microsoft YaHei", "Microsoft YaHei UI", "Noto Sans CJK SC",
-		"Noto Sans SC", "Source Han Sans SC", "DroidSansFallback",
-		"Noto Sans CJK", "sans-serif",
-	])
-	sys.allow_system_fallback = true
-	var fonts: Array[Font] = []
-	if theme.default_font:
-		fonts.append(theme.default_font)
-	for key in ["font", "normal_font", "bold_font"]:
-		var typed := theme.get_font(key, "Label")
-		if typed:
-			fonts.append(typed)
-		typed = theme.get_font(key, "Button")
-		if typed:
-			fonts.append(typed)
-		typed = theme.get_font(key, "RichTextLabel")
-		if typed:
-			fonts.append(typed)
-	for font in fonts:
-		if font == null:
-			continue
-		var found := false
-		for fb in font.fallbacks:
-			if fb is SystemFont:
-				found = true
-				break
-		if found:
-			continue
-		var next: Array[Font] = font.fallbacks
-		next.append(sys)
-		font.fallbacks = next
-	_normalize_ui_fonts(theme)
-
-func _normalize_ui_fonts(theme: Theme) -> void:
-	# Keep Chinese UI glyphs on one font face. Mixing the theme font with
-	# platform fallbacks makes some labels appear faux-bold or unexpectedly thin.
-	var base: Font = theme.default_font
-	if base == null:
-		base = theme.get_font("font", "Label")
-	if base == null:
-		return
-	for node in find_children("*", "Control", true, false):
-		if node is Label or node is Button:
-			node.add_theme_font_override("font", base)
-		if node is RichTextLabel:
-			node.add_theme_font_override("normal_font", base)
-			node.add_theme_font_override("bold_font", base)
 
 func _lock_web_gestures() -> void:
 	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
@@ -362,8 +314,6 @@ func _raise_hud_chrome() -> void:
 	var hud := get_node("HUD") as Control
 	hud.z_index = 40
 	hud.z_as_relative = false
-	hud_bar_bg.z_index = 39
-	hud_bar_bg.z_as_relative = false
 	night.z_index = 100
 	night.z_as_relative = false
 	quest_btn.z_index = 120
@@ -376,16 +326,17 @@ func _raise_hud_chrome() -> void:
 		settings_btn.z_as_relative = false
 		settings_btn.focus_mode = Control.FOCUS_NONE
 		settings_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	quest_pop.z_index = 110
+	# Pops sit above mail/settings so those icons cannot rest on the wooden frame.
+	# Mail stays at 120 so it remains above Night (100) during settlement.
+	quest_pop.z_index = 124
 	quest_pop.z_as_relative = false
-	settings_pop.z_index = 115
+	settings_pop.z_index = 125
 	settings_pop.z_as_relative = false
-	trophy_pop.z_index = 115
+	trophy_pop.z_index = 125
 	trophy_pop.z_as_relative = false
-	# Above yard-bird y-sort (0–100) and HUD (40); below Quest 110 / Settings 115.
 	tutorial_layer.z_index = 105
 	tutorial_layer.z_as_relative = false
-	guide_pop.z_index = 116
+	guide_pop.z_index = 126
 	guide_pop.z_as_relative = false
 	if menu_backdrop:
 		menu_backdrop.z_index = 90
@@ -628,6 +579,10 @@ func _button_at(pos: Vector2) -> BaseButton:
 	if quest_pop.visible:
 		return _control_button_at(quest_pop, pos)
 	if night.visible:
+		# Mail and settings are above the report visually; route their clicks first.
+		for chrome in [quest_btn, get_node("HUD/SettingsBtn")]:
+			if chrome.is_visible_in_tree() and not chrome.disabled and chrome.get_global_rect().has_point(pos):
+				return chrome
 		return _control_button_at(night, pos)
 	# Tutorial controls must win hit-testing over the game controls beneath them.
 	# Without this priority, the bottom tutorial card can overlap the day dock
@@ -668,6 +623,7 @@ func _menu_holds_clock() -> bool:
 
 func _show_main_menu() -> void:
 	_return_to_menu = true
+	_tutorial_clear_highlights()
 	tutorial_mode = false
 	tutorial_layer.visible = false
 	show_settings = false
@@ -691,9 +647,27 @@ func _restore_menu_if_needed() -> void:
 	start_menu.visible = true
 	_set_menu_idle(true)
 
+func _hud_chrome_blocked() -> bool:
+	if start_menu.visible:
+		return true
+	if settings_pop.visible or quest_pop.visible or guide_pop.visible:
+		return true
+	if trophy_pop != null and trophy_pop.visible:
+		return true
+	return false
+
+func _sync_hud_chrome() -> void:
+	var show := not _hud_chrome_blocked()
+	if quest_btn:
+		quest_btn.visible = show
+	var settings_btn := get_node_or_null("HUD/SettingsBtn") as Control
+	if settings_btn:
+		settings_btn.visible = show
+
 func _set_menu_idle(on: bool) -> void:
 	if menu_backdrop:
 		menu_backdrop.visible = on
+	_sync_hud_chrome()
 	if on:
 		sfx.set_flock(0, 0)
 		sfx.set_night(false)
@@ -858,9 +832,11 @@ func _open_trophies() -> void:
 	_fill_trophy_list()
 	juice.pop_in(trophy_card)
 	_pin_close_x($TrophyPop/CloseBtn, trophy_card)
+	_sync_hud_chrome()
 
 func _close_trophies() -> void:
 	trophy_pop.visible = false
+	_sync_hud_chrome()
 	_sync_tutorial_layer()
 	if not _return_to_menu:
 		_refresh_thoughts()
@@ -897,17 +873,17 @@ func _make_trophy_row(def: Dictionary) -> PanelContainer:
 	var unlocked: bool = _trophies.get(str(def.id), false)
 	var panel := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color("f8e7bb") if unlocked else Color("e8d7b0")
-	style.border_color = Color("9a6330")
-	style.set_border_width_all(2)
+	style.bg_color = Color.TRANSPARENT
+	style.border_color = Color("bd9a6655")
+	style.border_width_bottom = 1
 	style.corner_radius_top_left = 12
 	style.corner_radius_top_right = 12
 	style.corner_radius_bottom_left = 12
 	style.corner_radius_bottom_right = 12
 	style.content_margin_left = 10
 	style.content_margin_right = 10
-	style.content_margin_top = 6
-	style.content_margin_bottom = 6
+	style.content_margin_top = 16
+	style.content_margin_bottom = 16
 	panel.add_theme_stylebox_override("panel", style)
 	var row := HBoxContainer.new()
 	row.add_theme_constant_override("separation", 10)
@@ -927,7 +903,8 @@ func _make_trophy_row(def: Dictionary) -> PanelContainer:
 	row.add_child(col)
 	var title := Label.new()
 	title.text = Loc.t(str(def.title))
-	title.add_theme_font_size_override("font_size", 18)
+	title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	title.add_theme_font_size_override("font_size", 27)
 	title.add_theme_color_override("font_color", Color("4b2d16") if unlocked else Color("8d7a61"))
 	col.add_child(title)
 	var desc := Label.new()
@@ -939,7 +916,7 @@ func _make_trophy_row(def: Dictionary) -> PanelContainer:
 	else:
 		desc.text = Loc.t("trophy_locked")
 	desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc.add_theme_font_size_override("font_size", 14)
+	desc.add_theme_font_size_override("font_size", 21)
 	desc.add_theme_color_override("font_color", Color("6a5340") if unlocked else Color("a09078"))
 	col.add_child(desc)
 	return panel
@@ -1150,7 +1127,7 @@ func quest_complete() -> bool:
 func blocked() -> bool:
 	return game_result != "" or settling or left_ms <= 0.0
 
-func _label(text: String, font_size := 16, color := Color("4e3d2c")) -> Label:
+func _label(text: String, font_size := 29, color := Color("4e3d2c")) -> Label:
 	var l := Label.new()
 	l.text = text
 	l.add_theme_font_size_override("font_size", font_size)
@@ -1217,51 +1194,58 @@ func _connect_ui() -> void:
 	_bind_hold(share_buy, buy_shares)
 	_bind_hold(share_sell, sell_shares)
 	bakery_upgrade.pressed.connect(upgrade_bakery)
-	_style_dock_green(day_end_btn, 22, true)
+	_style_dock_green(day_end_btn, 28, true)
+	day_end_btn.custom_minimum_size.y = 56.0
+	day_end_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	day_end_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	_style_settings_chrome()
 	_style_red(get_node("SettingsPop/Card/Col/Restart"))
-	get_node("SettingsPop/Card/Col/Restart").add_theme_font_size_override("font_size", 18)
+	get_node("SettingsPop/Card/Col/Restart").add_theme_font_size_override("font_size", 28)
 	_style_beige(settings_home)
-	settings_home.add_theme_font_size_override("font_size", 18)
-	_style_beige(get_node("SettingsPop/Card/Col/SfxBtn"))
-	_style_beige(get_node("SettingsPop/Card/Col/AmbBtn"))
-	_style_green(get_node("SettingsPop/Card/Col/GuideBtn"))
-	_style_beige(get_node("SettingsPop/Card/Col/TutorialBtn"))
-	get_node("SettingsPop/Card/Col/GuideBtn").add_theme_font_size_override("font_size", 20)
-	get_node("SettingsPop/Card/Col/TutorialBtn").add_theme_font_size_override("font_size", 18)
+	settings_home.add_theme_font_size_override("font_size", 28)
+	_style_beige(get_node("SettingsPop/Card/Col/GuideBtn"))
+	get_node("SettingsPop/Card/Col/GuideBtn").add_theme_font_size_override("font_size", 28)
+	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn"))
+	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn"))
+	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn"))
+	_style_toggle_chip(get_node("SettingsPop/Card/Col/SfxRow/SfxBtn"), sfx.sfx_on)
+	_style_toggle_chip(get_node("SettingsPop/Card/Col/AmbRow/AmbBtn"), sfx.amb_on)
 	_style_guide_step($GuidePop/GuideCard/Content/StepEggs)
 	_style_guide_step($GuidePop/GuideCard/Content/StepChick)
 	_style_guide_step($GuidePop/GuideCard/Content/StepStock)
 	_style_beige(tutorial_exit)
 	_style_green(tutorial_next)
-	_style_green(start_menu_tutorial)
+	_style_beige(start_menu_tutorial)
 	_style_green(start_menu_direct)
 	_style_beige(start_menu_endless)
 	_style_beige(start_menu_settings)
 	_style_beige(start_menu_trophies)
-	start_menu_tutorial.add_theme_font_size_override("font_size", 18)
-	start_menu_direct.add_theme_font_size_override("font_size", 18)
-	start_menu_endless.add_theme_font_size_override("font_size", 18)
-	start_menu_settings.add_theme_font_size_override("font_size", 18)
-	start_menu_trophies.add_theme_font_size_override("font_size", 18)
+	start_menu_tutorial.add_theme_font_size_override("font_size", 32)
+	start_menu_direct.add_theme_font_size_override("font_size", 32)
+	start_menu_endless.add_theme_font_size_override("font_size", 32)
+	start_menu_settings.add_theme_font_size_override("font_size", 32)
+	start_menu_trophies.add_theme_font_size_override("font_size", 32)
+	start_menu_direct.icon = null
+	start_menu_tutorial.icon = null
+	start_menu_endless.icon = null
+	_set_menu_icon(start_menu_settings, "res://icons/settings.png", 42)
+	_set_menu_icon(start_menu_trophies, "res://icons/trophy.png", 42)
+	_clean_panel(get_node("StartMenuLayer/Card"))
 	_style_tutorial_card()
-	_wood_frame_panel(trophy_card)
+	_clean_panel(trophy_card)
 	_bind_close_x($TrophyPop/CloseBtn, trophy_card, _close_trophies)
 	$TrophyPop/Dim.gui_input.connect(_on_trophy_dim_input)
-	_style_dock_green(wolf_buy, 20)
-	_style_dock_red(wolf_sell, 20)
-	_style_dock_green(share_buy, 16)
-	_style_dock_red(share_sell, 16)
-	_style_green(bakery_upgrade)
+	_style_wolf_trade(wolf_buy, true)
+	_style_wolf_trade(wolf_sell, false)
+	_style_share_trade(share_buy, true)
+	_style_share_trade(share_sell, false)
+	_style_tag(bakery_upgrade)
 	bakery_upgrade.add_theme_font_size_override("font_size", 15)
-	bakery_upgrade.custom_minimum_size.y = 64.0
-	wolf_buy.icon = load("res://icons/chick.png")
-	wolf_sell.icon = load("res://icons/hen.png")
-	wolf_buy.expand_icon = true
-	wolf_sell.expand_icon = true
-	wolf_buy.add_theme_constant_override("icon_max_width", 36)
-	wolf_sell.add_theme_constant_override("icon_max_width", 36)
-	wolf_buy.add_theme_constant_override("h_separation", 6)
-	wolf_sell.add_theme_constant_override("h_separation", 6)
+	bakery_upgrade.custom_minimum_size.y = 36.0
+	bakery_upgrade.autowrap_mode = TextServer.AUTOWRAP_OFF
+	bakery_upgrade.clip_text = true
+	_set_menu_icon(bakery_upgrade, "res://assets/ui/farm-ui/icon_coin.png", 20)
+	bakery_upgrade.add_theme_constant_override("h_separation", 4)
 	chick_btn.icon = load("res://icons/chick.png")
 	get_node("HUD/SettingsBtn").pressed.connect(_open_settings)
 	card.confirmed.connect(_on_settlement_confirm)
@@ -1278,27 +1262,29 @@ func _connect_ui() -> void:
 	_bind_close_x($SettingsPop/CloseBtn, settings_card, _close_settings)
 	$GuidePop/CloseBtn.pressed.connect(_close_guide)
 	$GuidePop/Dim.gui_input.connect(_on_guide_dim_input)
-	get_node("SettingsPop/Card/Col/SfxBtn").pressed.connect(func():
+	get_node("SettingsPop/Card/Col/SfxRow/SfxBtn").pressed.connect(func():
 		sfx.set_sfx(not sfx.sfx_on)
 		sfx.egg()
 		_apply_settings_labels()
 	)
-	get_node("SettingsPop/Card/Col/AmbBtn").pressed.connect(func():
+	get_node("SettingsPop/Card/Col/AmbRow/AmbBtn").pressed.connect(func():
 		sfx.set_amb(not sfx.amb_on)
 		_apply_settings_labels()
 	)
-	get_node("SettingsPop/Card/Col/LangRow/ZhBtn").pressed.connect(func():
+	get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn").pressed.connect(func():
 		if Loc.lang != "zh":
 			Loc.toggle()
 			_apply_locale()
 	)
-	get_node("SettingsPop/Card/Col/LangRow/EnBtn").pressed.connect(func():
+	get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn").pressed.connect(func():
 		if Loc.lang != "en":
 			Loc.toggle()
 			_apply_locale()
 	)
-	get_node("SettingsPop/Card/Col/GuideBtn").pressed.connect(_open_guide)
-	get_node("SettingsPop/Card/Col/TutorialBtn").pressed.connect(_start_tutorial)
+	get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn").pressed.connect(func(): _set_font_scale(0.85))
+	get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn").pressed.connect(func(): _set_font_scale(1.0))
+	get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn").pressed.connect(func(): _set_font_scale(1.15))
+	get_node("SettingsPop/Card/Col/GuideBtn").pressed.connect(_replay_tutorial_from_settings)
 	tutorial_next.pressed.connect(_tutorial_next_pressed)
 	tutorial_exit.pressed.connect(func(): _leave_tutorial(false))
 	get_node("SettingsPop/Card/Col/Restart").pressed.connect(_restart)
@@ -1315,13 +1301,26 @@ func _connect_ui() -> void:
 	_style_top_hud_bar()
 	_style_mail_dot()
 	_style_dock(get_node("Dock"))
-	_wood_frame_panel(quest_card, true)
+	_clean_panel(quest_card)
 	_style_hud_chip(wealth_card)
 	_style_hud_chip(flock_card)
 	_style_quest_track(get_node("QuestPop/Card/Box/WealthCard/Row/Col/Track"), wealth_fill)
 	_style_quest_track(get_node("QuestPop/Card/Box/FlockCard/Row/Col/Track"), flock_fill)
-	_wood_frame_panel(settings_card)
-	_wood_frame_panel(card)
+	_clean_panel(settings_card)
+	$SettingsPop/Card/Col.add_theme_constant_override("separation", 14)
+	$SettingsPop/Card/Col/Credits.add_theme_font_size_override("font_size", 18)
+	# Keep settings within the portrait card in both languages and font scales.
+	for row_name in ["SfxRow", "AmbRow", "LangRow", "FontRow"]:
+		var row := settings_card.get_node("Col/" + row_name)
+		for item in row.find_children("*", "Control", true, false):
+			if item is Label:
+				item.custom_minimum_size.x = 0.0
+				item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+				item.add_theme_font_size_override("font_size", 26)
+				item.add_theme_color_override("font_color", Color("4e3d2c"))
+			elif item is Button:
+				item.clip_text = true
+				item.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
 func _toggle_wolf_talk() -> void:
 	wolf_talk.visible = not wolf_talk.visible
@@ -1329,36 +1328,65 @@ func _toggle_wolf_talk() -> void:
 		juice.pop_in(wolf_talk)
 
 func _style_green(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", 16)
-	b.add_theme_color_override("font_color", Color("59331f"))
-	b.add_theme_color_override("font_hover_color", Color("59331f"))
-	b.add_theme_color_override("font_pressed_color", Color("59331f"))
-	b.add_theme_color_override("font_disabled_color", Color("59331f88"))
+	b.add_theme_font_size_override("font_size", 29)
+	b.add_theme_color_override("font_color", Color("fff8e8"))
+	b.add_theme_color_override("font_hover_color", Color("fff8e8"))
+	b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
+	b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
 	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
 	b.add_theme_constant_override("outline_size", 0)
-	var sb := _cozy_button_box(UiGreenButton)
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
+	var sb := _clean_button_box(UiSimpleGreen)
+	UiStyle.button_states(b, sb)
 
 func _style_red(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_font_size_override("font_size", 29)
 	b.add_theme_color_override("font_color", Color("fff8e8"))
 	b.add_theme_color_override("font_hover_color", Color("fff8e8"))
 	b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
 	b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
 	b.add_theme_color_override("font_outline_color", Color("6a2e2888"))
 	b.add_theme_constant_override("outline_size", 3)
-	var sb := _cozy_button_box(UiRedButton)
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
+	var sb := _clean_button_box(UiSimpleRed)
+	UiStyle.button_states(b, sb)
 
 func _style_beige(b: Button) -> void:
-	_style_plank(b, UiEmptyBeige, Color("4e3d2c"))
-	b.add_theme_font_size_override("font_size", 18)
+	_style_plank(b, UiSimpleBeige, Color("4e3d2c"))
+	b.add_theme_font_size_override("font_size", 32)
+
+func _set_menu_icon(b: Button, path: String, width: int) -> void:
+	var tex := load(path) as Texture2D
+	if tex:
+		b.icon = tex
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", width)
+	b.add_theme_constant_override("h_separation", 8)
+
+func _style_tag(b: Button) -> void:
+	var ink := Color("4e3d2c")
+	b.add_theme_font_size_override("font_size", 28)
+	b.add_theme_color_override("font_color", ink)
+	b.add_theme_color_override("font_hover_color", ink)
+	b.add_theme_color_override("font_pressed_color", ink)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+	b.add_theme_constant_override("outline_size", 0)
+	var sb := StyleBoxTexture.new()
+	sb.texture = UiSimpleTag
+	# Chip is ~119x68; keep pill caps, leave a stretchable center.
+	sb.texture_margin_left = 28.0
+	sb.texture_margin_top = 18.0
+	sb.texture_margin_right = 28.0
+	sb.texture_margin_bottom = 18.0
+	sb.content_margin_left = 12.0
+	sb.content_margin_top = 6.0
+	sb.content_margin_right = 12.0
+	sb.content_margin_bottom = 6.0
+	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	UiStyle.button_states(b, sb)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 48.0)
 
 func _bind_close_x(btn: TextureButton, card: Control, on_close: Callable) -> void:
 	btn.ignore_texture_size = true
@@ -1391,39 +1419,26 @@ func _pin_close_x(btn: Control, card: Control) -> void:
 	btn.global_position = corner
 
 func _style_hud_chip(c: PanelContainer) -> void:
+	# Top HUD slots are authored in Game.tscn; leave them alone.
+	if hud_bar != null and c.get_parent() == hud_bar:
+		return
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color.TRANSPARENT
 	if c.get_index() > 0:
-		sb.border_color = Color("cfad78")
+		sb.border_color = Color(0.55, 0.42, 0.28, 0.35)
 		sb.border_width_left = 1
 	sb.content_margin_left = 4
 	sb.content_margin_right = 4
-	sb.content_margin_top = 5
-	sb.content_margin_bottom = 5
+	sb.content_margin_top = 4
+	sb.content_margin_bottom = 4
 	c.add_theme_stylebox_override("panel", sb)
 
 func _style_top_hud_bar() -> void:
-	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("f8ecd1f5")
-	sb.border_color = Color("b98d55")
-	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(26)
-	sb.shadow_color = Color("3d2b1d66")
-	sb.shadow_size = 4
-	sb.shadow_offset = Vector2(0, 3)
-	hud_bar_bg.add_theme_stylebox_override("panel", sb)
-	var sync := func():
-		hud_bar_bg.global_position = hud_bar.global_position - Vector2(8, 2)
-		hud_bar_bg.size = hud_bar.size + Vector2(16, 4)
-	if not hud_bar.resized.is_connected(sync):
-		hud_bar.resized.connect(sync)
-	call_deferred("_sync_top_hud_bar")
+	# HudBarBg is nested under HudBar and sized by anchors in the scene.
+	pass
 
 func _sync_top_hud_bar() -> void:
-	if hud_bar == null or hud_bar_bg == null:
-		return
-	hud_bar_bg.global_position = hud_bar.global_position - Vector2(8, 2)
-	hud_bar_bg.size = hud_bar.size + Vector2(16, 4)
+	pass
 
 func _style_metric_card(c: PanelContainer, hit: bool) -> void:
 	var sb := StyleBoxFlat.new()
@@ -1454,7 +1469,7 @@ func _set_quest_bar(fill: Panel, pct: float, hit: bool) -> void:
 	fill.add_theme_stylebox_override("panel", _pill_box(Color("7ba56b") if hit else Color("c4a056")))
 
 func _style_plank(b: Button, source: Texture2D, ink: Color) -> void:
-	b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_font_size_override("font_size", 29)
 	b.add_theme_color_override("font_color", ink)
 	b.add_theme_color_override("font_hover_color", ink)
 	b.add_theme_color_override("font_pressed_color", ink)
@@ -1462,24 +1477,21 @@ func _style_plank(b: Button, source: Texture2D, ink: Color) -> void:
 	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
 	b.add_theme_constant_override("outline_size", 0)
 	var sb := _plank_button_box(source)
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", sb)
-	b.add_theme_stylebox_override("pressed", sb)
-	b.add_theme_stylebox_override("disabled", sb)
-	b.custom_minimum_size.y = 52.0
+	UiStyle.button_states(b, sb)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 58.0)
 
 func _plank_button_box(source: Texture2D) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
 	sb.texture = source
-	# Keep the rounded wooden corners intact; only the beige center stretches.
-	sb.texture_margin_left = 24.0
-	sb.texture_margin_top = 16.0
-	sb.texture_margin_right = 24.0
-	sb.texture_margin_bottom = 16.0
+	# Keep the rounded wooden caps intact; only the beige center stretches.
+	sb.texture_margin_left = 44.0
+	sb.texture_margin_top = 22.0
+	sb.texture_margin_right = 44.0
+	sb.texture_margin_bottom = 22.0
 	sb.content_margin_left = 18.0
-	sb.content_margin_top = 8.0
+	sb.content_margin_top = 10.0
 	sb.content_margin_right = 18.0
-	sb.content_margin_bottom = 8.0
+	sb.content_margin_bottom = 10.0
 	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	return sb
@@ -1498,8 +1510,24 @@ func _cozy_button_box(source: Texture2D) -> StyleBoxTexture:
 	sb.content_margin_bottom = 10.0
 	return sb
 
+func _clean_button_box(source: Texture2D) -> StyleBoxTexture:
+	var sb := StyleBoxTexture.new()
+	sb.texture = source
+	# Wood-pill caps stay fixed; middle fill stretches.
+	sb.texture_margin_left = 44.0
+	sb.texture_margin_top = 22.0
+	sb.texture_margin_right = 44.0
+	sb.texture_margin_bottom = 22.0
+	sb.content_margin_left = 18.0
+	sb.content_margin_top = 10.0
+	sb.content_margin_right = 18.0
+	sb.content_margin_bottom = 10.0
+	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
 func _style_thought(b: Button) -> void:
-	b.add_theme_font_size_override("font_size", 16)
+	b.add_theme_font_size_override("font_size", 29)
 	b.add_theme_color_override("font_color", Color("4e3d2c"))
 	b.add_theme_color_override("font_outline_color", Color("fff8e8e6"))
 	b.add_theme_constant_override("outline_size", 3)
@@ -1541,7 +1569,7 @@ func _bubble_badge(b: Button) -> Label:
 	badge.offset_bottom = 16.0
 	badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	badge.add_theme_font_size_override("font_size", 12)
+	badge.add_theme_font_size_override("font_size", 22)
 	badge.add_theme_color_override("font_color", Color.WHITE)
 	badge.add_theme_color_override("font_outline_color", Color("7b3028"))
 	badge.add_theme_constant_override("outline_size", 2)
@@ -1617,7 +1645,7 @@ func _ensure_bake_bar() -> void:
 	_bake_label.offset_bottom = -17.0
 	_bake_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	_bake_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	_bake_label.add_theme_font_size_override("font_size", 10)
+	_bake_label.add_theme_font_size_override("font_size", 18)
 	_bake_label.add_theme_color_override("font_color", Color("8b572f"))
 	_bake_label.add_theme_color_override("font_outline_color", Color("fff8e8"))
 	_bake_label.add_theme_constant_override("outline_size", 2)
@@ -1663,134 +1691,120 @@ func _sync_bake_bar() -> void:
 	_bake_fill.visible = pct > 0.02
 
 func _style_dock(c: PanelContainer) -> void:
+	UiLayout.dock(self)
+	# Same light-wood bar as top HUD so top/bottom read as one kit.
 	var sb := StyleBoxTexture.new()
-	sb.texture = UiDockPanel
-	sb.texture_margin_left = 24.0
-	sb.texture_margin_top = 22.0
-	sb.texture_margin_right = 24.0
-	sb.texture_margin_bottom = 22.0
+	sb.texture = preload("res://assets/ui/farm-ui/hud_bar.png")
+	sb.texture_margin_left = 40.0
+	sb.texture_margin_top = 28.0
+	sb.texture_margin_right = 40.0
+	sb.texture_margin_bottom = 28.0
+	sb.content_margin_left = 10.0
+	sb.content_margin_top = 8.0
+	sb.content_margin_right = 10.0
+	sb.content_margin_bottom = 8.0
+	c.add_theme_stylebox_override("panel", sb)
+	day_track.color = Color("4a3726a0")
+	day_track_fill.color = Color("d4a04a")
+
+func _fill_dock_row(_row: Control) -> void:
+	UiLayout.dock(self)
+
+func _bind_dock_button_states(b: Button, sb: StyleBoxTexture) -> void:
+	UiStyle.button_states(b, sb)
+
+func _style_dock_green(b: Button, font_size: int, wide := false) -> void:
+	# Warm parchment ink; soft wood outline reads with light HUD dock.
+	var ink := Color("fff4e4")
+	b.add_theme_font_size_override("font_size", font_size)
+	b.add_theme_color_override("font_color", ink)
+	b.add_theme_color_override("font_hover_color", ink)
+	b.add_theme_color_override("font_pressed_color", ink)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
+	b.add_theme_color_override("font_outline_color", Color("3a2a18aa"))
+	b.add_theme_constant_override("outline_size", 2)
+	var sb := _clean_button_box(UiSimpleGreen)
+	# Soften neon against cream HUD wood without touching node.modulate (Juice hurry).
+	sb.modulate_color = Color(0.9, 0.88, 0.8)
+	if wide:
+		sb.content_margin_left = 20.0
+		sb.content_margin_right = 20.0
+		sb.content_margin_top = 12.0
+		sb.content_margin_bottom = 12.0
+	_bind_dock_button_states(b, sb)
+
+func _style_dock_red(b: Button, font_size: int) -> void:
+	var ink := Color("fff4e4")
+	b.add_theme_font_size_override("font_size", font_size)
+	b.add_theme_color_override("font_color", ink)
+	b.add_theme_color_override("font_hover_color", ink)
+	b.add_theme_color_override("font_pressed_color", ink)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
+	b.add_theme_color_override("font_outline_color", Color("4a241caa"))
+	b.add_theme_constant_override("outline_size", 2)
+	var sb := _clean_button_box(UiSimpleRed)
+	sb.modulate_color = Color(0.9, 0.86, 0.8)
+	_bind_dock_button_states(b, sb)
+
+# Wolf animal trade: tall chip, icon on top, action+price below (no letter-wrap).
+func _style_wolf_trade(b: Button, is_buy: bool) -> void:
+	if is_buy:
+		_style_dock_green(b, 17)
+	else:
+		_style_dock_red(b, 17)
+	var sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxTexture
 	sb.content_margin_left = 8.0
 	sb.content_margin_right = 8.0
 	sb.content_margin_top = 8.0
 	sb.content_margin_bottom = 8.0
-	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	c.add_theme_stylebox_override("panel", sb)
-	c.anchor_left = 0.01
-	c.anchor_right = 0.99
-	c.anchor_top = 0.786
-	c.anchor_bottom = 0.996
-	c.offset_left = 0.0
-	c.offset_top = 0.0
-	c.offset_right = 0.0
-	c.offset_bottom = 0.0
-	_fill_dock_row(c.get_node_or_null("Row") as HBoxContainer)
-	day_track.color = Color("4a3726e8")
-	day_track.custom_minimum_size.y = 12.0
-	day_track_fill.color = Color("e8a338")
+	_bind_dock_button_states(b, sb)
+	b.icon = load("res://icons/chick.png" if is_buy else "res://icons/hen.png")
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 34)
+	b.add_theme_constant_override("h_separation", 0)
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
+	b.clip_text = false
+	b.custom_minimum_size.y = 72.0
 
-func _fill_dock_row(row: HBoxContainer) -> void:
-	if row == null:
-		return
-	row.alignment = BoxContainer.ALIGNMENT_BEGIN
-	row.add_theme_constant_override("separation", 6)
-	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	var animals := row.get_node("Animals") as BoxContainer
-	var day_col := row.get_node("Day") as VBoxContainer
-	var ticker := row.get_node("Ticker") as VBoxContainer
-	for col in [animals, day_col, ticker]:
-		col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		col.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	animals.size_flags_stretch_ratio = 0.92
-	day_col.size_flags_stretch_ratio = 1.28
-	ticker.size_flags_stretch_ratio = 1.16
-	animals.add_theme_constant_override("separation", 5)
-	day_col.add_theme_constant_override("separation", 5)
-	ticker.add_theme_constant_override("separation", 5)
-	ticker.custom_minimum_size = Vector2.ZERO
-	var trade := ticker.get_node_or_null("TradeRow") as Control
-	var face := ticker.get_node_or_null("Face") as Control
-	if trade and face:
-		ticker.move_child(trade, 0)
-	for b in [wolf_buy, wolf_sell]:
-		b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		b.size_flags_vertical = Control.SIZE_EXPAND_FILL
-		b.custom_minimum_size = Vector2.ZERO
-		b.clip_text = false
-	day_end_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	day_end_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	day_end_btn.custom_minimum_size = Vector2(0, 58)
-	day_end_btn.clip_text = false
-	share_buy.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	share_sell.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	share_buy.custom_minimum_size.y = 42
-	share_sell.custom_minimum_size.y = 42
-	share_buy.clip_text = false
-	share_sell.clip_text = false
-	ticker_price.add_theme_font_size_override("font_size", 30)
-	ticker_delta.add_theme_font_size_override("font_size", 15)
-	ticker_hold.add_theme_font_size_override("font_size", 13)
-
-func _dock_button_box(source: Texture2D, wide := false) -> StyleBoxTexture:
-	var sb := StyleBoxTexture.new()
-	sb.texture = source
-	var side := 28.0 if wide else 22.0
-	var vert := 18.0 if wide else 20.0
-	sb.texture_margin_left = side
-	sb.texture_margin_right = side
-	sb.texture_margin_top = vert
-	sb.texture_margin_bottom = vert
-	sb.content_margin_left = 8.0 if wide else 6.0
-	sb.content_margin_right = 8.0 if wide else 6.0
-	sb.content_margin_top = 6.0
-	sb.content_margin_bottom = 6.0
-	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	return sb
-
-func _bind_dock_button_states(b: Button, sb: StyleBoxTexture) -> void:
-	var hover := sb.duplicate() as StyleBoxTexture
-	hover.modulate_color = Color(1.07, 1.06, 1.03)
-	var pressed := sb.duplicate() as StyleBoxTexture
-	pressed.modulate_color = Color(0.86, 0.84, 0.80)
-	var disabled := sb.duplicate() as StyleBoxTexture
-	disabled.modulate_color = Color(0.70, 0.70, 0.68, 0.88)
-	b.add_theme_stylebox_override("normal", sb)
-	b.add_theme_stylebox_override("hover", hover)
-	b.add_theme_stylebox_override("pressed", pressed)
-	b.add_theme_stylebox_override("disabled", disabled)
-
-func _style_dock_green(b: Button, font_size: int, wide := false) -> void:
-	var ink := Color("fff4dc")
-	b.add_theme_font_size_override("font_size", font_size)
-	b.add_theme_color_override("font_color", ink)
-	b.add_theme_color_override("font_hover_color", ink)
-	b.add_theme_color_override("font_pressed_color", ink)
-	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
-	b.add_theme_color_override("font_outline_color", Color("2c1a10"))
-	b.add_theme_constant_override("outline_size", 4)
-	var tex := UiDockGreenWide if wide else UiDockGreen
-	_bind_dock_button_states(b, _dock_button_box(tex, wide))
-
-func _style_dock_red(b: Button, font_size: int) -> void:
-	var ink := Color("fff8e8")
-	b.add_theme_font_size_override("font_size", font_size)
-	b.add_theme_color_override("font_color", ink)
-	b.add_theme_color_override("font_hover_color", ink)
-	b.add_theme_color_override("font_pressed_color", ink)
-	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
-	b.add_theme_color_override("font_outline_color", Color("5a241c"))
-	b.add_theme_constant_override("outline_size", 3)
-	_bind_dock_button_states(b, _dock_button_box(UiDockRed))
-
-func _wood_frame_panel(c: Control, compact := false) -> void:
-	if compact:
-		c.add_theme_stylebox_override("panel", UiFrameTicker)
-		c.custom_minimum_size = Vector2(160, 140)
+# Share trade: same plank thickness as DayEnd; sits in one action row.
+func _style_share_trade(b: Button, is_buy: bool) -> void:
+	if is_buy:
+		_style_dock_green(b, 22)
 	else:
-		c.add_theme_stylebox_override("panel", UiFrameTall)
-		c.custom_minimum_size = Vector2(180, 200)
+		_style_dock_red(b, 22)
+	var sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxTexture
+	sb.content_margin_left = 12.0
+	sb.content_margin_right = 12.0
+	sb.content_margin_top = 12.0
+	sb.content_margin_bottom = 12.0
+	_bind_dock_button_states(b, sb)
+	b.icon = load("res://icons/price_up.png" if is_buy else "res://icons/price_down.png")
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 22)
+	b.add_theme_constant_override("h_separation", 6)
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
+	b.clip_text = true
+	b.custom_minimum_size = Vector2(112, 56)
+
+func _clean_panel(c: Control) -> void:
+	var sb := StyleBoxTexture.new()
+	sb.texture = UiSimplePanel
+	# Riveted wood corners on the tall parchment panel.
+	sb.texture_margin_left = 48.0
+	sb.texture_margin_top = 48.0
+	sb.texture_margin_right = 48.0
+	sb.texture_margin_bottom = 48.0
+	sb.content_margin_left = 22.0
+	sb.content_margin_top = 26.0
+	sb.content_margin_right = 22.0
+	sb.content_margin_bottom = 22.0
+	c.add_theme_stylebox_override("panel", sb)
 
 func _cream_panel(c: Control) -> void:
 	# Scene-provided atlas skins are already nine-sliced; do not replace them
@@ -1869,12 +1883,16 @@ func _apply_locale() -> void:
 	_apply_settings_labels()
 	_apply_guide_labels()
 	get_node("HUD/HudBar/CashChip/Row/CashBox/CashTitle").text = Loc.t("cash")
+	get_node("HUD/HudBar/CashChip/Row/CashBox/CashTitle").visible = false
 	get_node("HUD/HudBar/StockChip/Row/StockBox/StockTitle").text = Loc.t("stock")
+	get_node("HUD/HudBar/StockChip/Row/StockBox/StockTitle").visible = false
 	get_node("QuestPop/Card/Box/Head").text = Loc.t("quest_head")
 	wolf_buy.text = Loc.t("buy_chick", [CHICK_COST])
 	wolf_sell.text = Loc.t("sell_hen", [CHICK_SALE])
 	share_buy.text = Loc.t("buy_share")
 	share_sell.text = Loc.t("sell_share")
+	ticker_price_cap.text = Loc.t("price_cap")
+	ticker_hold_hint.text = Loc.t("hold_hint")
 	card.apply_locale()
 	_refresh()
 	if settling:
@@ -1882,17 +1900,26 @@ func _apply_locale() -> void:
 			_fill_finale_card()
 		elif not summary.is_empty():
 			_fill_daily_card()
+	_apply_font_scale()
 
 func _apply_settings_labels() -> void:
 	get_node("SettingsPop/Card/Col/Title").text = Loc.t("settings")
-	get_node("SettingsPop/Card/Col/SfxBtn").text = Loc.t("sfx_on" if sfx.sfx_on else "sfx_off")
-	get_node("SettingsPop/Card/Col/AmbBtn").text = Loc.t("amb_on" if sfx.amb_on else "amb_off")
+	get_node("SettingsPop/Card/Col/SfxRow/SfxTitle").text = Loc.t("sfx_title")
+	get_node("SettingsPop/Card/Col/AmbRow/AmbTitle").text = Loc.t("amb_title")
+	get_node("SettingsPop/Card/Col/SfxRow/SfxBtn").text = Loc.t("toggle_on" if sfx.sfx_on else "toggle_off")
+	get_node("SettingsPop/Card/Col/AmbRow/AmbBtn").text = Loc.t("toggle_on" if sfx.amb_on else "toggle_off")
+	_style_toggle_chip(get_node("SettingsPop/Card/Col/SfxRow/SfxBtn"), sfx.sfx_on)
+	_style_toggle_chip(get_node("SettingsPop/Card/Col/AmbRow/AmbBtn"), sfx.amb_on)
 	get_node("SettingsPop/Card/Col/LangRow/LangTitle").text = Loc.t("language")
-	get_node("SettingsPop/Card/Col/LangRow/ZhBtn").text = "中文"
-	get_node("SettingsPop/Card/Col/LangRow/EnBtn").text = "English"
+	get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn").text = "中文"
+	get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn").text = "English"
 	_style_lang_buttons()
-	get_node("SettingsPop/Card/Col/GuideBtn").text = Loc.t("guide")
-	get_node("SettingsPop/Card/Col/TutorialBtn").text = Loc.t("tutorial_replay")
+	get_node("SettingsPop/Card/Col/FontRow/FontTitle").text = Loc.t("font_size")
+	get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn").text = Loc.t("font_small")
+	get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn").text = Loc.t("font_standard")
+	get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn").text = Loc.t("font_large")
+	_style_font_buttons()
+	get_node("SettingsPop/Card/Col/GuideBtn").text = Loc.t("tutorial_replay")
 	get_node("SettingsPop/Card/Col/Help").text = Loc.t("help")
 	get_node("SettingsPop/Card/Col/Restart").text = Loc.t("restart")
 	settings_home.text = Loc.t("home_menu")
@@ -1900,7 +1927,7 @@ func _apply_settings_labels() -> void:
 	credits.text = Loc.t("credits")
 	var col := credits.get_parent()
 	col.move_child(credits, col.get_child_count() - 1)
-	get_node("StartMenuLayer/Card/Box/Subtitle").text = Loc.t("start_pick")
+	get_node("StartMenuLayer/Card/Box/Subtitle").visible = false
 	start_menu_tutorial.text = Loc.t("start_tutorial")
 	start_menu_direct.text = Loc.t("start_direct")
 	start_menu_endless.text = Loc.t("start_endless")
@@ -2145,9 +2172,12 @@ func _refresh_thoughts() -> void:
 	if bakery_level >= BAKERY_MAX_LEVEL:
 		bakery_upgrade.text = Loc.t("oven_max", [bakery_level])
 		bakery_upgrade.disabled = true
+		bakery_upgrade.icon = null
 	else:
 		bakery_upgrade.text = Loc.t("oven_up", [bakery_level, bakery_level + 1, upgrade_cost])
 		bakery_upgrade.disabled = coins < upgrade_cost or blocked()
+		if bakery_upgrade.icon == null:
+			bakery_upgrade.icon = load("res://assets/ui/farm-ui/icon_coin.png")
 	wolf_buy.disabled = cash() < CHICK_COST or blocked()
 	wolf_sell.disabled = hens < 1 or blocked()
 	share_buy.disabled = cash() < price or blocked()
@@ -2168,8 +2198,11 @@ func _refresh() -> void:
 	ticker_price.text = str(price)
 	var prev := history[history.size() - 2] if history.size() > 1 else price
 	var d := price - prev
-	ticker_delta.text = ("%s%d" % ["▲" if d >= 0 else "▼", absi(d)])
-	ticker_delta.add_theme_color_override("font_color", Color("3f8a52") if d >= 0 else Color("c45a4c"))
+	var up := d >= 0
+	var tone := Color("3f8a52") if up else Color("c45a4c")
+	ticker_price.add_theme_color_override("font_color", tone)
+	ticker_delta.text = ("%s%d" % ["▲" if up else "▼", absi(d)])
+	ticker_delta.add_theme_color_override("font_color", tone)
 	ticker_hold.text = Loc.t("shares_n", [held()])
 	stock_graph.set_history(history)
 	_tutorial_apply_locks()
@@ -2530,7 +2563,9 @@ func _set_settle_chrome(hidden: bool) -> void:
 	flock_layer.process_mode = Node.PROCESS_MODE_DISABLED if hidden else Node.PROCESS_MODE_INHERIT
 	var hud := get_node_or_null("HUD") as Control
 	if hud:
-		hud.visible = not hidden
+		hud.visible = true
+		hud.get_node("HudBar").visible = not hidden
+		hud.get_node("ClockBox").visible = not hidden
 	if hud_bar_bg:
 		hud_bar_bg.visible = not hidden
 	if hidden:
@@ -2588,6 +2623,7 @@ func _open_quest() -> void:
 	_pin_close_x($QuestPop/CloseBtn, quest_card)
 	_sync_mail_dot()
 	_refresh()
+	_sync_hud_chrome()
 	get_tree().create_timer(0.35).timeout.connect(func():
 		_quest_ignore_close = false
 	)
@@ -2602,6 +2638,7 @@ func _close_quest() -> void:
 	_sync_tutorial_layer()
 	if not _return_to_menu:
 		_refresh_thoughts()
+	_sync_hud_chrome()
 
 func _open_settings() -> void:
 	_close_quest()
@@ -2611,6 +2648,7 @@ func _open_settings() -> void:
 	_sync_tutorial_layer()
 	juice.pop_in(settings_card)
 	_pin_close_x($SettingsPop/CloseBtn, settings_card)
+	_sync_hud_chrome()
 
 func _return_to_menu_pressed() -> void:
 	if tutorial_mode:
@@ -2628,6 +2666,7 @@ func _close_settings() -> void:
 	if not _return_to_menu:
 		_refresh_thoughts()
 	_restore_menu_if_needed()
+	_sync_hud_chrome()
 
 func _open_guide() -> void:
 	show_settings = false
@@ -2638,6 +2677,7 @@ func _open_guide() -> void:
 	guide_card.modulate.a = 1.0
 	guide_card.scale = Vector2.ONE
 	juice.pop_in(guide_card)
+	_sync_hud_chrome()
 
 func _style_guide_step(panel: PanelContainer) -> void:
 	var style := StyleBoxFlat.new()
@@ -2659,23 +2699,105 @@ func _style_guide_step(panel: PanelContainer) -> void:
 func _style_tutorial_card() -> void:
 	# Layout for Card / TutorWolf lives in Game.tscn. Do not rewrite anchors
 	# here — Play would wipe a manual editor pass.
-	tutorial_title.add_theme_color_override("font_color", Color("fff8e8"))
-	tutorial_body.add_theme_color_override("font_color", Color("f4dfb0"))
+	_clean_panel(get_node("TutorialLayer/Card"))
+	tutorial_title.add_theme_color_override("font_color", Color("4e3d2c"))
+	tutorial_body.add_theme_color_override("font_color", Color("6a5340"))
 	if tutorial_wolf:
 		tutorial_wolf.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		tutorial_wolf.visible = true
 
 func _style_lang_buttons() -> void:
-	var zh := get_node("SettingsPop/Card/Col/LangRow/ZhBtn") as Button
-	var en := get_node("SettingsPop/Card/Col/LangRow/EnBtn") as Button
+	var zh := get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn") as Button
+	var en := get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn") as Button
 	if Loc.lang == "zh":
-		_style_green(zh)
-		_style_beige(en)
+		_style_toggle_chip(zh, true)
+		_style_toggle_chip(en, false)
 	else:
-		_style_beige(zh)
-		_style_green(en)
-	zh.add_theme_font_size_override("font_size", 18)
-	en.add_theme_font_size_override("font_size", 18)
+		_style_toggle_chip(zh, false)
+		_style_toggle_chip(en, true)
+	zh.add_theme_font_size_override("font_size", 26)
+	en.add_theme_font_size_override("font_size", 26)
+
+func _style_font_buttons() -> void:
+	var small := get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn") as Button
+	var normal := get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn") as Button
+	var large := get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn") as Button
+	_style_toggle_chip(small, false)
+	_style_toggle_chip(normal, false)
+	_style_toggle_chip(large, false)
+	if is_equal_approx(Loc.ui_font_scale, 0.85):
+		_style_toggle_chip(small, true)
+	elif is_equal_approx(Loc.ui_font_scale, 1.15):
+		_style_toggle_chip(large, true)
+	else:
+		_style_toggle_chip(normal, true)
+	small.add_theme_font_size_override("font_size", 24)
+	normal.add_theme_font_size_override("font_size", 26)
+	large.add_theme_font_size_override("font_size", 28)
+
+func _style_toggle_chip(b: Button, on: bool) -> void:
+	if on:
+		b.add_theme_font_size_override("font_size", 26)
+		b.add_theme_color_override("font_color", Color("fff8e8"))
+		b.add_theme_color_override("font_hover_color", Color("fff8e8"))
+		b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
+		b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
+		b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+		b.add_theme_constant_override("outline_size", 0)
+		var sb := StyleBoxTexture.new()
+		sb.texture = UiChipOn
+		sb.texture_margin_left = 28.0
+		sb.texture_margin_top = 18.0
+		sb.texture_margin_right = 28.0
+		sb.texture_margin_bottom = 18.0
+		sb.content_margin_left = 14.0
+		sb.content_margin_top = 8.0
+		sb.content_margin_right = 14.0
+		sb.content_margin_bottom = 8.0
+		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+		UiStyle.button_states(b, sb)
+	else:
+		_style_tag(b)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 48.0)
+
+func _style_settings_chrome() -> void:
+	var flourish := get_node_or_null("SettingsPop/Card/Col/Flourish") as TextureRect
+	if flourish:
+		flourish.texture = UiFlourish
+		flourish.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		flourish.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		flourish.custom_minimum_size = Vector2(0, 22)
+		flourish.modulate = Color(1, 1, 1, 0.92)
+	var title := get_node("SettingsPop/Card/Col/Title") as Label
+	title.add_theme_color_override("font_color", Color("4e3d2c"))
+	title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+
+func _replay_tutorial_from_settings() -> void:
+	_close_settings()
+	_start_tutorial()
+
+func _set_font_scale(scale: float) -> void:
+	if is_equal_approx(Loc.ui_font_scale, scale):
+		return
+	Loc.set_ui_font_scale(scale)
+	_apply_locale()
+
+func _apply_font_scale() -> void:
+	for node in find_children("*", "Control", true, false):
+		if not (node is Label or node is Button):
+			continue
+		if night.is_ancestor_of(node):
+			continue
+		var base := 0
+		if node.has_meta("base_font_size"):
+			base = int(node.get_meta("base_font_size"))
+		else:
+			base = node.get_theme_font_size("font_size")
+			if base <= 0:
+				continue
+			node.set_meta("base_font_size", base)
+		node.add_theme_font_size_override("font_size", maxi(12, roundi(base * Loc.ui_font_scale)))
 
 func _close_guide() -> void:
 	guide_pop.visible = false
@@ -2685,6 +2807,7 @@ func _close_guide() -> void:
 	if not _return_to_menu:
 		_refresh_thoughts()
 	_restore_menu_if_needed()
+	_sync_hud_chrome()
 
 func _sync_tutorial_layer() -> void:
 	if tutorial_layer == null:
@@ -3072,6 +3195,7 @@ func _leave_tutorial(completed: bool) -> void:
 		_grant_trophy("primer")
 	_fx += 1
 	_write_tutorial_status("completed" if completed else "dismissed")
+	_tutorial_clear_highlights()
 	tutorial_mode = false
 	tutorial_layer.visible = false
 	_reset_new_game_data()
@@ -3166,12 +3290,19 @@ func _tutorial_apply_locks() -> void:
 		share_sell.visible = true
 		day_end_btn.visible = true
 		day_end_btn.disabled = false
+		if wolf_hit:
+			wolf_hit.disabled = false
+			wolf_hit.mouse_filter = Control.MOUSE_FILTER_STOP
 		_tutorial_clear_highlights()
 		return
+	# WolfBuy lives under WolfShop. Hiding the shop while setting the child
+	# visible leaves nothing to tap on step 4 ("buy a hen").
 	if wolf_shop:
-		wolf_shop.visible = false
+		wolf_shop.visible = tutorial_step == 4
 	wolf_buy.visible = tutorial_step == 4
 	wolf_sell.visible = false
+	if wolf_talk:
+		wolf_talk.visible = false
 	share_buy.visible = tutorial_step == 5
 	share_sell.visible = tutorial_step == 6
 	day_end_btn.visible = false
@@ -3189,8 +3320,17 @@ func _tutorial_apply_locks() -> void:
 	share_sell.disabled = tutorial_step != 6
 	bakery_upgrade.disabled = true
 	day_end_btn.disabled = true
+	if wolf_hit:
+		wolf_hit.disabled = tutorial_step != 4
+		wolf_hit.mouse_filter = Control.MOUSE_FILTER_IGNORE if tutorial_step == 4 else Control.MOUSE_FILTER_STOP
 
 func _tutorial_clear_highlights() -> void:
+	if _tutorial_focused_target != null and is_instance_valid(_tutorial_focused_target):
+		_tutorial_focused_target.z_index = _tutorial_target_z_index
+		_tutorial_focused_target.z_as_relative = _tutorial_target_z_as_relative
+	_tutorial_focused_target = null
+	if tutorial_dim:
+		tutorial_dim.visible = false
 	for item in [egg_btn, hatch_btn, cake_btn, chick_btn, wolf_buy, wolf_sell, share_buy, share_sell, day_end_btn, stock_graph, quest_btn]:
 		if item != null:
 			item.modulate = Color.WHITE
@@ -3203,7 +3343,11 @@ func _tutorial_refresh_prompt() -> void:
 	if tutorial_wolf:
 		tutorial_wolf.visible = true
 	tutorial_title.text = Loc.t("tutorial_header")
-	tutorial_exit.text = Loc.t("tutorial_exit")
+	# Beginner route has no early-exit control; finish via the last-step CTA.
+	tutorial_exit.visible = false
+	var exit_spacer := tutorial_layer.get_node_or_null("Card/Box/Actions/Spacer") as Control
+	if exit_spacer:
+		exit_spacer.visible = false
 	tutorial_next.visible = false
 	match tutorial_step:
 		0:
@@ -3238,12 +3382,20 @@ func _tutorial_focus_target() -> void:
 	_tutorial_clear_highlights()
 	var targets: Array = [quest_btn, egg_btn, hatch_btn, cake_btn, wolf_buy, share_buy, share_sell, quest_btn]
 	var target: Control = targets[tutorial_step] if tutorial_step >= 0 and tutorial_step < targets.size() else null
+	UiLayout.tutorial(self, target)
 	if target != null and target.is_visible_in_tree():
+		_tutorial_focused_target = target
+		_tutorial_target_z_index = target.z_index
+		_tutorial_target_z_as_relative = target.z_as_relative
+		target.z_as_relative = false
+		target.z_index = 106
+		tutorial_dim.visible = true
 		target.modulate = Color(1.18, 1.08, 0.72, 1.0)
 		juice.punch(target, 1.12)
 
 func _restart() -> void:
 	_fx += 1
+	_tutorial_clear_highlights()
 	tutorial_mode = false
 	tutorial_layer.visible = false
 	if wolf_shop:
