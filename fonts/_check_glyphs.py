@@ -7,7 +7,7 @@ from pathlib import Path
 from fontTools.ttLib import TTFont
 
 ROOT = Path(__file__).resolve().parents[1]
-FONT = ROOT / "fonts" / "game_zh.ttf"
+FONT = ROOT / "fonts" / "game_zh_full.otf"
 
 
 def gd_unescape(s: str) -> str:
@@ -87,7 +87,7 @@ def main() -> None:
 			play_hits.setdefault(ch, set()).add("runtime")
 
 	if not play_hits:
-		print("PLAYABLE: OK — every character is in game_zh.ttf")
+		print("PLAYABLE: OK — every character is in game_zh_full.otf")
 	else:
 		print(f"PLAYABLE MISSING: {len(play_hits)}")
 		for ch in sorted(play_hits, key=ord):

@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://cvih5goe5cpvr" path="res://scripts/SettlementCard.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://gyi607sxyl62" path="res://assets/ui/settlement/layers/01-paper-stack.png" id="4_stack"]
-[ext_resource type="Texture2D" uid="uid://dds57rwxqj3nw" path="res://assets/ui/settlement/layers/02-card-body.png" id="5_card"]
+[ext_resource type="Texture2D" path="res://assets/ui/farm-ui/simple-ui/panel.png" id="5_card"]
 [ext_resource type="Texture2D" uid="uid://c2lborwvv2e1w" path="res://assets/ui/settlement/layers/03-hang-tag.png" id="6_tag"]
 [ext_resource type="Texture2D" uid="uid://dr5m8p4d5avbw" path="res://assets/ui/settlement/layers/20-score-cell.png" id="11_score"]
 [ext_resource type="Texture2D" uid="uid://bqndnb4s3802" path="res://assets/ui/settlement/layers/21-chart-well.png" id="12_chart"]
@@ -92,7 +92,7 @@ texture = ExtResource("4_stack")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="CardBody" type="TextureRect" parent="." unique_id=1712095604]
+[node name="CardBody" type="NinePatchRect" parent="." unique_id=1712095604]
 texture_filter = 2
 layout_mode = 1
 anchors_preset = 15
@@ -102,8 +102,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 texture = ExtResource("5_card")
-expand_mode = 1
-stretch_mode = 5
+patch_margin_left = 42
+patch_margin_top = 42
+patch_margin_right = 42
+patch_margin_bottom = 42
 
 [node name="Daily" type="VBoxContainer" parent="." unique_id=642535470]
 layout_mode = 1
@@ -117,7 +119,7 @@ theme_override_constants/separation = 7
 [node name="Kicker" type="Label" parent="Daily"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "第 3 夜"
 horizontal_alignment = 1
 
@@ -126,14 +128,14 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
 theme_override_colors/font_outline_color = Color(1, 0.91, 0.76, 0.55)
 theme_override_constants/outline_size = 5
-theme_override_font_sizes/font_size = 39
+theme_override_font_sizes/font_size = 36
 text = "晚间报告"
 horizontal_alignment = 1
 
 [node name="DayLine" type="Label" parent="Daily" unique_id=1896614304]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 text = "第 3 天  →  第 4 天"
 horizontal_alignment = 1
 
@@ -170,7 +172,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
-theme_override_font_sizes/font_size = 23
+theme_override_font_sizes/font_size = 20
 text = "今夜告示 · 狼商囤粮   ▲"
 vertical_alignment = 1
 autowrap_mode = 3
@@ -204,7 +206,7 @@ stretch_mode = 5
 [node name="Cap" type="Label" parent="Daily/PriceWell/Col/CapRow" unique_id=666730189]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "收盘股价"
 vertical_alignment = 1
 
@@ -233,7 +235,7 @@ stretch_mode = 5
 [node name="Delta" type="Label" parent="Daily/PriceWell/Col/DeltaRow" unique_id=850139197]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
-theme_override_font_sizes/font_size = 24
+theme_override_font_sizes/font_size = 22
 text = "42"
 vertical_alignment = 1
 
@@ -274,14 +276,14 @@ stretch_mode = 5
 [node name="Num" type="Label" parent="Daily/Ledger/Row/Broken" unique_id=1974827128]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 text = "2"
 horizontal_alignment = 1
 
 [node name="Cap" type="Label" parent="Daily/Ledger/Row/Broken" unique_id=796164519]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "碎蛋"
 horizontal_alignment = 1
 
@@ -311,14 +313,14 @@ stretch_mode = 5
 [node name="Num" type="Label" parent="Daily/Ledger/Row/Grown" unique_id=960933115]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 text = "3"
 horizontal_alignment = 1
 
 [node name="Cap" type="Label" parent="Daily/Ledger/Row/Grown" unique_id=1627888558]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "长成"
 horizontal_alignment = 1
 
@@ -348,14 +350,14 @@ stretch_mode = 5
 [node name="Num" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=1091686711]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_font_sizes/font_size = 32
 text = "1"
 horizontal_alignment = 1
 
 [node name="Cap" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=952938634]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
-theme_override_font_sizes/font_size = 18
+theme_override_font_sizes/font_size = 16
 text = "蛋糕"
 horizontal_alignment = 1
 
@@ -384,7 +386,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
-theme_override_font_sizes/font_size = 21
+theme_override_font_sizes/font_size = 18
 text = "总资产  980  →  1,120"
 vertical_alignment = 1
 horizontal_alignment = 1
@@ -420,7 +422,7 @@ stretch_mode = 5
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.769, 0.353, 0.298, 1)
-theme_override_font_sizes/font_size = 20
+theme_override_font_sizes/font_size = 18
 text = "新孵 1 只，天亮后点孵蛋器领取"
 vertical_alignment = 1
 autowrap_mode = 2
@@ -430,7 +432,7 @@ layout_mode = 2
 size_flags_vertical = 3
 mouse_filter = 2
 
-[node name="Actions" type="HBoxContainer" parent="Daily" unique_id=156633668]
+[node name="Actions" type="VBoxContainer" parent="Daily" unique_id=156633668]
 custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_vertical = 0
@@ -745,8 +747,8 @@ theme_override_font_sizes/font_size = 15
 text = "小鸡股市 · 敢不敢比"
 horizontal_alignment = 1
 
-[node name="Actions" type="HBoxContainer" parent="Finale" unique_id=409987208]
-custom_minimum_size = Vector2(0, 64)
+[node name="Actions" type="Control" parent="Finale" unique_id=409987208]
+custom_minimum_size = Vector2(0, 132)
 layout_mode = 2
 theme_override_constants/separation = 8
 
@@ -777,6 +779,15 @@ size_flags_stretch_ratio = 1.25
 theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
 text = "继续挑战 (无尽模式)"
 autowrap_mode = 3
+
+[node name="AdBtn" type="Button" parent="Finale/Actions" unique_id=1847293652]
+visible = false
+custom_minimum_size = Vector2(0, 64)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/focus = SubResource("StyleBoxEmpty_none")
+text = "看广告回到清晨"
+clip_text = false
 
 [node name="HangTag" type="Control" parent="." unique_id=1323238133]
 layout_mode = 1

@@ -35,7 +35,7 @@ func bind(root: Control) -> void:
 	wolf = root.get_node("WolfShop")
 	flock = root.get_node("Flock")
 	quest_btn = root.get_node("HUD/QuestBtn")
-	day_end = root.get_node("Dock/Row/Day/DayEnd")
+	day_end = root.get_node("Dock/Row/Day/TradeRow/DayEnd")
 	chick_btn = root.get_node("ChickThought")
 	for n in [egg_btn, cake_btn, hatch_btn, chick_btn]:
 		_keep_pivot(n)
@@ -79,6 +79,10 @@ func _store(n: Object, key: String, tw: Tween) -> void:
 func punch(n: Control, amt := 1.12, dur := 0.28) -> void:
 	if n == null:
 		return
+	if n.has_meta("punch"):
+		var running = n.get_meta("punch")
+		if running is Tween and is_instance_valid(running) and running.is_running():
+			return
 	_pivot_now(n)
 	_kill_meta(n, "bob")
 	var tw := create_tween()
@@ -89,6 +93,10 @@ func punch(n: Control, amt := 1.12, dur := 0.28) -> void:
 func press(n: Control) -> void:
 	if n == null:
 		return
+	if n.has_meta("press"):
+		var running = n.get_meta("press")
+		if running is Tween and is_instance_valid(running) and running.is_running():
+			return
 	_pivot_now(n)
 	_kill_meta(n, "bob")
 	var tw := create_tween()
@@ -366,6 +374,8 @@ func _flock_land() -> Vector2:
 func _icon(tex: Texture2D, from: Vector2, to: Vector2, dur: float, spin: float, arc: float, start_scale := 1.0) -> void:
 	if layer == null or tex == null:
 		return
+	if layer.get_child_count() >= 10:
+		return
 	var n := TextureRect.new()
 	n.texture = tex
 	n.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
@@ -381,9 +391,11 @@ func _icon(tex: Texture2D, from: Vector2, to: Vector2, dur: float, spin: float, 
 func _text(copy: String, from: Vector2, to: Vector2, color: Color, dur: float) -> void:
 	if layer == null:
 		return
+	if layer.get_child_count() >= 10:
+		return
 	var n := Label.new()
 	n.text = copy
-	n.add_theme_font_size_override("font_size", 22)
+	n.add_theme_font_size_override("font_size", 40)
 	n.add_theme_color_override("font_color", color)
 	n.add_theme_color_override("font_outline_color", Color("fff8e8ee"))
 	n.add_theme_constant_override("outline_size", 5)
