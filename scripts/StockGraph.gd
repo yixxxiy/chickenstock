@@ -24,8 +24,8 @@ func _draw() -> void:
 	if values.size() < 2:
 		return
 	var well := Rect2(Vector2.ZERO, size)
-	draw_rect(well, Color(0.96, 0.92, 0.84, 0.42), true)
-	draw_rect(well, Color(0.62, 0.48, 0.32, 0.22), false, 1.5)
+	draw_rect(well, Color(0.97, 0.97, 0.96, 0.55), true)
+	draw_rect(well, Color(0.55, 0.5, 0.45, 0.12), false, 1.0)
 	var plot := Rect2(Vector2(6.0, header_pad), Vector2(size.x - 12.0, size.y - header_pad - 6.0))
 	if plot.size.x < 16.0 or plot.size.y < 12.0:
 		return
@@ -39,7 +39,7 @@ func _draw() -> void:
 	low -= maxf(3.0, spread * 0.12)
 	high += maxf(3.0, spread * 0.12)
 
-	var grid_color := Color(0.38, 0.31, 0.23, 0.16)
+	var grid_color := Color(0.45, 0.42, 0.38, 0.12)
 	for i in 3:
 		var y := plot.position.y + plot.size.y * float(i) / 2.0
 		draw_line(Vector2(plot.position.x, y), Vector2(plot.end.x, y), grid_color, 1.0)

@@ -11,7 +11,6 @@
 [ext_resource type="Texture2D" uid="uid://de8o0rlwost8m" path="res://icons/rotten_egg.png" id="16_rotten"]
 [ext_resource type="Texture2D" uid="uid://cqj4ngs1a8fv7" path="res://icons/chick.png" id="17_chick"]
 [ext_resource type="Texture2D" uid="uid://syf3bfkt52pq" path="res://icons/hen.png" id="17_hen"]
-[ext_resource type="Texture2D" uid="uid://bxiw6xexquu7e" path="res://icons/cake.png" id="18_cake"]
 [ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="19_stock"]
 [ext_resource type="Texture2D" uid="uid://5mgopwa4nu8i" path="res://assets/ui/farm-ui/icon_coin.png" id="20_coin"]
 [ext_resource type="Texture2D" uid="uid://bgkqxevip5w3y" path="res://icons/hatch.png" id="21_hatch"]
@@ -344,25 +343,26 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("18_cake")
+texture = ExtResource("23_up")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Num" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=1091686711]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.29, 0.2, 0.13, 1)
+theme_override_colors/font_color = Color(0.247, 0.541, 0.322, 1)
 theme_override_font_sizes/font_size = 32
-text = "1"
+text = "+140"
 horizontal_alignment = 1
 
 [node name="Cap" type="Label" parent="Daily/Ledger/Row/Cake" unique_id=952938634]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.545, 0.388, 0.247, 1)
 theme_override_font_sizes/font_size = 16
-text = "蛋糕"
+text = "增长"
 horizontal_alignment = 1
 
 [node name="Footnote" type="PanelContainer" parent="Daily" unique_id=1816045462]
+visible = false
 custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_vertical = 0

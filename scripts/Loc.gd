@@ -97,19 +97,19 @@ const ZH := {
 	"lang_en": "Language: English",
 	"cash": "现金",
 	"stock": "股票",
-	"day_frac": "%d/8天",
+	"day_frac": "第%d/8天",
 	"end_day": "结束今天",
 	"dusk_warn": "天快黑了",
-	"buy_chick": "买\n%d",
-	"sell_hen": "卖\n%d",
+	"buy_chick": "买鸡 %d",
+	"sell_hen": "卖鸡 %d",
 	"buy_share": "买入",
 	"sell_share": "卖出",
 	"eggs_count": "蛋 %d",
 	"oven_max": "Lv.%d 已满",
-	"oven_up": "↑ Lv.%d→%d · %d",
+	"oven_up": "升级 · %d金币\nLv.%d→%d",
 	"gold_n": "金币  %d",
-	"shares_n": "持有 %d 股",
-	"price_cap": "当前股价",
+	"shares_n": "持有%d股",
+	"price_cap": "股价",
 	"hold_hint": "长按可连续操作",
 	"baking": "烘焙中 %.1fs",
 	"sell_cake_tip": "出售蛋糕，现有 %d 个",
@@ -156,6 +156,9 @@ const ZH := {
 	"broken": "碎蛋",
 	"grown": "长成",
 	"cakes": "蛋糕",
+	"wealth_gain": "增长",
+	"wealth_loss": "缩水",
+	"wealth_delta": "%+d",
 	"wealth_flow": "总资产  %d  →  %d",
 	"hatch_note": "新孵 %d 只，天亮后领取",
 	"start_new_day": "开始新一天",
@@ -312,16 +315,16 @@ const EN := {
 	"day_frac": "Day %d/8",
 	"end_day": "End Today",
 	"dusk_warn": "Night falling",
-	"buy_chick": "Buy\n%d",
-	"sell_hen": "Sell\n%d",
+	"buy_chick": "Buy chick %d",
+	"sell_hen": "Sell hen %d",
 	"buy_share": "Buy",
 	"sell_share": "Sell",
 	"eggs_count": "Eggs %d",
 	"oven_max": "Lv.%d max",
-	"oven_up": "↑ Lv.%d→%d · %d",
+	"oven_up": "Upgrade · %d\nLv.%d→%d",
 	"gold_n": "Gold  %d",
 	"shares_n": "Holding %d",
-	"price_cap": "Price Now",
+	"price_cap": "Price",
 	"hold_hint": "Hold to repeat",
 	"baking": "Baking %.1fs",
 	"sell_cake_tip": "Sell cakes (%d)",
@@ -368,6 +371,9 @@ const EN := {
 	"broken": "Break",
 	"grown": "Grown",
 	"cakes": "Cake",
+	"wealth_gain": "Gain",
+	"wealth_loss": "Loss",
+	"wealth_delta": "%+d",
 	"wealth_flow": "Wealth  %d → %d",
 	"hatch_note": "%d hatched · collect at dawn",
 	"start_new_day": "Start new day",
@@ -452,12 +458,20 @@ static func rank_copy(lv: int) -> String:
 	return t("rank_%d_copy" % clampi(lv, 1, 12))
 
 static func toggle() -> void:
+	set_lang("en" if lang == "zh" else "zh")
+
+static func set_lang(next: String) -> bool:
+	if next != "zh" and next != "en":
+		return false
+	if lang == next:
+		return false
 	var now := Time.get_ticks_msec()
 	if now - _toggle_ms < 280:
-		return
+		return false
 	_toggle_ms = now
-	lang = "en" if lang == "zh" else "zh"
+	lang = next
 	save()
+	return true
 
 static func load_settings() -> void:
 	if not FileAccess.file_exists(SETTINGS_PATH):

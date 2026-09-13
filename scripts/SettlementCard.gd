@@ -92,11 +92,11 @@ func apply_locale() -> void:
 		grown_cap = $Daily.get_node_or_null("Ledger/Row/Grown/Cap") as Label
 	if grown_cap:
 		grown_cap.text = Loc.t("grown")
-	var cake_cap := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Cap") as Label
-	if cake_cap == null:
-		cake_cap = $Daily.get_node_or_null("Ledger/Row/Cake/Cap") as Label
-	if cake_cap:
-		cake_cap.text = Loc.t("cakes")
+	var wealth_cap := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Cap") as Label
+	if wealth_cap == null:
+		wealth_cap = $Daily.get_node_or_null("Ledger/Row/Cake/Cap") as Label
+	if wealth_cap:
+		wealth_cap.text = Loc.t("wealth_gain")
 	$Daily/Actions/Cta.text = Loc.t("start_new_day")
 	$Daily/Actions/AdBtn.text = Loc.t("watch_ad")
 	var finale_title := $Finale.get_node_or_null("Banner/Title") as Label
@@ -190,14 +190,29 @@ func show_daily(p: Dictionary) -> void:
 	var grown_num := $Daily.get_node_or_null("Ledger/Row/Grown/Col/Num") as Label
 	if grown_num == null:
 		grown_num = $Daily/Ledger/Row/Grown/Num
-	var cake_num := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Num") as Label
-	if cake_num == null:
-		cake_num = $Daily/Ledger/Row/Cake/Num
+	var wealth_num := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Num") as Label
+	if wealth_num == null:
+		wealth_num = $Daily/Ledger/Row/Cake/Num
+	var wealth_cap := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Cap") as Label
+	if wealth_cap == null:
+		wealth_cap = $Daily.get_node_or_null("Ledger/Row/Cake/Cap") as Label
+	var wealth_icon := $Daily.get_node_or_null("Ledger/Row/Cake/Col/Icon") as TextureRect
+	if wealth_icon == null:
+		wealth_icon = $Daily.get_node_or_null("Ledger/Row/Cake/Icon") as TextureRect
 	broken_num.text = str(broken)
 	broken_num.add_theme_color_override("font_color", FALL if broken > 0 else INK)
 	grown_num.text = str(int(p.get("grown", 0)))
-	cake_num.text = str(int(p.get("cakes", 0)))
-	$Daily/Footnote/Row/Txt.text = Loc.t("wealth_flow", [int(p.get("old_wealth", 0)), int(p.get("new_wealth", 0))])
+	var old_w := int(p.get("old_wealth", 0))
+	var new_w := int(p.get("new_wealth", 0))
+	var delta := new_w - old_w
+	var gained := delta >= 0
+	wealth_num.text = Loc.t("wealth_delta", [delta])
+	wealth_num.add_theme_color_override("font_color", RISE if gained else FALL)
+	if wealth_cap:
+		wealth_cap.text = Loc.t("wealth_gain" if gained else "wealth_loss")
+	if wealth_icon:
+		wealth_icon.texture = PriceUp if gained else PriceDown
+	$Daily/Footnote.visible = false
 	_set_beat_line($Daily/BeatLine, str(p.get("beat_text", "")))
 	var hatched := int(p.get("hatched", 0))
 	$Daily/HatchNote.visible = hatched > 0

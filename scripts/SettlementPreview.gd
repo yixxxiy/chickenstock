@@ -29,7 +29,7 @@ func _apply() -> void:
 		$Card.show_daily({
 			"from_day": 3, "to_day": 4,
 			"news_text": "狼商囤粮", "news_up": true, "weather": "cloud",
-			"broken": 2, "grown": 3, "cakes": 1, "hatched": 1,
+			"broken": 2, "grown": 3, "hatched": 1,
 			"old_price": 144, "new_price": 186,
 			"old_wealth": 980, "new_wealth": 1120,
 			"beat_text": "你打败了 6% 的农场主。超过了一小撮人。",

@@ -3,6 +3,10 @@ extends RefCounted
 # Presentation only: all existing controls, signals, text and game state stay owned
 # by Game. Coordinates are relative to the 576 x 1024 portrait canvas.
 const PANEL := preload("res://assets/ui/farm-ui/simple-ui/panel.png")
+const BTN_BEIGE := preload("res://assets/ui/farm-ui/simple-ui/button-beige.png")
+const BTN_GREEN := preload("res://assets/ui/farm-ui/simple-ui/button-green.png")
+const BTN_RED := preload("res://assets/ui/farm-ui/simple-ui/button-red.png")
+const TAG := preload("res://assets/ui/farm-ui/simple-ui/tag.png")
 const INK := Color("4e3522")
 const MUTED := Color("80664b")
 static var _kit_cache: Dictionary = {}
@@ -40,6 +44,9 @@ static func font(node: Control, points: int) -> void:
 	node.add_theme_constant_override("outline_size", 0)
 
 static func surface(node: Control, padding := 22.0) -> void:
+	node.add_theme_stylebox_override("panel", panel_box(padding))
+
+static func panel_box(padding := 12.0) -> StyleBoxTexture:
 	var box := StyleBoxTexture.new()
 	box.texture = PANEL
 	box.texture_margin_left = 48
@@ -50,10 +57,32 @@ static func surface(node: Control, padding := 22.0) -> void:
 	box.content_margin_right = padding
 	box.content_margin_top = padding
 	box.content_margin_bottom = padding
-	node.add_theme_stylebox_override("panel", box)
+	return box
+
+static func button_box(tex: Texture2D, pad_x := 16.0, pad_y := 10.0) -> StyleBoxTexture:
+	var sb := StyleBoxTexture.new()
+	sb.texture = tex
+	sb.texture_margin_left = 42.0
+	sb.texture_margin_top = 20.0
+	sb.texture_margin_right = 42.0
+	sb.texture_margin_bottom = 20.0
+	sb.content_margin_left = pad_x
+	sb.content_margin_top = pad_y
+	sb.content_margin_right = pad_x
+	sb.content_margin_bottom = pad_y
+	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
+	return sb
+
+static func apply_button(button: Button, tex: Texture2D, pad_x := 16.0, pad_y := 10.0) -> void:
+	var sb := button_box(tex, pad_x, pad_y)
+	for state in ["normal", "hover", "pressed", "disabled"]:
+		button.add_theme_stylebox_override(state, sb)
+	button.set_meta("ui_normal_surface", sb)
+	button.set_meta("ui_hover_surface", sb)
 
 static func apply(game: Control) -> void:
-	# HUD / wolf / dock positions live in Game.tscn for manual editor tuning.
+	_hud(game)
 	_menu(game)
 	_farm(game)
 	_dialogs(game)
@@ -63,7 +92,66 @@ static func apply(game: Control) -> void:
 	game.add_child(follow)
 
 static func _hud(game: Control) -> void:
-	pass
+	# Capsule bar from simple-ui/panel.png; mail/gear stay as square chips on the right.
+	var hud := game.get_node("HUD") as Control
+	rect(hud, 0.03, 0.016, 0.94, 0.088)
+	for item in ["Spacer", "SpacerEnd"]:
+		hud.get_node(item).hide()
+
+	var bar := hud.get_node("HudBar") as Control
+	bar.custom_minimum_size = Vector2.ZERO
+	rect(bar, 0.0, 0.06, 0.76, 0.88)
+	var bar_bg := bar.get_node_or_null("HudBarBg") as Panel
+	if bar_bg:
+		bar_bg.show_behind_parent = true
+		rect(bar_bg, 0, 0, 1, 1)
+		bar_bg.add_theme_stylebox_override("panel", panel_box(8.0))
+
+	var clock_box := hud.get_node("ClockBox") as Control
+	rect(clock_box, 0.01, 0.06, 0.20, 0.88)
+	var clock := clock_box.get_node("Clock") as Control
+	clock.custom_minimum_size = Vector2.ZERO
+	rect(clock, 0.04, 0.12, 0.40, 0.76)
+	var day_chip := clock_box.get_node_or_null("DayChip") as Panel
+	if day_chip:
+		rect(day_chip, 0.46, 0.16, 0.52, 0.68)
+		var clear := StyleBoxEmpty.new()
+		day_chip.add_theme_stylebox_override("panel", clear)
+	var day := clock_box.get_node_or_null("DayChip/DayLabel") as Label
+	if day:
+		rect(day, 0, 0, 1, 1)
+		font(day, 18)
+		day.horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+		day.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		day.add_theme_color_override("font_color", INK)
+
+	var slots := [
+		["CashChip", 0.32],
+		["StockChip", 0.49],
+		["HenChip", 0.66],
+		["ChickChip", 0.83],
+	]
+	for pair in slots:
+		var chip := bar.get_node(pair[0]) as Control
+		chip.custom_minimum_size = Vector2.ZERO
+		rect(chip, pair[1], 0.10, 0.16, 0.80)
+		var row := chip.get_node("Row") as HBoxContainer
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 4)
+		row.get_node("Icon").custom_minimum_size = Vector2(26, 26)
+		if pair[0] == "CashChip" or pair[0] == "StockChip":
+			var col := row.get_child(1)
+			col.get_child(0).hide()
+			font(col.get_child(1), 22)
+			col.get_child(1).add_theme_color_override("font_color", INK)
+		else:
+			font(chip.get_node("Row/Num"), 22)
+			chip.get_node("Row/Num").add_theme_color_override("font_color", INK)
+
+	for pair in [["QuestBtn", 0.735, 0.125], ["SettingsBtn", 0.875, 0.125]]:
+		var button := hud.get_node(pair[0]) as Control
+		button.custom_minimum_size = Vector2(52, 52)
+		rect(button, pair[1], 0.08, pair[2], 0.84)
 
 static func _menu(game: Control) -> void:
 	var card := game.get_node("StartMenuLayer/Card") as Control
@@ -79,13 +167,13 @@ static func _menu(game: Control) -> void:
 	surface(paper)
 	for name in ["LogoIcon", "LogoWordmark"]:
 		box.get_node(name).custom_minimum_size = Vector2.ZERO
-	rect(box.get_node("LogoIcon"), 0.28, -0.02, 0.44, 0.24)
-	rect(box.get_node("LogoWordmark"), 0.04, 0.22, 0.92, 0.16)
-	box.get_node("Subtitle").hide()
-	for spec in [["Direct", 0.43, 0.145], ["Tutorial", 0.59, 0.115], ["Endless", 0.72, 0.115]]:
+	rect(box.get_node("LogoIcon"), 0.28, -0.02, 0.44, 0.22)
+	rect(box.get_node("LogoWordmark"), 0.04, 0.18, 0.92, 0.16)
+	box.get_node("Subtitle").visible = false
+	for spec in [["Direct", 0.44], ["Tutorial", 0.565], ["Endless", 0.69]]:
 		var button := box.get_node(spec[0]) as Button
-		rect(button, 0.07, spec[1], 0.86, spec[2])
-		font(button, 30 if spec[0] == "Direct" else 27)
+		rect(button, 0.07, spec[1], 0.86, 0.115)
+		font(button, 28)
 		button.clip_text = true
 		button.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	for spec in [["Settings", 0.07], ["Trophies", 0.515]]:
@@ -104,12 +192,19 @@ static func _farm(game: Control) -> void:
 	var cake := game.get_node("CakeThought") as Control
 	cake.anchor_bottom = cake.anchor_top
 	cake.offset_bottom = 64
-	rect(game.get_node("BakeryUpgrade"), 0.70, 0.355, 0.24, 0.042)
-	font(game.get_node("BakeryUpgrade"), 15)
-	compact_button(game.get_node("BakeryUpgrade"))
-	game.get_node("BakeryUpgrade").autowrap_mode = TextServer.AUTOWRAP_OFF
-	game.get_node("BakeryUpgrade").clip_text = true
-	game.get_node("BakeryUpgrade").add_theme_constant_override("icon_max_width", 20)
+	rect(game.get_node("BakeryUpgrade"), 0.58, 0.348, 0.36, 0.06)
+	font(game.get_node("BakeryUpgrade"), 16)
+	var oven := game.get_node("BakeryUpgrade") as Button
+	oven.autowrap_mode = TextServer.AUTOWRAP_OFF
+	oven.clip_text = false
+	oven.add_theme_constant_override("icon_max_width", 22)
+	oven.add_theme_constant_override("h_separation", 6)
+	apply_button(oven, BTN_BEIGE, 14.0, 8.0)
+	oven.add_theme_color_override("font_color", INK)
+	oven.add_theme_color_override("font_hover_color", INK)
+	oven.add_theme_color_override("font_pressed_color", INK)
+	oven.add_theme_color_override("font_disabled_color", Color(INK, 0.45))
+	oven.add_theme_constant_override("outline_size", 0)
 	rect(game.get_node("BakeryEggs"), 0.68, 0.49, 0.28, 0.03)
 	font(game.get_node("BakeryEggs"), 23)
 	for name in ["HatchThought", "ChickThought"]:
@@ -129,23 +224,44 @@ static func compact_button(button: Button) -> void:
 	button.set_meta("ui_hover_surface", button.get_theme_stylebox("hover"))
 
 static func dock(game: Control) -> void:
-	# Dock layout authored in Game.tscn: wide chart on top,
-	# buy / sell / end-day as one thick action row below.
+	# simple-ui panel dock; price + hold left, chart right, buy/sell/end-day row.
+	var dock := game.get_node("Dock") as PanelContainer
+	dock.add_theme_stylebox_override("panel", panel_box(10.0))
 	var face := game.get_node("Dock/Row/Ticker/Face") as Control
-	face.get_node("Col/PriceCap").visible = false
+	var price_cap := face.get_node("Col/PriceCap") as Label
+	price_cap.visible = true
+	font(price_cap, 16)
+	price_cap.add_theme_color_override("font_color", MUTED)
 	face.get_node("Col/HoldHint").visible = false
+	font(face.get_node("Col/TickerPrice"), 40)
+	font(face.get_node("Col/TickerDelta"), 20)
+	font(face.get_node("Col/TickerHold"), 16)
+	face.get_node("Col/TickerHold").add_theme_color_override("font_color", MUTED)
+	for name in ["ShareBuy", "ShareSell"]:
+		var action := game.get_node("Dock/Row/Day/TradeRow/" + name) as Button
+		action.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		action.size_flags_vertical = Control.SIZE_EXPAND_FILL
+		action.custom_minimum_size = Vector2(0, 54)
+	var day_end := game.get_node("Dock/Row/Day/TradeRow/DayEnd") as Button
+	day_end.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	day_end.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	day_end.custom_minimum_size = Vector2(0, 54)
 
 static func _dialogs(game: Control) -> void:
-	# Settings card: narrower portrait like the redesign mock.
+	# Settings: fit content, center on screen (same treatment as quest card).
 	var settings_card := game.get_node("SettingsPop/Card") as Control
-	rect(settings_card, 0.14, 0.08, 0.72, 0.82)
+	rect(settings_card, 0.14, 0.18, 0.72, 0.58)
 	surface(settings_card, 24)
 	var trophy_card := game.get_node("TrophyPop/Card") as Control
 	rect(trophy_card, 0.07, 0.15, 0.86, 0.76)
 	surface(trophy_card, 26)
 	var quest := game.get_node("QuestPop/Card") as Control
-	rect(quest, 0.07, 0.17, 0.86, 0.65)
-	surface(quest, 26)
+	# Fit content height and sit on viewport center (was tall + top-heavy).
+	rect(quest, 0.14, 0.20, 0.72, 0.56)
+	surface(quest, 24)
+	var quest_box := quest.get_node("Box") as VBoxContainer
+	quest_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	quest_box.add_theme_constant_override("separation", 14)
 	font(quest.get_node("Box/Head"), 39)
 	font(quest.get_node("Box/QuestTitle"), 23)
 	font(quest.get_node("Box/QuestNews"), 23)
@@ -157,10 +273,17 @@ static func _dialogs(game: Control) -> void:
 		var top := metric.get_node("Row/Col/Top")
 		for item in top.get_children():
 			font(item, 31 if item.name.begins_with("Quest") else 21)
-		font(metric.get_node("Row/Col/Hint"), 21)
+		var hint := metric.get_node("Row/Col/Hint") as Label
+		font(hint, 21)
+		hint.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		metric.get_node("Row/Col/Track").custom_minimum_size.y = 12
-	var settings := game.get_node("SettingsPop/Card/Col")
+	var settings := game.get_node("SettingsPop/Card/Col") as VBoxContainer
+	settings.alignment = BoxContainer.ALIGNMENT_CENTER
 	settings.add_theme_constant_override("separation", 14)
+	var footer_pad := settings.get_node_or_null("FooterPad") as Control
+	if footer_pad:
+		footer_pad.visible = false
+		footer_pad.size_flags_vertical = Control.SIZE_SHRINK_BEGIN
 	font(settings.get_node("Title"), 40)
 	settings.get_node("Title").add_theme_color_override("font_color", INK)
 	for path in ["SfxRow/SfxTitle", "AmbRow/AmbTitle", "LangRow/LangTitle", "FontRow/FontTitle"]:
@@ -169,7 +292,10 @@ static func _dialogs(game: Control) -> void:
 		var chip := settings.get_node(path) as Button
 		font(chip, 26)
 		chip.custom_minimum_size = Vector2(96, 48)
-		chip.clip_text = true
+		chip.clip_text = false
+		chip.autowrap_mode = TextServer.AUTOWRAP_OFF
+	var lang_opts := settings.get_node("LangRow/Options") as HBoxContainer
+	lang_opts.alignment = BoxContainer.ALIGNMENT_CENTER
 	for name in ["GuideBtn", "HomeBtn", "Restart"]:
 		var button := settings.get_node(name) as Button
 		font(button, 28)
@@ -245,13 +371,7 @@ static func report(card: Control) -> void:
 	_ensure_hairline(daily, "RulePrice", daily.get_node("PriceWell"))
 	_ledger_cells(daily)
 	_ensure_hairline(daily, "RuleLedger", daily.get_node("Ledger"))
-	var foot := daily.get_node("Footnote") as Control
-	foot.custom_minimum_size.y = 24
-	daily.get_node("Footnote/Row").alignment = BoxContainer.ALIGNMENT_CENTER
-	daily.get_node("Footnote/Row/Icon").hide()
-	font(daily.get_node("Footnote/Row/Txt"), 20)
-	daily.get_node("Footnote/Row/Txt").add_theme_color_override("font_color", INK)
-	daily.get_node("Footnote/Row/Txt").horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	daily.get_node("Footnote").visible = false
 	daily.get_node("HatchNote").alignment = BoxContainer.ALIGNMENT_CENTER
 	daily.get_node("HatchNote").add_theme_constant_override("separation", 0)
 	daily.get_node("HatchNote/Icon").hide()
@@ -261,8 +381,8 @@ static func report(card: Control) -> void:
 	font(daily.get_node("BeatLine"), 13)
 	daily.get_node("BeatLine").add_theme_color_override("font_color", MUTED)
 	daily.get_node("BeatLine").horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	# Match reference order: wealth → hatch → beat → actions
-	daily.move_child(daily.get_node("HatchNote"), daily.get_node("Footnote").get_index() + 1)
+	# Match reference order: ledger → hatch → beat → actions
+	daily.move_child(daily.get_node("HatchNote"), daily.get_node("Ledger").get_index() + 1)
 	daily.move_child(daily.get_node("BeatLine"), daily.get_node("HatchNote").get_index() + 1)
 	var actions := daily.get_node("Actions") as VBoxContainer
 	actions.move_child(actions.get_node("Cta"), 0)
@@ -416,7 +536,7 @@ static func _ledger_cells(daily: Control) -> void:
 	var icons := {
 		"Broken": "res://assets/ui/settlement/kit/33-icon-egg-cracked.png",
 		"Grown": "res://icons/chick.png",
-		"Cake": "res://assets/ui/settlement/kit/32-icon-cake.png",
+		"Cake": "res://assets/ui/settlement/kit/24-icon-arrow-up.png",
 	}
 	for name in ["Broken", "Grown", "Cake"]:
 		var cell := row.get_node(name) as Control

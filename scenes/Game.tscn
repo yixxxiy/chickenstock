@@ -213,25 +213,26 @@ rows = 1
 z_index = 40
 z_as_relative = false
 layout_mode = 1
-anchor_left = 0.022
-anchor_top = 0.008
-anchor_right = 0.978
-anchor_bottom = 0.176
+anchor_left = 0.025
+anchor_top = 0.012
+anchor_right = 0.975
+anchor_bottom = 0.22
 grow_horizontal = 2
 mouse_filter = 2
 
 [node name="ClockBox" type="Control" parent="HUD" unique_id=912531961]
 z_index = 1
 layout_mode = 1
-anchor_right = 0.27100003
-anchor_bottom = 1.2950001
-offset_right = 0.10020447
-offset_bottom = -29.97345
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.23
+anchor_bottom = 0.98
 mouse_filter = 2
 
 [node name="Clock" type="Control" parent="HUD/ClockBox" unique_id=363376132]
 layout_mode = 1
 anchor_left = 0.04
+anchor_top = 0.0
 anchor_right = 0.96
 anchor_bottom = 0.7
 pivot_offset = Vector2(68.69088, 67.482796)
@@ -266,11 +267,9 @@ stretch_mode = 5
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.08
-anchor_top = 0.74
+anchor_top = 0.72
 anchor_right = 0.92
 anchor_bottom = 0.98
-offset_top = -4.869919
-offset_bottom = -10.143845
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SB_day_chip")
 
@@ -294,14 +293,10 @@ mouse_filter = 2
 
 [node name="HudBar" type="Control" parent="HUD" unique_id=2112537473]
 layout_mode = 1
-anchor_left = 0.27100003
-anchor_top = 0.063
-anchor_right = 0.98
-anchor_bottom = 0.638
-offset_left = -0.89979553
-offset_top = -0.030015945
-offset_right = -11.999939
-offset_bottom = -2.9484177
+anchor_left = 0.26
+anchor_top = 0.02
+anchor_right = 1.0
+anchor_bottom = 0.48
 mouse_filter = 2
 
 [node name="HudBarBg" type="Panel" parent="HUD/HudBar" unique_id=929482568]
@@ -310,10 +305,6 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -70.0
-offset_top = 8.0
-offset_right = 21.685059
-offset_bottom = -10.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
@@ -322,11 +313,10 @@ theme_override_styles/panel = SubResource("SB_hud_bar")
 [node name="CashChip" type="PanelContainer" parent="HUD/HudBar" unique_id=1817911350]
 layout_mode = 1
 anchors_preset = -1
+anchor_left = 0.04
 anchor_top = 0.08
-anchor_right = 0.25
+anchor_right = 0.27
 anchor_bottom = 0.92
-offset_left = -8.0
-offset_right = 9.171265
 mouse_filter = 2
 theme_override_styles/panel = SubResource("SB_chip_slot")
 
@@ -337,7 +327,7 @@ theme_override_constants/separation = 2
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/CashChip/Row" unique_id=562353338]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -369,12 +359,12 @@ vertical_alignment = 1
 [node name="StockChip" type="PanelContainer" parent="HUD/HudBar" unique_id=2060065385]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.25
+anchor_left = 0.27
 anchor_top = 0.08
-anchor_right = 0.5
+anchor_right = 0.50
 anchor_bottom = 0.92
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SB_chip_slot_div")
+theme_override_styles/panel = SubResource("SB_chip_slot")
 
 [node name="Row" type="HBoxContainer" parent="HUD/HudBar/StockChip" unique_id=2138327225]
 layout_mode = 2
@@ -383,9 +373,9 @@ theme_override_constants/separation = 2
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/StockChip/Row" unique_id=1642029791]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 0
 size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("29_stock")
@@ -416,12 +406,12 @@ vertical_alignment = 1
 [node name="HenChip" type="PanelContainer" parent="HUD/HudBar" unique_id=653180150]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.5
+anchor_left = 0.50
 anchor_top = 0.08
-anchor_right = 0.75
+anchor_right = 0.73
 anchor_bottom = 0.92
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SB_chip_slot_div")
+theme_override_styles/panel = SubResource("SB_chip_slot")
 
 [node name="Row" type="HBoxContainer" parent="HUD/HudBar/HenChip" unique_id=1399473918]
 layout_mode = 2
@@ -430,7 +420,7 @@ theme_override_constants/separation = 2
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/HenChip/Row" unique_id=932641809]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -448,12 +438,12 @@ vertical_alignment = 1
 [node name="ChickChip" type="PanelContainer" parent="HUD/HudBar" unique_id=577938478]
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.75
+anchor_left = 0.73
 anchor_top = 0.08
-anchor_right = 1.0
+anchor_right = 0.96
 anchor_bottom = 0.92
 mouse_filter = 2
-theme_override_styles/panel = SubResource("SB_chip_slot_div")
+theme_override_styles/panel = SubResource("SB_chip_slot")
 
 [node name="Row" type="HBoxContainer" parent="HUD/HudBar/ChickChip" unique_id=175978521]
 layout_mode = 2
@@ -462,7 +452,7 @@ theme_override_constants/separation = 2
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HUD/HudBar/ChickChip/Row" unique_id=1529067370]
-custom_minimum_size = Vector2(50, 50)
+custom_minimum_size = Vector2(32, 32)
 layout_mode = 2
 size_flags_vertical = 4
 mouse_filter = 2
@@ -483,19 +473,13 @@ anchors_preset = 0
 mouse_filter = 2
 
 [node name="QuestBtn" type="TextureButton" parent="HUD" unique_id=515742559]
-z_index = -1
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(52, 52)
 layout_mode = 1
 anchors_preset = -1
-anchor_left = 0.74
-anchor_top = 0.56
-anchor_right = 0.85
-anchor_bottom = 0.96
-offset_left = 2.8425598
-offset_top = 3.4700775
-offset_right = 2.8425293
-offset_bottom = 3.4700775
-scale = Vector2(0.95, 0.95)
+anchor_left = 0.735
+anchor_top = 0.08
+anchor_right = 0.86
+anchor_bottom = 0.92
 texture_normal = ExtResource("24_mail")
 ignore_texture_size = true
 stretch_mode = 5
@@ -513,19 +497,13 @@ grow_horizontal = 0
 mouse_filter = 2
 
 [node name="SettingsBtn" type="TextureButton" parent="HUD" unique_id=505223869]
-z_index = -1
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(52, 52)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.875
-anchor_top = 0.56
-anchor_right = 0.985
-anchor_bottom = 0.96
-offset_left = -7.496002
-offset_top = 3.4700775
-offset_right = -7.4960327
-offset_bottom = 3.4700775
-scale = Vector2(0.95, 0.95)
+anchor_top = 0.08
+anchor_right = 1.0
+anchor_bottom = 0.92
 texture_normal = ExtResource("24_farm_gear")
 ignore_texture_size = true
 stretch_mode = 5
@@ -650,9 +628,9 @@ visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.7
-anchor_top = 0.472
-anchor_right = 0.985
-anchor_bottom = 0.568
+anchor_top = 0.348
+anchor_right = 0.98
+anchor_bottom = 0.41
 theme_override_font_sizes/font_size = 27
 text = "↑ Lv.1→2 · 200"
 
@@ -721,24 +699,22 @@ anchor_bottom = 1.0
 theme_override_constants/separation = 8
 
 [node name="WolfBuy" type="Button" parent="WolfShop/Animals" unique_id=1016928371]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 17
-text = "买
-50"
+theme_override_font_sizes/font_size = 18
+text = "买鸡 50"
 autowrap_mode = 0
 clip_text = false
 
 [node name="WolfSell" type="Button" parent="WolfShop/Animals" unique_id=758590154]
-custom_minimum_size = Vector2(0, 72)
+custom_minimum_size = Vector2(0, 48)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 17
-text = "卖
-40"
+theme_override_font_sizes/font_size = 18
+text = "卖鸡 40"
 autowrap_mode = 0
 clip_text = false
 
@@ -747,9 +723,9 @@ z_index = 8
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.035
-anchor_top = 0.762
+anchor_top = 0.748
 anchor_right = 0.965
-anchor_bottom = 0.98
+anchor_bottom = 0.985
 theme_override_styles/panel = SubResource("SB_dock")
 
 [node name="Row" type="Control" parent="Dock" unique_id=630236354]
@@ -777,14 +753,13 @@ anchor_right = 0.24
 anchor_bottom = 0.94
 
 [node name="PriceCap" type="Label" parent="Dock/Row/Ticker/Face/Col" unique_id=2091491026]
-visible = false
 layout_mode = 1
 anchors_preset = -1
 anchor_right = 1.0
 anchor_bottom = 0.18
-theme_override_colors/font_color = Color(0.305882, 0.239216, 0.172549, 1)
-theme_override_font_sizes/font_size = 18
-text = "当前股价"
+theme_override_colors/font_color = Color(0.5, 0.4, 0.3, 1)
+theme_override_font_sizes/font_size = 16
+text = "股价"
 
 [node name="TickerPrice" type="Label" parent="Dock/Row/Ticker/Face/Col" unique_id=2091491027]
 layout_mode = 1
@@ -857,7 +832,7 @@ theme_override_constants/separation = 8
 alignment = 1
 
 [node name="ShareBuy" type="Button" parent="Dock/Row/Day/TradeRow" unique_id=2010991232]
-custom_minimum_size = Vector2(112, 56)
+custom_minimum_size = Vector2(118, 56)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 3
@@ -865,7 +840,7 @@ theme_override_font_sizes/font_size = 22
 text = "买入"
 
 [node name="ShareSell" type="Button" parent="Dock/Row/Day/TradeRow" unique_id=82042013]
-custom_minimum_size = Vector2(112, 56)
+custom_minimum_size = Vector2(118, 56)
 layout_mode = 2
 size_flags_horizontal = 0
 size_flags_vertical = 3
@@ -877,7 +852,7 @@ custom_minimum_size = Vector2(0, 56)
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
-theme_override_font_sizes/font_size = 28
+theme_override_font_sizes/font_size = 26
 text = "结束今天"
 
 [node name="DayTrack" type="ColorRect" parent="Dock/Row/Day" unique_id=1596484358]
@@ -928,14 +903,15 @@ color = Color(0.05, 0.08, 0.16, 0.48)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.14
-anchor_top = 0.08
+anchor_top = 0.2
 anchor_right = 0.86
-anchor_bottom = 0.9
+anchor_bottom = 0.76
 theme_override_styles/panel = ExtResource("26_frame_tall")
 
 [node name="Box" type="VBoxContainer" parent="QuestPop/Card" unique_id=1225856466]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
+alignment = 1
 
 [node name="Head" type="Label" parent="QuestPop/Card/Box" unique_id=189503210]
 layout_mode = 2
@@ -1006,6 +982,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.45, 0.32, 1)
 theme_override_font_sizes/font_size = 25
 text = "还差 2860"
+horizontal_alignment = 1
 
 [node name="FlockCard" type="PanelContainer" parent="QuestPop/Card/Box" unique_id=154386064]
 layout_mode = 2
@@ -1061,6 +1038,7 @@ layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.45, 0.32, 1)
 theme_override_font_sizes/font_size = 25
 text = "还差 14 只"
+horizontal_alignment = 1
 
 [node name="QuestNews" type="Label" parent="QuestPop/Card/Box" unique_id=1655668744]
 layout_mode = 2
@@ -1091,9 +1069,9 @@ custom_minimum_size = Vector2(56, 56)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.86
-anchor_top = 0.08
+anchor_top = 0.2
 anchor_right = 0.86
-anchor_bottom = 0.08
+anchor_bottom = 0.2
 offset_left = -62.0
 offset_top = 6.0
 offset_right = -6.0
@@ -1167,14 +1145,15 @@ color = Color(0.05, 0.08, 0.16, 0.48)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.14
-anchor_top = 0.08
+anchor_top = 0.18
 anchor_right = 0.86
-anchor_bottom = 0.9
+anchor_bottom = 0.76
 theme_override_styles/panel = ExtResource("26_frame_tall")
 
 [node name="Col" type="VBoxContainer" parent="SettingsPop/Card" unique_id=1751803989]
 layout_mode = 2
 theme_override_constants/separation = 14
+alignment = 1
 
 [node name="Title" type="Label" parent="SettingsPop/Card/Col" unique_id=1124346400]
 layout_mode = 2
@@ -1204,11 +1183,12 @@ text = "音效"
 vertical_alignment = 1
 
 [node name="SfxBtn" type="Button" parent="SettingsPop/Card/Col/SfxRow" unique_id=172113610]
-custom_minimum_size = Vector2(96, 48)
+custom_minimum_size = Vector2(72, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 26
-text = "开"
+clip_text = false
+text = ""
 
 [node name="AmbRow" type="HBoxContainer" parent="SettingsPop/Card/Col" unique_id=237323118]
 custom_minimum_size = Vector2(0, 52)
@@ -1225,11 +1205,12 @@ text = "环境音"
 vertical_alignment = 1
 
 [node name="AmbBtn" type="Button" parent="SettingsPop/Card/Col/AmbRow" unique_id=237323119]
-custom_minimum_size = Vector2(96, 48)
+custom_minimum_size = Vector2(72, 48)
 layout_mode = 2
 size_flags_horizontal = 0
 theme_override_font_sizes/font_size = 26
-text = "开"
+clip_text = false
+text = ""
 
 [node name="LangRow" type="VBoxContainer" parent="SettingsPop/Card/Col" unique_id=160151049]
 layout_mode = 2
@@ -1246,18 +1227,22 @@ vertical_alignment = 1
 [node name="Options" type="HBoxContainer" parent="SettingsPop/Card/Col/LangRow" unique_id=332027242]
 layout_mode = 2
 theme_override_constants/separation = 10
+alignment = 1
 
 [node name="ZhBtn" type="Button" parent="SettingsPop/Card/Col/LangRow/Options" unique_id=213864430]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+toggle_mode = true
+button_pressed = true
 theme_override_font_sizes/font_size = 26
 text = "中文"
 
 [node name="EnBtn" type="Button" parent="SettingsPop/Card/Col/LangRow/Options" unique_id=1371367676]
-custom_minimum_size = Vector2(0, 48)
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 size_flags_horizontal = 3
+toggle_mode = true
 theme_override_font_sizes/font_size = 26
 text = "English"
 
@@ -1307,8 +1292,8 @@ text = "只点气泡和按钮。长按可以连续收、买、卖。八日挑战
 autowrap_mode = 3
 
 [node name="FooterPad" type="Control" parent="SettingsPop/Card/Col" unique_id=776086587]
+visible = false
 layout_mode = 2
-size_flags_vertical = 3
 mouse_filter = 2
 
 [node name="GuideBtn" type="Button" parent="SettingsPop/Card/Col" unique_id=780411219]
@@ -1344,9 +1329,9 @@ custom_minimum_size = Vector2(56, 56)
 layout_mode = 1
 anchors_preset = -1
 anchor_left = 0.86
-anchor_top = 0.08
+anchor_top = 0.18
 anchor_right = 0.86
-anchor_bottom = 0.08
+anchor_bottom = 0.18
 offset_left = -62.0
 offset_top = 6.0
 offset_right = -6.0
@@ -1710,6 +1695,7 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Subtitle" type="Label" parent="StartMenuLayer/Card/Box" unique_id=1148216072]
+visible = false
 layout_mode = 0
 theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
 theme_override_font_sizes/font_size = 25

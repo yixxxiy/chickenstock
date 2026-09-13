@@ -223,15 +223,19 @@ func flash_ticker(up: bool, big := false) -> void:
 		extra.tween_property(ticker, "scale", Vector2(1.08, 1.08), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		extra.tween_property(ticker, "scale", Vector2.ONE, 0.4)
 
-func pop_in(n: Control) -> void:
+func pop_in(n: Control, animate_scale := true) -> void:
 	if n == null:
 		return
 	_pivot_now(n)
-	n.scale = Vector2(0.86, 0.86)
 	n.modulate.a = 0.0
 	var tw := create_tween()
 	tw.tween_property(n, "modulate:a", 1.0, 0.18)
-	tw.parallel().tween_property(n, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	if animate_scale:
+		n.scale = Vector2(0.86, 0.86)
+		tw.parallel().tween_property(n, "scale", Vector2.ONE, 0.32).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	else:
+		# Settlement: fade only so mail/gear chrome stay visually pinned.
+		n.scale = Vector2.ONE
 
 func toast_in(n: Control) -> void:
 	n.modulate.a = 0.0

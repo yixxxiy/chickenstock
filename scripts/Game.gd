@@ -658,6 +658,27 @@ func _sync_hud_chrome() -> void:
 	var settings_btn := get_node_or_null("HUD/SettingsBtn") as Control
 	if settings_btn:
 		settings_btn.visible = show
+	_sync_mail_gear_layout()
+
+func _anchor_frac(node: Control, left: float, top: float, right: float, bottom: float) -> void:
+	node.anchor_left = left
+	node.anchor_top = top
+	node.anchor_right = right
+	node.anchor_bottom = bottom
+	node.offset_left = 0.0
+	node.offset_top = 0.0
+	node.offset_right = 0.0
+	node.offset_bottom = 0.0
+
+func _sync_mail_gear_layout() -> void:
+	if quest_btn == null:
+		return
+	var gear := get_node_or_null("HUD/SettingsBtn") as Control
+	# Keep mail/gear pinned top-right. Do not relocate when settlement opens
+	# or when quest/settings are toggled — that read as "click makes them jump".
+	_anchor_frac(quest_btn, 0.735, 0.08, 0.86, 0.92)
+	if gear:
+		_anchor_frac(gear, 0.875, 0.08, 1.0, 0.92)
 
 func _set_menu_idle(on: bool) -> void:
 	if menu_backdrop:
@@ -1189,8 +1210,8 @@ func _connect_ui() -> void:
 	_bind_hold(share_buy, buy_shares)
 	_bind_hold(share_sell, sell_shares)
 	bakery_upgrade.pressed.connect(upgrade_bakery)
-	_style_dock_green(day_end_btn, 28, true)
-	day_end_btn.custom_minimum_size.y = 56.0
+	_style_dock_green(day_end_btn, 26, true)
+	day_end_btn.custom_minimum_size = Vector2(0, 56.0)
 	day_end_btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	day_end_btn.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_style_settings_chrome()
@@ -1210,11 +1231,11 @@ func _connect_ui() -> void:
 	_style_beige(start_menu_endless)
 	_style_beige(start_menu_settings)
 	_style_beige(start_menu_trophies)
-	start_menu_tutorial.add_theme_font_size_override("font_size", 32)
-	start_menu_direct.add_theme_font_size_override("font_size", 32)
-	start_menu_endless.add_theme_font_size_override("font_size", 32)
-	start_menu_settings.add_theme_font_size_override("font_size", 32)
-	start_menu_trophies.add_theme_font_size_override("font_size", 32)
+	start_menu_tutorial.add_theme_font_size_override("font_size", 28)
+	start_menu_direct.add_theme_font_size_override("font_size", 28)
+	start_menu_endless.add_theme_font_size_override("font_size", 28)
+	start_menu_settings.add_theme_font_size_override("font_size", 24)
+	start_menu_trophies.add_theme_font_size_override("font_size", 24)
 	start_menu_direct.icon = null
 	start_menu_tutorial.icon = null
 	start_menu_endless.icon = null
@@ -1233,7 +1254,7 @@ func _connect_ui() -> void:
 	bakery_upgrade.add_theme_font_size_override("font_size", 15)
 	bakery_upgrade.custom_minimum_size.y = 36.0
 	bakery_upgrade.autowrap_mode = TextServer.AUTOWRAP_OFF
-	bakery_upgrade.clip_text = true
+	bakery_upgrade.clip_text = false
 	_set_menu_icon(bakery_upgrade, "res://assets/ui/farm-ui/icon_coin.png", 20)
 	bakery_upgrade.add_theme_constant_override("h_separation", 4)
 	chick_btn.icon = load("res://icons/chick.png")
@@ -1262,13 +1283,11 @@ func _connect_ui() -> void:
 		_apply_settings_labels()
 	)
 	get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn").pressed.connect(func():
-		if Loc.lang != "zh":
-			Loc.toggle()
+		if Loc.set_lang("zh"):
 			_apply_locale()
 	)
 	get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn").pressed.connect(func():
-		if Loc.lang != "en":
-			Loc.toggle()
+		if Loc.set_lang("en"):
 			_apply_locale()
 	)
 	tutorial_next.pressed.connect(_tutorial_next_pressed)
@@ -1352,28 +1371,21 @@ func _set_menu_icon(b: Button, path: String, width: int) -> void:
 
 func _style_tag(b: Button) -> void:
 	var ink := Color("4e3d2c")
-	b.add_theme_font_size_override("font_size", 28)
+	b.add_theme_font_size_override("font_size", 15)
 	b.add_theme_color_override("font_color", ink)
 	b.add_theme_color_override("font_hover_color", ink)
 	b.add_theme_color_override("font_pressed_color", ink)
-	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.45))
+	b.add_theme_color_override("icon_disabled_color", Color(1, 1, 1, 0.5))
 	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
 	b.add_theme_constant_override("outline_size", 0)
-	var sb := StyleBoxTexture.new()
-	sb.texture = UiSimpleTag
-	# Chip is ~119x68; keep pill caps, leave a stretchable center.
-	sb.texture_margin_left = 28.0
-	sb.texture_margin_top = 18.0
-	sb.texture_margin_right = 28.0
-	sb.texture_margin_bottom = 18.0
+	var sb := _clean_button_box(UiSimpleBeige)
 	sb.content_margin_left = 12.0
-	sb.content_margin_top = 6.0
 	sb.content_margin_right = 12.0
+	sb.content_margin_top = 6.0
 	sb.content_margin_bottom = 6.0
-	sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-	sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
 	UiStyle.button_states(b, sb)
-	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 48.0)
+	b.custom_minimum_size.y = 40.0
 
 func _bind_close_x(btn: TextureButton, card: Control, on_close: Callable) -> void:
 	btn.ignore_texture_size = true
@@ -1406,23 +1418,21 @@ func _pin_close_x(btn: Control, card: Control) -> void:
 	btn.global_position = corner
 
 func _style_hud_chip(c: PanelContainer) -> void:
-	# Top HUD slots are authored in Game.tscn; leave them alone.
-	if hud_bar != null and c.get_parent() == hud_bar:
-		return
 	var sb := StyleBoxFlat.new()
 	sb.bg_color = Color.TRANSPARENT
-	if c.get_index() > 0:
-		sb.border_color = Color(0.55, 0.42, 0.28, 0.35)
+	if hud_bar != null and c.get_parent() == hud_bar and c.get_index() > 0:
+		sb.border_color = Color(0.45, 0.38, 0.30, 0.18)
 		sb.border_width_left = 1
 	sb.content_margin_left = 4
 	sb.content_margin_right = 4
-	sb.content_margin_top = 4
-	sb.content_margin_bottom = 4
+	sb.content_margin_top = 2
+	sb.content_margin_bottom = 2
 	c.add_theme_stylebox_override("panel", sb)
 
 func _style_top_hud_bar() -> void:
-	# HudBarBg is nested under HudBar and sized by anchors in the scene.
-	pass
+	if hud_bar_bg == null:
+		return
+	hud_bar_bg.add_theme_stylebox_override("panel", UiLayout.panel_box(8.0))
 
 func _sync_top_hud_bar() -> void:
 	pass
@@ -1575,11 +1585,12 @@ func _set_bubble_badge(b: Button, text: String) -> void:
 	badge.visible = not text.is_empty()
 
 func _thought_box(is_baking: bool) -> StyleBoxFlat:
+	# Match simple-ui panel cream without stretching the thick frame on tiny bubbles.
 	var sb := StyleBoxFlat.new()
-	sb.bg_color = Color("fff6e6f5")
-	sb.border_color = Color("c4a574")
+	sb.bg_color = Color("f7f1e6f5")
+	sb.border_color = Color("c9b08a")
 	sb.set_border_width_all(2)
-	sb.set_corner_radius_all(18 if is_baking else 28)
+	sb.set_corner_radius_all(18 if is_baking else 22)
 	sb.content_margin_left = 6
 	sb.content_margin_right = 6
 	sb.content_margin_top = 6
@@ -1679,20 +1690,11 @@ func _sync_bake_bar() -> void:
 
 func _style_dock(c: PanelContainer) -> void:
 	UiLayout.dock(self)
-	# Same light-wood bar as top HUD so top/bottom read as one kit.
-	var sb := StyleBoxTexture.new()
-	sb.texture = preload("res://assets/ui/farm-ui/hud_bar.png")
-	sb.texture_margin_left = 40.0
-	sb.texture_margin_top = 28.0
-	sb.texture_margin_right = 40.0
-	sb.texture_margin_bottom = 28.0
-	sb.content_margin_left = 10.0
-	sb.content_margin_top = 8.0
-	sb.content_margin_right = 10.0
-	sb.content_margin_bottom = 8.0
-	c.add_theme_stylebox_override("panel", sb)
-	day_track.color = Color("4a3726a0")
-	day_track_fill.color = Color("d4a04a")
+	c.add_theme_stylebox_override("panel", UiLayout.panel_box(10.0))
+	day_track.color = Color(0.82, 0.78, 0.72, 0.55)
+	day_track_fill.color = Color(0.45, 0.62, 0.42, 0.95)
+	ticker_price_cap.visible = true
+	ticker_hold_hint.visible = false
 
 func _fill_dock_row(_row: Control) -> void:
 	UiLayout.dock(self)
@@ -1701,74 +1703,43 @@ func _bind_dock_button_states(b: Button, sb: StyleBoxTexture) -> void:
 	UiStyle.button_states(b, sb)
 
 func _style_dock_green(b: Button, font_size: int, wide := false) -> void:
-	# Warm parchment ink; soft wood outline reads with light HUD dock.
-	var ink := Color("fff4e4")
+	var ink := Color("fff8ef")
 	b.add_theme_font_size_override("font_size", font_size)
 	b.add_theme_color_override("font_color", ink)
 	b.add_theme_color_override("font_hover_color", ink)
 	b.add_theme_color_override("font_pressed_color", ink)
-	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
-	b.add_theme_color_override("font_outline_color", Color("3a2a18aa"))
-	b.add_theme_constant_override("outline_size", 2)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.45))
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+	b.add_theme_constant_override("outline_size", 0)
+	b.clip_text = false
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var sb := _clean_button_box(UiSimpleGreen)
-	# Soften neon against cream HUD wood without touching node.modulate (Juice hurry).
-	sb.modulate_color = Color(0.9, 0.88, 0.8)
 	if wide:
-		sb.content_margin_left = 20.0
-		sb.content_margin_right = 20.0
-		sb.content_margin_top = 12.0
-		sb.content_margin_bottom = 12.0
+		sb.content_margin_left = 18.0
+		sb.content_margin_right = 18.0
 	_bind_dock_button_states(b, sb)
 
 func _style_dock_red(b: Button, font_size: int) -> void:
-	var ink := Color("fff4e4")
+	var ink := Color("fff8ef")
 	b.add_theme_font_size_override("font_size", font_size)
 	b.add_theme_color_override("font_color", ink)
 	b.add_theme_color_override("font_hover_color", ink)
 	b.add_theme_color_override("font_pressed_color", ink)
-	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
-	b.add_theme_color_override("font_outline_color", Color("4a241caa"))
-	b.add_theme_constant_override("outline_size", 2)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.45))
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+	b.add_theme_constant_override("outline_size", 0)
+	b.clip_text = false
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
 	var sb := _clean_button_box(UiSimpleRed)
-	sb.modulate_color = Color(0.9, 0.86, 0.8)
 	_bind_dock_button_states(b, sb)
 
-# Wolf animal trade: tall chip, icon on top, action+price below (no letter-wrap).
+# Wolf animal trade: compact one-line chips like the mock.
 func _style_wolf_trade(b: Button, is_buy: bool) -> void:
 	if is_buy:
-		_style_dock_green(b, 17)
+		_style_dock_green(b, 18)
 	else:
-		_style_dock_red(b, 17)
-	var sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxTexture
-	sb.content_margin_left = 8.0
-	sb.content_margin_right = 8.0
-	sb.content_margin_top = 8.0
-	sb.content_margin_bottom = 8.0
-	_bind_dock_button_states(b, sb)
-	b.icon = load("res://icons/chick.png" if is_buy else "res://icons/hen.png")
-	b.expand_icon = true
-	b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_TOP
-	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.add_theme_constant_override("icon_max_width", 34)
-	b.add_theme_constant_override("h_separation", 0)
-	b.autowrap_mode = TextServer.AUTOWRAP_OFF
-	b.clip_text = false
-	b.custom_minimum_size.y = 72.0
-
-# Share trade: same plank thickness as DayEnd; sits in one action row.
-func _style_share_trade(b: Button, is_buy: bool) -> void:
-	if is_buy:
-		_style_dock_green(b, 22)
-	else:
-		_style_dock_red(b, 22)
-	var sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxTexture
-	sb.content_margin_left = 12.0
-	sb.content_margin_right = 12.0
-	sb.content_margin_top = 12.0
-	sb.content_margin_bottom = 12.0
-	_bind_dock_button_states(b, sb)
-	b.icon = load("res://icons/price_up.png" if is_buy else "res://icons/price_down.png")
+		_style_dock_red(b, 18)
+	b.icon = load("res://icons/coin.png")
 	b.expand_icon = true
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
@@ -1776,8 +1747,22 @@ func _style_share_trade(b: Button, is_buy: bool) -> void:
 	b.add_theme_constant_override("icon_max_width", 22)
 	b.add_theme_constant_override("h_separation", 6)
 	b.autowrap_mode = TextServer.AUTOWRAP_OFF
-	b.clip_text = true
-	b.custom_minimum_size = Vector2(112, 56)
+	b.clip_text = false
+	b.custom_minimum_size.y = 48.0
+	b.add_theme_color_override("icon_disabled_color", Color(1, 1, 1, 0.42))
+
+# Share trade: equal-width flat pills in one action row.
+func _style_share_trade(b: Button, is_buy: bool) -> void:
+	if is_buy:
+		_style_dock_green(b, 22)
+	else:
+		_style_dock_red(b, 22)
+	b.icon = null
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
+	b.clip_text = false
+	b.custom_minimum_size = Vector2(0, 54)
+	b.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	b.size_flags_vertical = Control.SIZE_EXPAND_FILL
 
 func _clean_panel(c: Control) -> void:
 	var sb := StyleBoxTexture.new()
@@ -1809,6 +1794,8 @@ func _cream_panel(c: Control) -> void:
 	c.add_theme_stylebox_override("panel", sb)
 
 func _start_hold(cb: Callable, b: BaseButton = null) -> void:
+	if b != null and (not b.visible or b.disabled):
+		return
 	sfx.unlock()
 	_hold_fn = cb
 	_hold_btn = b
@@ -1892,8 +1879,8 @@ func _apply_settings_labels() -> void:
 	get_node("SettingsPop/Card/Col/Title").text = Loc.t("settings")
 	get_node("SettingsPop/Card/Col/SfxRow/SfxTitle").text = Loc.t("sfx_title")
 	get_node("SettingsPop/Card/Col/AmbRow/AmbTitle").text = Loc.t("amb_title")
-	get_node("SettingsPop/Card/Col/SfxRow/SfxBtn").text = Loc.t("toggle_on" if sfx.sfx_on else "toggle_off")
-	get_node("SettingsPop/Card/Col/AmbRow/AmbBtn").text = Loc.t("toggle_on" if sfx.amb_on else "toggle_off")
+	get_node("SettingsPop/Card/Col/SfxRow/SfxBtn").text = ""
+	get_node("SettingsPop/Card/Col/AmbRow/AmbBtn").text = ""
 	_style_toggle_chip(get_node("SettingsPop/Card/Col/SfxRow/SfxBtn"), sfx.sfx_on)
 	_style_toggle_chip(get_node("SettingsPop/Card/Col/AmbRow/AmbBtn"), sfx.amb_on)
 	get_node("SettingsPop/Card/Col/LangRow/LangTitle").text = Loc.t("language")
@@ -2154,7 +2141,7 @@ func _refresh_thoughts() -> void:
 		bakery_upgrade.disabled = true
 		bakery_upgrade.icon = null
 	else:
-		bakery_upgrade.text = Loc.t("oven_up", [bakery_level, bakery_level + 1, upgrade_cost])
+		bakery_upgrade.text = Loc.t("oven_up", [upgrade_cost, bakery_level, bakery_level + 1])
 		bakery_upgrade.disabled = coins < upgrade_cost or blocked()
 		if bakery_upgrade.icon == null:
 			bakery_upgrade.icon = load("res://assets/ui/farm-ui/icon_coin.png")
@@ -2162,6 +2149,19 @@ func _refresh_thoughts() -> void:
 	wolf_sell.disabled = hens < 1 or blocked()
 	share_buy.disabled = cash() < price or blocked()
 	share_sell.disabled = held() < 1 or blocked()
+
+func _sync_trade_enabled() -> void:
+	if tutorial_mode:
+		return
+	var lock := blocked()
+	wolf_buy.disabled = cash() < CHICK_COST or lock
+	wolf_sell.disabled = hens < 1 or lock
+	share_buy.disabled = cash() < price or lock
+	share_sell.disabled = held() < 1 or lock
+	if bakery_level >= BAKERY_MAX_LEVEL:
+		bakery_upgrade.disabled = true
+	else:
+		bakery_upgrade.disabled = coins < _bakery_upgrade_cost() or lock
 
 func _refresh() -> void:
 	_tick_day_ui()
@@ -2186,6 +2186,7 @@ func _refresh() -> void:
 	ticker_hold.text = Loc.t("shares_n", [held()])
 	stock_graph.set_history(history)
 	_tutorial_apply_locks()
+	_sync_trade_enabled()
 	if quest_complete() and not quest_done and game_result == "" and not settling:
 		quest_done = true
 		_start_fanfare()
@@ -2558,6 +2559,7 @@ func _set_settle_chrome(hidden: bool) -> void:
 	else:
 		_refresh_thoughts()
 	_sync_bird_occluders()
+	_sync_mail_gear_layout()
 
 func _on_settlement_confirm() -> void:
 	if game_result != "":
@@ -2582,7 +2584,7 @@ func _continue_endless_from_finale() -> void:
 
 func _toggle_quest() -> void:
 	var now := Time.get_ticks_msec()
-	if now - _quest_toggle_ms < 280 or now - _settings_toggle_ms < 280:
+	if now - _quest_toggle_ms < 280:
 		return
 	_quest_toggle_ms = now
 	if show_quest:
@@ -2599,7 +2601,7 @@ func _open_quest() -> void:
 	_sync_tutorial_layer()
 	_quest_ignore_close = true
 	_quest_toggle_ms = Time.get_ticks_msec()
-	juice.pop_in(quest_card)
+	juice.pop_in(quest_card, not settling)
 	_pin_close_x($QuestPop/CloseBtn, quest_card)
 	_sync_mail_dot()
 	_refresh()
@@ -2622,7 +2624,7 @@ func _close_quest() -> void:
 
 func _toggle_settings() -> void:
 	var now := Time.get_ticks_msec()
-	if now - _settings_toggle_ms < 280 or now - _quest_toggle_ms < 280:
+	if now - _settings_toggle_ms < 280:
 		return
 	_settings_toggle_ms = now
 	if show_settings:
@@ -2639,7 +2641,7 @@ func _open_settings() -> void:
 	_sync_tutorial_layer()
 	_settings_ignore_close = true
 	_settings_toggle_ms = Time.get_ticks_msec()
-	juice.pop_in(settings_card)
+	juice.pop_in(settings_card, not settling)
 	_pin_close_x($SettingsPop/CloseBtn, settings_card)
 	_sync_hud_chrome()
 	get_tree().create_timer(0.35).timeout.connect(func():
@@ -2708,6 +2710,16 @@ func _style_tutorial_card() -> void:
 func _style_lang_buttons() -> void:
 	var zh := get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn") as Button
 	var en := get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn") as Button
+	# Radio pair: only one language selected; re-tapping current does nothing.
+	if zh.button_group == null:
+		var group := ButtonGroup.new()
+		group.allow_unpress = false
+		zh.toggle_mode = true
+		en.toggle_mode = true
+		zh.button_group = group
+		en.button_group = group
+	zh.set_pressed_no_signal(Loc.lang == "zh")
+	en.set_pressed_no_signal(Loc.lang == "en")
 	if Loc.lang == "zh":
 		_style_green(zh)
 		_style_beige(en)
@@ -2718,6 +2730,10 @@ func _style_lang_buttons() -> void:
 	en.add_theme_font_size_override("font_size", 26)
 	zh.custom_minimum_size.y = 64.0
 	en.custom_minimum_size.y = 64.0
+	zh.clip_text = true
+	en.clip_text = true
+	zh.autowrap_mode = TextServer.AUTOWRAP_OFF
+	en.autowrap_mode = TextServer.AUTOWRAP_OFF
 
 func _style_font_buttons() -> void:
 	var small := get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn") as Button
@@ -2749,18 +2765,28 @@ func _style_toggle_chip(b: Button, on: bool) -> void:
 	b.expand_icon = true
 	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
-	b.add_theme_constant_override("icon_max_width", 72)
-	b.add_theme_constant_override("h_separation", 8)
+	b.autowrap_mode = TextServer.AUTOWRAP_OFF
+	b.clip_text = false
 	var empty := StyleBoxEmpty.new()
 	empty.content_margin_left = 8
-	empty.content_margin_right = 10
+	empty.content_margin_right = 12
 	empty.content_margin_top = 4
 	empty.content_margin_bottom = 4
 	b.add_theme_stylebox_override("normal", empty)
 	b.add_theme_stylebox_override("hover", empty)
 	b.add_theme_stylebox_override("pressed", empty)
 	b.add_theme_stylebox_override("disabled", empty)
-	b.custom_minimum_size = Vector2(120, 48)
+	# Sfx/Amb: chip icon alone (no "开/关" label); font-size chips share a row.
+	if b.name == "SfxBtn" or b.name == "AmbBtn":
+		b.text = ""
+		b.add_theme_constant_override("icon_max_width", 56)
+		b.add_theme_constant_override("h_separation", 0)
+		b.custom_minimum_size = Vector2(72, 48)
+		b.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	else:
+		b.add_theme_constant_override("icon_max_width", 48)
+		b.add_theme_constant_override("h_separation", 6)
+		b.custom_minimum_size = Vector2(0, 48)
 
 func _style_settings_chrome() -> void:
 	var flourish := get_node_or_null("SettingsPop/Card/Col/Flourish") as TextureRect
@@ -3006,7 +3032,6 @@ func _fill_daily_card() -> void:
 		"weather": str(info.weather),
 		"broken": int(summary.get("broken", 0)),
 		"grown": int(summary.get("grown", 0)),
-		"cakes": int(summary.get("cakesSold", 0)),
 		"hatched": int(summary.get("hatched", 0)),
 		"old_price": int(summary.get("oldPrice", price)),
 		"new_price": int(summary.get("newPrice", price)),
@@ -3301,6 +3326,7 @@ func _tutorial_apply_locks() -> void:
 			wolf_hit.disabled = false
 			wolf_hit.mouse_filter = Control.MOUSE_FILTER_STOP
 		_tutorial_clear_highlights()
+		_sync_trade_enabled()
 		return
 	# WolfBuy lives under WolfShop. Hiding the shop while setting the child
 	# visible leaves nothing to tap on step 4 ("buy a hen").
@@ -3321,7 +3347,7 @@ func _tutorial_apply_locks() -> void:
 	hatch_btn.disabled = tutorial_step != 2
 	cake_btn.disabled = tutorial_step != 3
 	chick_btn.disabled = true
-	wolf_buy.disabled = tutorial_step != 4
+	wolf_buy.disabled = tutorial_step != 4 or cash() < CHICK_COST
 	wolf_sell.disabled = true
 	share_buy.disabled = tutorial_step != 5
 	share_sell.disabled = tutorial_step != 6
