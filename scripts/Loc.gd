@@ -4,7 +4,7 @@ extends Object
 const SETTINGS_PATH := "user://cluck-settings.json"
 
 static var lang := "zh"
-static var ui_font_scale := 1.0
+static var ui_font_scale := 0.85
 static var _booted := false
 static var _toggle_ms := 0
 
@@ -471,9 +471,7 @@ static func load_settings() -> void:
 	var next := str(parsed.get("lang", lang))
 	if next == "en" or next == "zh":
 		lang = next
-	var next_font := float(parsed.get("ui_font_scale", ui_font_scale))
-	if is_equal_approx(next_font, 0.85) or is_equal_approx(next_font, 1.0) or is_equal_approx(next_font, 1.15):
-		ui_font_scale = next_font
+	ui_font_scale = 0.85
 
 static func set_ui_font_scale(value: float) -> void:
 	ui_font_scale = clampf(value, 0.85, 1.15)

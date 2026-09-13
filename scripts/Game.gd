@@ -11,6 +11,7 @@ const UiSimpleGreen := preload("res://assets/ui/farm-ui/simple-ui/button-green.p
 const UiSimpleRed := preload("res://assets/ui/farm-ui/simple-ui/button-red.png")
 const UiSimpleTag := preload("res://assets/ui/farm-ui/simple-ui/tag.png")
 const UiChipOn := preload("res://assets/ui/farm-ui/simple-ui/chip-on.png")
+const UiChipOff := preload("res://assets/ui/farm-ui/simple-ui/chip-off.png")
 const UiFlourish := preload("res://assets/ui/farm-ui/simple-ui/flourish.png")
 
 const DAY_MS := 20000.0
@@ -120,7 +121,9 @@ var show_quest := false
 var show_settings := false
 var reveal := "off"
 var _quest_ignore_close := false
+var _settings_ignore_close := false
 var _quest_toggle_ms := 0
+var _settings_toggle_ms := 0
 var panic_told := false
 var quest_done := false
 var _bake_acc := 0.0
@@ -326,11 +329,10 @@ func _raise_hud_chrome() -> void:
 		settings_btn.z_as_relative = false
 		settings_btn.focus_mode = Control.FOCUS_NONE
 		settings_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	# Pops sit above mail/settings so those icons cannot rest on the wooden frame.
-	# Mail stays at 120 so it remains above Night (100) during settlement.
-	quest_pop.z_index = 124
+	# Mail / settings stay above Night and both panels so one can close the other.
+	quest_pop.z_index = 110
 	quest_pop.z_as_relative = false
-	settings_pop.z_index = 125
+	settings_pop.z_index = 115
 	settings_pop.z_as_relative = false
 	trophy_pop.z_index = 125
 	trophy_pop.z_as_relative = false
@@ -491,7 +493,7 @@ func _magnify_factor(raw: float) -> float:
 	return 1.0
 
 func _hud_button_at(pos: Vector2) -> BaseButton:
-	if settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible or start_menu.visible or trophy_pop.visible or _return_to_menu:
+	if _hud_chrome_blocked():
 		return null
 	for b in [quest_btn, get_node_or_null("HUD/SettingsBtn") as BaseButton]:
 		if b != null and b.is_visible_in_tree() and not b.disabled and b.get_global_rect().grow(12.0).has_point(pos):
@@ -574,26 +576,19 @@ func _button_at(pos: Vector2) -> BaseButton:
 		return _control_button_at(trophy_pop, pos)
 	if guide_pop.visible:
 		return _control_button_at(guide_pop, pos)
+	if tutorial_layer.visible:
+		var tutorial_btn := _control_button_at(tutorial_layer, pos)
+		if tutorial_btn != null:
+			return tutorial_btn
+	var chrome := _hud_button_at(pos)
+	if chrome != null:
+		return chrome
 	if settings_pop.visible:
 		return _control_button_at(settings_pop, pos)
 	if quest_pop.visible:
 		return _control_button_at(quest_pop, pos)
 	if night.visible:
-		# Mail and settings are above the report visually; route their clicks first.
-		for chrome in [quest_btn, get_node("HUD/SettingsBtn")]:
-			if chrome.is_visible_in_tree() and not chrome.disabled and chrome.get_global_rect().has_point(pos):
-				return chrome
 		return _control_button_at(night, pos)
-	# Tutorial controls must win hit-testing over the game controls beneath them.
-	# Without this priority, the bottom tutorial card can overlap the day dock
-	# and clicks are routed to the wrong control (or swallowed by the card).
-	if tutorial_layer.visible:
-		var tutorial_btn := _control_button_at(tutorial_layer, pos)
-		if tutorial_btn != null:
-			return tutorial_btn
-	var hud_btn := _hud_button_at(pos)
-	if hud_btn != null:
-		return hud_btn
 	return _control_button_at(self, pos)
 
 func _control_button_at(scope: Node, pos: Vector2) -> BaseButton:
@@ -648,9 +643,9 @@ func _restore_menu_if_needed() -> void:
 	_set_menu_idle(true)
 
 func _hud_chrome_blocked() -> bool:
-	if start_menu.visible:
+	if start_menu.visible or _return_to_menu:
 		return true
-	if settings_pop.visible or quest_pop.visible or guide_pop.visible:
+	if guide_pop.visible:
 		return true
 	if trophy_pop != null and trophy_pop.visible:
 		return true
@@ -1203,11 +1198,6 @@ func _connect_ui() -> void:
 	get_node("SettingsPop/Card/Col/Restart").add_theme_font_size_override("font_size", 28)
 	_style_beige(settings_home)
 	settings_home.add_theme_font_size_override("font_size", 28)
-	_style_beige(get_node("SettingsPop/Card/Col/GuideBtn"))
-	get_node("SettingsPop/Card/Col/GuideBtn").add_theme_font_size_override("font_size", 28)
-	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn"))
-	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn"))
-	_style_tag(get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn"))
 	_style_toggle_chip(get_node("SettingsPop/Card/Col/SfxRow/SfxBtn"), sfx.sfx_on)
 	_style_toggle_chip(get_node("SettingsPop/Card/Col/AmbRow/AmbBtn"), sfx.amb_on)
 	_style_guide_step($GuidePop/GuideCard/Content/StepEggs)
@@ -1247,7 +1237,7 @@ func _connect_ui() -> void:
 	_set_menu_icon(bakery_upgrade, "res://assets/ui/farm-ui/icon_coin.png", 20)
 	bakery_upgrade.add_theme_constant_override("h_separation", 4)
 	chick_btn.icon = load("res://icons/chick.png")
-	get_node("HUD/SettingsBtn").pressed.connect(_open_settings)
+	get_node("HUD/SettingsBtn").pressed.connect(_toggle_settings)
 	card.confirmed.connect(_on_settlement_confirm)
 	if card.has_signal("continue_endless"):
 		card.continue_endless.connect(_continue_endless_from_finale)
@@ -1281,10 +1271,6 @@ func _connect_ui() -> void:
 			Loc.toggle()
 			_apply_locale()
 	)
-	get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn").pressed.connect(func(): _set_font_scale(0.85))
-	get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn").pressed.connect(func(): _set_font_scale(1.0))
-	get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn").pressed.connect(func(): _set_font_scale(1.15))
-	get_node("SettingsPop/Card/Col/GuideBtn").pressed.connect(_replay_tutorial_from_settings)
 	tutorial_next.pressed.connect(_tutorial_next_pressed)
 	tutorial_exit.pressed.connect(func(): _leave_tutorial(false))
 	get_node("SettingsPop/Card/Col/Restart").pressed.connect(_restart)
@@ -1310,7 +1296,7 @@ func _connect_ui() -> void:
 	$SettingsPop/Card/Col.add_theme_constant_override("separation", 14)
 	$SettingsPop/Card/Col/Credits.add_theme_font_size_override("font_size", 18)
 	# Keep settings within the portrait card in both languages and font scales.
-	for row_name in ["SfxRow", "AmbRow", "LangRow", "FontRow"]:
+	for row_name in ["SfxRow", "AmbRow", "LangRow"]:
 		var row := settings_card.get_node("Col/" + row_name)
 		for item in row.find_children("*", "Control", true, false):
 			if item is Label:
@@ -1337,6 +1323,7 @@ func _style_green(b: Button) -> void:
 	b.add_theme_constant_override("outline_size", 0)
 	var sb := _clean_button_box(UiSimpleGreen)
 	UiStyle.button_states(b, sb)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 64.0)
 
 func _style_red(b: Button) -> void:
 	b.add_theme_font_size_override("font_size", 29)
@@ -1409,7 +1396,7 @@ func _pin_close_x(btn: Control, card: Control) -> void:
 		return
 	if card.size.x < 8.0:
 		return
-	const S := 52.0
+	const S := 56.0
 	const IN := 6.0
 	btn.z_as_relative = true
 	btn.z_index = 4
@@ -1478,16 +1465,16 @@ func _style_plank(b: Button, source: Texture2D, ink: Color) -> void:
 	b.add_theme_constant_override("outline_size", 0)
 	var sb := _plank_button_box(source)
 	UiStyle.button_states(b, sb)
-	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 58.0)
+	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 64.0)
 
 func _plank_button_box(source: Texture2D) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
 	sb.texture = source
-	# Keep the rounded wooden caps intact; only the beige center stretches.
-	sb.texture_margin_left = 44.0
-	sb.texture_margin_top = 22.0
-	sb.texture_margin_right = 44.0
-	sb.texture_margin_bottom = 22.0
+	# Capsule ends stay round; the flat middle stretches.
+	sb.texture_margin_left = 42.0
+	sb.texture_margin_top = 20.0
+	sb.texture_margin_right = 42.0
+	sb.texture_margin_bottom = 20.0
 	sb.content_margin_left = 18.0
 	sb.content_margin_top = 10.0
 	sb.content_margin_right = 18.0
@@ -1513,11 +1500,11 @@ func _cozy_button_box(source: Texture2D) -> StyleBoxTexture:
 func _clean_button_box(source: Texture2D) -> StyleBoxTexture:
 	var sb := StyleBoxTexture.new()
 	sb.texture = source
-	# Wood-pill caps stay fixed; middle fill stretches.
-	sb.texture_margin_left = 44.0
-	sb.texture_margin_top = 22.0
-	sb.texture_margin_right = 44.0
-	sb.texture_margin_bottom = 22.0
+	# Capsule ends stay round; the flat middle stretches.
+	sb.texture_margin_left = 42.0
+	sb.texture_margin_top = 20.0
+	sb.texture_margin_right = 42.0
+	sb.texture_margin_bottom = 20.0
 	sb.content_margin_left = 18.0
 	sb.content_margin_top = 10.0
 	sb.content_margin_right = 18.0
@@ -1795,15 +1782,14 @@ func _style_share_trade(b: Button, is_buy: bool) -> void:
 func _clean_panel(c: Control) -> void:
 	var sb := StyleBoxTexture.new()
 	sb.texture = UiSimplePanel
-	# Riveted wood corners on the tall parchment panel.
-	sb.texture_margin_left = 48.0
-	sb.texture_margin_top = 48.0
-	sb.texture_margin_right = 48.0
-	sb.texture_margin_bottom = 48.0
-	sb.content_margin_left = 22.0
-	sb.content_margin_top = 26.0
-	sb.content_margin_right = 22.0
-	sb.content_margin_bottom = 22.0
+	sb.texture_margin_left = 22.0
+	sb.texture_margin_top = 22.0
+	sb.texture_margin_right = 22.0
+	sb.texture_margin_bottom = 22.0
+	sb.content_margin_left = 18.0
+	sb.content_margin_top = 20.0
+	sb.content_margin_right = 18.0
+	sb.content_margin_bottom = 18.0
 	c.add_theme_stylebox_override("panel", sb)
 
 func _cream_panel(c: Control) -> void:
@@ -1914,12 +1900,6 @@ func _apply_settings_labels() -> void:
 	get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn").text = "中文"
 	get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn").text = "English"
 	_style_lang_buttons()
-	get_node("SettingsPop/Card/Col/FontRow/FontTitle").text = Loc.t("font_size")
-	get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn").text = Loc.t("font_small")
-	get_node("SettingsPop/Card/Col/FontRow/Options/NormalBtn").text = Loc.t("font_standard")
-	get_node("SettingsPop/Card/Col/FontRow/Options/LargeBtn").text = Loc.t("font_large")
-	_style_font_buttons()
-	get_node("SettingsPop/Card/Col/GuideBtn").text = Loc.t("tutorial_replay")
 	get_node("SettingsPop/Card/Col/Help").text = Loc.t("help")
 	get_node("SettingsPop/Card/Col/Restart").text = Loc.t("restart")
 	settings_home.text = Loc.t("home_menu")
@@ -2602,7 +2582,7 @@ func _continue_endless_from_finale() -> void:
 
 func _toggle_quest() -> void:
 	var now := Time.get_ticks_msec()
-	if now - _quest_toggle_ms < 280:
+	if now - _quest_toggle_ms < 280 or now - _settings_toggle_ms < 280:
 		return
 	_quest_toggle_ms = now
 	if show_quest:
@@ -2640,15 +2620,31 @@ func _close_quest() -> void:
 		_refresh_thoughts()
 	_sync_hud_chrome()
 
+func _toggle_settings() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _settings_toggle_ms < 280 or now - _quest_toggle_ms < 280:
+		return
+	_settings_toggle_ms = now
+	if show_settings:
+		_close_settings()
+	else:
+		_open_settings()
+
 func _open_settings() -> void:
+	_holding = false
 	_close_quest()
 	show_settings = true
 	settings_pop.visible = true
 	settings_home.visible = not _return_to_menu
 	_sync_tutorial_layer()
+	_settings_ignore_close = true
+	_settings_toggle_ms = Time.get_ticks_msec()
 	juice.pop_in(settings_card)
 	_pin_close_x($SettingsPop/CloseBtn, settings_card)
 	_sync_hud_chrome()
+	get_tree().create_timer(0.35).timeout.connect(func():
+		_settings_ignore_close = false
+	)
 
 func _return_to_menu_pressed() -> void:
 	if tutorial_mode:
@@ -2662,6 +2658,7 @@ func _return_to_menu_pressed() -> void:
 func _close_settings() -> void:
 	show_settings = false
 	settings_pop.visible = false
+	_settings_ignore_close = false
 	_sync_tutorial_layer()
 	if not _return_to_menu:
 		_refresh_thoughts()
@@ -2699,7 +2696,9 @@ func _style_guide_step(panel: PanelContainer) -> void:
 func _style_tutorial_card() -> void:
 	# Layout for Card / TutorWolf lives in Game.tscn. Do not rewrite anchors
 	# here — Play would wipe a manual editor pass.
-	_clean_panel(get_node("TutorialLayer/Card"))
+	var card := get_node("TutorialLayer/Card") as Control
+	card.modulate = Color(1, 1, 1, 1)
+	_clean_panel(card)
 	tutorial_title.add_theme_color_override("font_color", Color("4e3d2c"))
 	tutorial_body.add_theme_color_override("font_color", Color("6a5340"))
 	if tutorial_wolf:
@@ -2710,13 +2709,15 @@ func _style_lang_buttons() -> void:
 	var zh := get_node("SettingsPop/Card/Col/LangRow/Options/ZhBtn") as Button
 	var en := get_node("SettingsPop/Card/Col/LangRow/Options/EnBtn") as Button
 	if Loc.lang == "zh":
-		_style_toggle_chip(zh, true)
-		_style_toggle_chip(en, false)
+		_style_green(zh)
+		_style_beige(en)
 	else:
-		_style_toggle_chip(zh, false)
-		_style_toggle_chip(en, true)
+		_style_beige(zh)
+		_style_green(en)
 	zh.add_theme_font_size_override("font_size", 26)
 	en.add_theme_font_size_override("font_size", 26)
+	zh.custom_minimum_size.y = 64.0
+	en.custom_minimum_size.y = 64.0
 
 func _style_font_buttons() -> void:
 	var small := get_node("SettingsPop/Card/Col/FontRow/Options/SmallBtn") as Button
@@ -2736,30 +2737,30 @@ func _style_font_buttons() -> void:
 	large.add_theme_font_size_override("font_size", 28)
 
 func _style_toggle_chip(b: Button, on: bool) -> void:
-	if on:
-		b.add_theme_font_size_override("font_size", 26)
-		b.add_theme_color_override("font_color", Color("fff8e8"))
-		b.add_theme_color_override("font_hover_color", Color("fff8e8"))
-		b.add_theme_color_override("font_pressed_color", Color("fff8e8"))
-		b.add_theme_color_override("font_disabled_color", Color("fff8e888"))
-		b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
-		b.add_theme_constant_override("outline_size", 0)
-		var sb := StyleBoxTexture.new()
-		sb.texture = UiChipOn
-		sb.texture_margin_left = 28.0
-		sb.texture_margin_top = 18.0
-		sb.texture_margin_right = 28.0
-		sb.texture_margin_bottom = 18.0
-		sb.content_margin_left = 14.0
-		sb.content_margin_top = 8.0
-		sb.content_margin_right = 14.0
-		sb.content_margin_bottom = 8.0
-		sb.axis_stretch_horizontal = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-		sb.axis_stretch_vertical = StyleBoxTexture.AXIS_STRETCH_MODE_STRETCH
-		UiStyle.button_states(b, sb)
-	else:
-		_style_tag(b)
-	b.custom_minimum_size.y = maxf(b.custom_minimum_size.y, 48.0)
+	var ink := Color("4e3d2c")
+	b.add_theme_font_size_override("font_size", 26)
+	b.add_theme_color_override("font_color", ink)
+	b.add_theme_color_override("font_hover_color", ink)
+	b.add_theme_color_override("font_pressed_color", ink)
+	b.add_theme_color_override("font_disabled_color", Color(ink, 0.55))
+	b.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+	b.add_theme_constant_override("outline_size", 0)
+	b.icon = UiChipOn if on else UiChipOff
+	b.expand_icon = true
+	b.icon_alignment = HORIZONTAL_ALIGNMENT_LEFT
+	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+	b.add_theme_constant_override("icon_max_width", 72)
+	b.add_theme_constant_override("h_separation", 8)
+	var empty := StyleBoxEmpty.new()
+	empty.content_margin_left = 8
+	empty.content_margin_right = 10
+	empty.content_margin_top = 4
+	empty.content_margin_bottom = 4
+	b.add_theme_stylebox_override("normal", empty)
+	b.add_theme_stylebox_override("hover", empty)
+	b.add_theme_stylebox_override("pressed", empty)
+	b.add_theme_stylebox_override("disabled", empty)
+	b.custom_minimum_size = Vector2(120, 48)
 
 func _style_settings_chrome() -> void:
 	var flourish := get_node_or_null("SettingsPop/Card/Col/Flourish") as TextureRect
@@ -2848,6 +2849,10 @@ func _on_settings_dim_input(event: InputEvent) -> void:
 		pos = event.position
 	if not tap:
 		return
+	if _settings_ignore_close:
+		return
+	if _hud_button_at(pos) != null:
+		return
 	if _control_button_at(settings_pop, pos) != null:
 		return
 	_close_settings()
@@ -2864,6 +2869,8 @@ func _on_quest_dim_input(event: InputEvent) -> void:
 		tap = true
 		pos = event.position
 	if not tap:
+		return
+	if _hud_button_at(pos) != null:
 		return
 	if quest_btn.get_global_rect().has_point(pos):
 		return

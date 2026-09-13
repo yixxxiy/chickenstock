@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://dnbtopvardq2p" path="res://assets/ui/settlement/layers/22-quest-stamp.png" id="13_stamp"]
 [ext_resource type="Texture2D" uid="uid://c423qca7p36bf" path="res://assets/ui/weather-cloud.png" id="15_weather"]
 [ext_resource type="Texture2D" uid="uid://de8o0rlwost8m" path="res://icons/rotten_egg.png" id="16_rotten"]
+[ext_resource type="Texture2D" uid="uid://cqj4ngs1a8fv7" path="res://icons/chick.png" id="17_chick"]
 [ext_resource type="Texture2D" uid="uid://syf3bfkt52pq" path="res://icons/hen.png" id="17_hen"]
 [ext_resource type="Texture2D" uid="uid://bxiw6xexquu7e" path="res://icons/cake.png" id="18_cake"]
 [ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="19_stock"]
@@ -306,7 +307,7 @@ layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("17_hen")
+texture = ExtResource("17_chick")
 expand_mode = 1
 stretch_mode = 5
 
@@ -628,7 +629,7 @@ custom_minimum_size = Vector2(42, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
-texture = ExtResource("22_flock")
+texture = ExtResource("17_chick")
 expand_mode = 1
 stretch_mode = 5
 

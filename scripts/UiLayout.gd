@@ -415,7 +415,7 @@ static func _ledger_cells(daily: Control) -> void:
 	row.add_theme_constant_override("separation", 8)
 	var icons := {
 		"Broken": "res://assets/ui/settlement/kit/33-icon-egg-cracked.png",
-		"Grown": "res://assets/ui/settlement/kit/35-icon-chick-body.png",
+		"Grown": "res://icons/chick.png",
 		"Cake": "res://assets/ui/settlement/kit/32-icon-cake.png",
 	}
 	for name in ["Broken", "Grown", "Cake"]:
