@@ -117,16 +117,20 @@ class ElapsedPie extends Control:
 		var rim := Color(0.85, 0.72, 0.32, 1.0) * (0.55 + 0.35 * pulse)
 		rim.a = 1.0
 		var from := -PI * 0.5
-		var span := clampf(progress, 0.0, 1.0) * TAU
-		if span >= TAU - 0.02:
+		# Near-full day: draw solid discs. Avoid closing wedge with coincident tips
+		# (Godot: "Invalid polygon data, triangulation failed").
+		if progress >= 0.992:
 			draw_circle(center, radius, fill)
 			draw_circle(center, radius * 0.62, sheen)
 			draw_arc(center, radius * 0.97, from, from + TAU, 48, rim, 2.2, true)
 			return
+		var span := clampf(progress, 0.0, 1.0) * TAU
 		var segs := clampi(int(ceili(progress * 48.0)), 3, 48)
 		for i in segs:
 			var a0 := from + span * float(i) / float(segs)
 			var a1 := from + span * float(i + 1) / float(segs)
+			if absf(a1 - a0) < 0.0008:
+				continue
 			var p0 := center + Vector2.from_angle(a0) * radius
 			var p1 := center + Vector2.from_angle(a1) * radius
 			if absf((p0 - center).cross(p1 - center)) < 0.75:

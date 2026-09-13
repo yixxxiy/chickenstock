@@ -53,7 +53,7 @@ static func surface(node: Control, padding := 22.0) -> void:
 	node.add_theme_stylebox_override("panel", box)
 
 static func apply(game: Control) -> void:
-	# HUD / wolf / dock positions live in Game.tscn for manual editor tuning.
+	_hud(game)
 	_menu(game)
 	_farm(game)
 	_dialogs(game)
@@ -63,7 +63,85 @@ static func apply(game: Control) -> void:
 	game.add_child(follow)
 
 static func _hud(game: Control) -> void:
-	pass
+	# 05c: big clock left · four stats to its right · mail/settings under stats (right).
+	var hud := game.get_node("HUD") as Control
+	rect(hud, 0.022, 0.008, 0.956, 0.168)
+	for item in ["Spacer", "SpacerEnd"]:
+		hud.get_node(item).hide()
+
+	var clock_box := hud.get_node("ClockBox") as Control
+	rect(clock_box, 0.0, 0.0, 0.24, 1.0)
+	var clock := clock_box.get_node("Clock") as Control
+	clock.custom_minimum_size = Vector2.ZERO
+	rect(clock, 0.04, 0.0, 0.92, 0.70)
+
+	var day := clock.get_node_or_null("DayLabel") as Label
+	if day == null:
+		day = clock_box.get_node_or_null("DayLabel") as Label
+	if day == null:
+		var chip_find := clock_box.get_node_or_null("DayChip")
+		if chip_find:
+			day = chip_find.get_node_or_null("DayLabel") as Label
+	var day_chip := clock_box.get_node_or_null("DayChip") as Panel
+	if day_chip == null:
+		day_chip = Panel.new()
+		day_chip.name = "DayChip"
+		day_chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		clock_box.add_child(day_chip)
+	rect(day_chip, 0.08, 0.74, 0.84, 0.24)
+	var day_tex := kit_tex("res://assets/ui/farm-ui/chip_value.png")
+	if day_tex != null:
+		var day_box := StyleBoxTexture.new()
+		day_box.texture = day_tex
+		day_box.texture_margin_left = 28
+		day_box.texture_margin_right = 28
+		day_box.texture_margin_top = 22
+		day_box.texture_margin_bottom = 22
+		day_chip.add_theme_stylebox_override("panel", day_box)
+	if day != null:
+		if day.get_parent() != day_chip:
+			day.reparent(day_chip)
+		rect(day, 0.04, 0.08, 0.92, 0.84)
+		font(day, 17)
+		day.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		day.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		day.add_theme_color_override("font_color", INK)
+		day.add_theme_color_override("font_outline_color", Color(0, 0, 0, 0))
+		day.add_theme_constant_override("outline_size", 0)
+
+	# Full strip beside the clock — do not leave a same-row pocket for mail/settings.
+	var bar := hud.get_node("HudBar") as Control
+	bar.custom_minimum_size = Vector2.ZERO
+	rect(bar, 0.26, 0.04, 0.72, 0.44)
+	var slots := [
+		["CashChip", 0.0],
+		["StockChip", 0.25],
+		["HenChip", 0.50],
+		["ChickChip", 0.75],
+	]
+	for pair in slots:
+		var chip := bar.get_node(pair[0]) as Control
+		chip.custom_minimum_size = Vector2.ZERO
+		rect(chip, pair[1], 0.08, 0.25, 0.84)
+		var row := chip.get_node("Row") as HBoxContainer
+		row.alignment = BoxContainer.ALIGNMENT_CENTER
+		row.add_theme_constant_override("separation", 2)
+		row.get_node("Icon").custom_minimum_size = Vector2(28, 28)
+		if pair[0] == "CashChip" or pair[0] == "StockChip":
+			var col := row.get_child(1)
+			col.get_child(0).hide()
+			font(col.get_child(1), 25)
+			col.get_child(1).horizontal_alignment = HORIZONTAL_ALIGNMENT_LEFT
+			col.get_child(1).vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		else:
+			font(chip.get_node("Row/Num"), 25)
+			chip.get_node("Row/Num").vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+
+	# Under the right end of the stats strip (05c), not beside it.
+	for pair in [["QuestBtn", 0.74], ["SettingsBtn", 0.875]]:
+		var button := hud.get_node(pair[0]) as Control
+		button.custom_minimum_size = Vector2(48, 48)
+		rect(button, pair[1], 0.56, 0.11, 0.40)
 
 static func _menu(game: Control) -> void:
 	var card := game.get_node("StartMenuLayer/Card") as Control

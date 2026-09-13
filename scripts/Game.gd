@@ -148,7 +148,9 @@ var show_quest := false
 var show_settings := false
 var reveal := "off"
 var _quest_ignore_close := false
+var _settings_ignore_close := false
 var _quest_toggle_ms := 0
+var _settings_toggle_ms := 0
 var _hatch_ignore_ms := 0
 var panic_told := false
 var quest_done := false
@@ -360,11 +362,10 @@ func _raise_hud_chrome() -> void:
 		settings_btn.z_as_relative = false
 		settings_btn.focus_mode = Control.FOCUS_NONE
 		settings_btn.mouse_filter = Control.MOUSE_FILTER_STOP
-	# Pops sit above mail/settings so those icons cannot rest on the wooden frame.
-	# Mail stays at 120 so it remains above Night (100) during settlement.
-	quest_pop.z_index = 124
+	# Mail / settings stay above Night and both panels so one can close the other.
+	quest_pop.z_index = 110
 	quest_pop.z_as_relative = false
-	settings_pop.z_index = 125
+	settings_pop.z_index = 115
 	settings_pop.z_as_relative = false
 	trophy_pop.z_index = 125
 	trophy_pop.z_as_relative = false
@@ -525,7 +526,7 @@ func _magnify_factor(raw: float) -> float:
 	return 1.0
 
 func _hud_button_at(pos: Vector2) -> BaseButton:
-	if settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible or start_menu.visible or trophy_pop.visible or _return_to_menu:
+	if _hud_chrome_blocked():
 		return null
 	for b in [quest_btn, get_node_or_null("HUD/SettingsBtn") as BaseButton]:
 		if b != null and b.is_visible_in_tree() and not b.disabled and b.get_global_rect().grow(12.0).has_point(pos):
@@ -608,16 +609,6 @@ func _button_at(pos: Vector2) -> BaseButton:
 		return _control_button_at(trophy_pop, pos)
 	if guide_pop.visible:
 		return _control_button_at(guide_pop, pos)
-	if settings_pop.visible:
-		return _control_button_at(settings_pop, pos)
-	if quest_pop.visible:
-		return _control_button_at(quest_pop, pos)
-	if night.visible:
-		# Mail and settings are above the report visually; route their clicks first.
-		for chrome in [quest_btn, get_node("HUD/SettingsBtn")]:
-			if chrome.is_visible_in_tree() and not chrome.disabled and chrome.get_global_rect().has_point(pos):
-				return chrome
-		return _control_button_at(night, pos)
 	# Tutorial controls must win hit-testing over the game controls beneath them.
 	# Without this priority, the bottom tutorial card can overlap the day dock
 	# and clicks are routed to the wrong control (or swallowed by the card).
@@ -625,9 +616,15 @@ func _button_at(pos: Vector2) -> BaseButton:
 		var tutorial_btn := _control_button_at(tutorial_layer, pos)
 		if tutorial_btn != null:
 			return tutorial_btn
-	var hud_btn := _hud_button_at(pos)
-	if hud_btn != null:
-		return hud_btn
+	var chrome := _hud_button_at(pos)
+	if chrome != null:
+		return chrome
+	if settings_pop.visible:
+		return _control_button_at(settings_pop, pos)
+	if quest_pop.visible:
+		return _control_button_at(quest_pop, pos)
+	if night.visible:
+		return _control_button_at(night, pos)
 	return _control_button_at(self, pos)
 
 func _control_button_at(scope: Node, pos: Vector2) -> BaseButton:
@@ -683,9 +680,9 @@ func _restore_menu_if_needed() -> void:
 	_set_menu_idle(true)
 
 func _hud_chrome_blocked() -> bool:
-	if start_menu.visible:
+	if start_menu.visible or _return_to_menu:
 		return true
-	if settings_pop.visible or quest_pop.visible or guide_pop.visible:
+	if guide_pop.visible:
 		return true
 	if trophy_pop != null and trophy_pop.visible:
 		return true
@@ -1499,7 +1496,7 @@ func _connect_ui() -> void:
 	_set_menu_icon(bakery_upgrade, "res://assets/ui/farm-ui/icon_coin.png", 20)
 	bakery_upgrade.add_theme_constant_override("h_separation", 4)
 	chick_btn.icon = load("res://icons/chick.png")
-	get_node("HUD/SettingsBtn").pressed.connect(_open_settings)
+	get_node("HUD/SettingsBtn").pressed.connect(_toggle_settings)
 	card.confirmed.connect(_on_settlement_confirm)
 	if card.has_signal("continue_endless"):
 		card.continue_endless.connect(_continue_endless_from_finale)
@@ -1512,7 +1509,7 @@ func _connect_ui() -> void:
 	day_end_btn.pressed.connect(_next_day)
 	_bind_close_x($QuestPop/CloseBtn, quest_card, _close_quest)
 	_bind_close_x($SettingsPop/CloseBtn, settings_card, _close_settings)
-	$GuidePop/CloseBtn.pressed.connect(_close_guide)
+	_bind_close_x($GuidePop/GuideCard/CloseBtn, guide_card, _close_guide)
 	$GuidePop/Dim.gui_input.connect(_on_guide_dim_input)
 	get_node("SettingsPop/Card/Col/SfxRow/SfxBtn").pressed.connect(func():
 		sfx.set_sfx(not sfx.sfx_on)
@@ -1998,17 +1995,17 @@ func _style_dock_red(b: Button, font_size: int) -> void:
 	sb.modulate_color = Color(0.9, 0.86, 0.8)
 	_bind_dock_button_states(b, sb)
 
-# Wolf animal trade: tall chip, icon on top, action+price below (no letter-wrap).
+# Wolf trade: icon + price only (no 买/卖 words).
 func _style_wolf_trade(b: Button, is_buy: bool) -> void:
 	if is_buy:
-		_style_dock_green(b, 17)
+		_style_dock_green(b, 28)
 	else:
-		_style_dock_red(b, 17)
+		_style_dock_red(b, 28)
 	var sb := b.get_theme_stylebox("normal").duplicate() as StyleBoxTexture
 	sb.content_margin_left = 8.0
 	sb.content_margin_right = 8.0
-	sb.content_margin_top = 8.0
-	sb.content_margin_bottom = 8.0
+	sb.content_margin_top = 10.0
+	sb.content_margin_bottom = 10.0
 	_bind_dock_button_states(b, sb)
 	b.icon = load("res://icons/chick.png" if is_buy else "res://icons/hen.png")
 	b.expand_icon = true
@@ -2966,7 +2963,7 @@ func _continue_endless_from_finale() -> void:
 
 func _toggle_quest() -> void:
 	var now := Time.get_ticks_msec()
-	if now - _quest_toggle_ms < 280:
+	if now - _quest_toggle_ms < 280 or now - _settings_toggle_ms < 280:
 		return
 	_quest_toggle_ms = now
 	if show_quest:
@@ -3004,6 +3001,16 @@ func _close_quest() -> void:
 		_refresh_thoughts()
 	_sync_hud_chrome()
 
+func _toggle_settings() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _settings_toggle_ms < 280 or now - _quest_toggle_ms < 280:
+		return
+	_settings_toggle_ms = now
+	if show_settings:
+		_close_settings()
+	else:
+		_open_settings()
+
 func _open_settings() -> void:
 	_holding = false
 	_close_quest()
@@ -3011,9 +3018,14 @@ func _open_settings() -> void:
 	settings_pop.visible = true
 	settings_home.visible = not _return_to_menu
 	_sync_tutorial_layer()
+	_settings_ignore_close = true
+	_settings_toggle_ms = Time.get_ticks_msec()
 	juice.pop_in(settings_card)
 	_pin_close_x($SettingsPop/CloseBtn, settings_card)
 	_sync_hud_chrome()
+	get_tree().create_timer(0.35).timeout.connect(func():
+		_settings_ignore_close = false
+	)
 
 func _return_to_menu_pressed() -> void:
 	if tutorial_mode:
@@ -3027,6 +3039,7 @@ func _return_to_menu_pressed() -> void:
 func _close_settings() -> void:
 	show_settings = false
 	settings_pop.visible = false
+	_settings_ignore_close = false
 	_sync_tutorial_layer()
 	if not _return_to_menu:
 		_refresh_thoughts()
@@ -3213,6 +3226,10 @@ func _on_settings_dim_input(event: InputEvent) -> void:
 		pos = event.position
 	if not tap:
 		return
+	if _settings_ignore_close:
+		return
+	if _hud_button_at(pos) != null:
+		return
 	if _control_button_at(settings_pop, pos) != null:
 		return
 	_close_settings()
@@ -3229,6 +3246,8 @@ func _on_quest_dim_input(event: InputEvent) -> void:
 		tap = true
 		pos = event.position
 	if not tap:
+		return
+	if _hud_button_at(pos) != null:
 		return
 	if quest_btn.get_global_rect().has_point(pos):
 		return
