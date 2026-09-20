@@ -1,5 +1,5 @@
 /*
- * 小鸡股市 —— 加载页样式（满屏启动图 + 醒目进度条）
+ * 小鸡股市 —— 加载页样式（9:16 启动图 + 醒目进度条）
  *
  * 源文件：web/notice.js。export/web/ 副本由 tools/web-sync.mjs 同步。
  * 通过 export_presets 的 head_include 在引擎启动前注入。
@@ -12,13 +12,23 @@
   "use strict";
 
   var css = [
-    /* 竖屏启动图铺满视口；默认 object-fit:contain 会留黑边 */
+    /* 启动图是 576×1024。电脑宽屏用 cover 会裁掉上下；框死 9:16，图用 contain。 */
+    "html,body{background:#141f2e;}",
+    "#status{",
+    "left:50%!important;",
+    "right:auto!important;",
+    "top:50%!important;",
+    "bottom:auto!important;",
+    "width:min(100vw,calc(100dvh * 9 / 16))!important;",
+    "height:min(100dvh,calc(100vw * 16 / 9))!important;",
+    "transform:translate(-50%,-50%)!important;",
+    "}",
     "#status-splash.fullsize--true{",
     "height:100%!important;",
     "width:100%!important;",
     "max-height:100%!important;",
     "max-width:100%!important;",
-    "object-fit:cover!important;",
+    "object-fit:contain!important;",
     "object-position:center center;",
     "}",
     /* 进度条：暖金高对比，压在深色雨夜底图上仍醒目 */

@@ -29,7 +29,8 @@ const TUTORIAL_DAY_MS := 60000.0
 const DUSK_WARN_MS := 5000.0
 const EGG_PRE_DUSK_RATIO := 0.75
 const EGG_PRE_DUSK_FLOOR := 0.65
-const EGG_DRIP_MIN_S := 0.12
+const EGG_FIRST_MIN_S := 0.0
+const EGG_FIRST_MAX_S := 1.0
 const HOLD_REP_S := 0.11
 const EGG_HOLD_REP_S := 0.22
 const BAKE_HOLD_S := 0.30
@@ -85,9 +86,6 @@ const CAMPAIGN_RANK_CAP := 10
 # goes into the save as-is.
 const FLOCK_RENDER_CAP := 28
 const WEALTH_LOG_MAX := 40
-const ZOOM_MIN := 1.0
-const ZOOM_MAX := 2.4
-const ZOOM_WHEEL := 1.08
 const WORLD_BACK := ["Bg", "Map", "Flock", "HatchEgg"]
 const WORLD_FRONT := [
 	"EggThought", "CakeThought", "HatchThought", "ChickThought",
@@ -215,6 +213,7 @@ var _egg_acc := 0.0
 var _egg_ready_acc := 0.0
 var _egg_drip_gap := 0.0
 var _egg_pre_dusk_target := 0
+var _egg_drip_at: Array[float] = []
 var _bake_hold := 0.0
 var _bake_bar: Panel
 var _bake_fill: Panel
@@ -252,14 +251,14 @@ var _tutorial_target_z_as_relative := true
 var sfx: Node
 var juice: Node
 var _worlds: Array[Control] = []
-var _zoom := 1.0
 var _touch_pos: Dictionary = {}
-var _pinch_dist := 0.0
-var _pinch_mid := Vector2.ZERO
-var _pinch_block_mouse := false
-var _pinch_guard_until := 0
-var _magnify_last := 0.0
-var _mmb_pan := false
+## Per-finger vertical travel while dragging. Used so survey chip taps aren't
+## cancelled by ScrollContainer micro-jitter on phones.
+var _touch_drag_travel: Dictionary = {}
+var _mouse_drag_travel := 0.0
+## 成就 / 问卷 / 设置列表：跟手速度 + 松手惯性。
+var _kin_scroll := MobileScroll.new()
+var _scroll_dragging := false
 @onready var flock_layer: Control = $Flock
 @onready var hen_placement: TextureRect = $EditorAssetPlacement/HenPreview
 @onready var chick_placement: TextureRect = $EditorAssetPlacement/ChickPreview
@@ -466,6 +465,7 @@ func _setup_world_zoom() -> void:
 	_worlds = [back, front]
 	resized.connect(_fit_worlds)
 	call_deferred("_fit_worlds")
+	_reset_zoom()
 
 func _fit_worlds() -> void:
 	var sz := size
@@ -473,84 +473,13 @@ func _fit_worlds() -> void:
 		sz = get_viewport_rect().size
 	for w in _worlds:
 		w.size = sz
-	_clamp_world()
-
-func _zoom_blocked() -> bool:
-	return settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible or start_menu.visible or trophy_pop.visible or _return_to_menu or (survey_pop != null and survey_pop.visible)
+	_reset_zoom()
 
 func _reset_zoom() -> void:
-	_zoom = 1.0
+	# 固定 1×；缩放入口已全部关掉。
 	for w in _worlds:
 		w.position = Vector2.ZERO
 		w.scale = Vector2.ONE
-
-func _apply_world_pos(pos: Vector2) -> void:
-	for w in _worlds:
-		w.scale = Vector2(_zoom, _zoom)
-		w.position = pos
-
-func _clamp_world() -> void:
-	if _worlds.is_empty():
-		return
-	if _zoom <= ZOOM_MIN + 0.001:
-		_reset_zoom()
-		return
-	var min_pos := size - size * _zoom
-	var p: Vector2 = _worlds[0].position
-	p.x = clampf(p.x, min_pos.x, 0.0)
-	p.y = clampf(p.y, min_pos.y, 0.0)
-	_apply_world_pos(p)
-
-func _zoom_at(gpos: Vector2, factor: float) -> void:
-	_focus_zoom(gpos, gpos, _zoom * factor)
-
-func _focus_zoom(from_gpos: Vector2, to_gpos: Vector2, next: float) -> void:
-	if _worlds.is_empty() or not is_finite(next) or next <= 0.0:
-		return
-	var old := _zoom
-	next = clampf(next, ZOOM_MIN, ZOOM_MAX)
-	if next <= ZOOM_MIN + 0.001:
-		_reset_zoom()
-		return
-	var w0 := _worlds[0]
-	var local := (from_gpos - w0.global_position) / maxf(old, 0.001)
-	_zoom = next
-	_apply_world_pos(to_gpos - local * _zoom - global_position)
-	_clamp_world()
-
-func _pan_world(delta: Vector2) -> void:
-	if _worlds.is_empty() or _zoom <= ZOOM_MIN + 0.001:
-		return
-	_apply_world_pos(_worlds[0].position + delta)
-	_clamp_world()
-
-func _pinch_points() -> PackedVector2Array:
-	if _touch_pos.size() < 2:
-		return PackedVector2Array()
-	var ids: Array = _touch_pos.keys()
-	ids.sort()
-	return PackedVector2Array([_touch_pos[ids[0]], _touch_pos[ids[1]]])
-
-func _sync_pinch_anchor() -> void:
-	var pts := _pinch_points()
-	if pts.size() < 2:
-		_pinch_dist = 0.0
-		return
-	_pinch_dist = pts[0].distance_to(pts[1])
-	_pinch_mid = (pts[0] + pts[1]) * 0.5
-
-func _apply_pinch() -> void:
-	var pts := _pinch_points()
-	if pts.size() < 2:
-		return
-	var d := pts[0].distance_to(pts[1])
-	var mid := (pts[0] + pts[1]) * 0.5
-	if _pinch_dist > 12.0 and d > 12.0:
-		var factor := d / _pinch_dist
-		if factor > 0.7 and factor < 1.4:
-			_focus_zoom(_pinch_mid, mid, _zoom * factor)
-	_pinch_dist = d
-	_pinch_mid = mid
 
 func _cancel_press() -> void:
 	if _manual_button != null:
@@ -580,31 +509,20 @@ func _track_touch(event: InputEvent) -> void:
 	if event is InputEventScreenTouch:
 		if event.pressed and not event.canceled:
 			_touch_pos[event.index] = event.position
-			# Two fingers only become a pinch when neither is on a UI button.
-			# Multi-tapping egg + buy (etc.) must keep both presses alive.
-			if _touch_pos.size() >= 2 and not _touch_hits_button() and _armed_touches.is_empty():
-				_pinch_block_mouse = true
-				_pinch_guard_until = Time.get_ticks_msec() + 400
-				_cancel_press()
-				_sync_pinch_anchor()
+			_touch_drag_travel[event.index] = 0.0
+			_kin_scroll.stop_fling()
+			_scroll_dragging = false
 		else:
+			if _scroll_dragging:
+				_kin_scroll.release_fling()
+			_scroll_dragging = false
 			_touch_pos.erase(event.index)
-			if _touch_pos.size() < 2:
-				_pinch_dist = 0.0
-				if _pinch_block_mouse:
-					_pinch_guard_until = Time.get_ticks_msec() + 280
+			_touch_drag_travel.erase(event.index)
 	elif event is InputEventScreenDrag:
 		_touch_pos[event.index] = event.position
+		_touch_drag_travel[event.index] = float(_touch_drag_travel.get(event.index, 0.0)) + absf(event.relative.y)
 
 func _mouse_blocked() -> bool:
-	if _touch_pos.size() >= 2 and _armed_touches.is_empty() and not _touch_hits_button():
-		return true
-	if Time.get_ticks_msec() < _pinch_guard_until:
-		return true
-	# Sticky pinch flag used to live forever after a two-finger gesture until
-	# a mouse-up arrived. Phones that never emulate mouse stayed unclickable.
-	if _pinch_block_mouse and _touch_pos.size() < 2:
-		_pinch_block_mouse = false
 	return false
 
 func _click_pos(event: InputEvent) -> Vector2:
@@ -666,22 +584,6 @@ func _fire_touch(index: int, pos: Vector2) -> void:
 	if _armed_touches.is_empty() and _manual_button == null:
 		_press_from_touch = false
 
-func _magnify_factor(raw: float) -> float:
-	if not is_finite(raw) or raw <= 0.0:
-		return 1.0
-	if raw < 0.45:
-		_magnify_last = 0.0
-		return clampf(1.0 + raw, 0.88, 1.14)
-	if raw <= 1.16:
-		_magnify_last = 0.0
-		return clampf(raw, 0.88, 1.14)
-	if _magnify_last > 0.5:
-		var inc := raw / _magnify_last
-		_magnify_last = raw
-		return clampf(inc, 0.88, 1.14)
-	_magnify_last = raw
-	return 1.0
-
 func _hud_button_at(pos: Vector2) -> BaseButton:
 	if settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible or start_menu.visible or trophy_pop.visible or _return_to_menu or (survey_pop != null and survey_pop.visible):
 		return null
@@ -696,11 +598,7 @@ func _input(event: InputEvent) -> void:
 		# 但也不能让挂机页面一直涨有效时长。
 		Analytics.note_input()
 	_track_touch(event)
-	# Pinch-zoom only when two+ fingers are on empty space — not multi-button taps.
-	var pinching := _touch_pos.size() >= 2 and _armed_touches.is_empty() and not _touch_hits_button()
 	var mouse_blocked := _mouse_blocked()
-	if pinching:
-		_cancel_press()
 	# emulate_touch_from_mouse sends ScreenTouch AND Mouse. Arm once in canvas
 	# space and swallow the duplicate. Viewport pixels vs get_global_rect()
 	# used to miss, steal the event, and leave Start Game dead.
@@ -726,11 +624,13 @@ func _input(event: InputEvent) -> void:
 			get_viewport().set_input_as_handled()
 	if event is InputEventMouseButton and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_pos := _click_pos(event)
+		if event.pressed:
+			_mouse_drag_travel = 0.0
+			_kin_scroll.stop_fling()
+			_scroll_dragging = false
 		if mouse_blocked:
 			if not event.pressed:
 				_cancel_press()
-				if _touch_pos.size() < 2:
-					_pinch_block_mouse = false
 			get_viewport().set_input_as_handled()
 		elif _press_from_touch:
 			get_viewport().set_input_as_handled()
@@ -745,6 +645,9 @@ func _input(event: InputEvent) -> void:
 				_arm_button(hit)
 				get_viewport().set_input_as_handled()
 		else:
+			if _scroll_dragging and _touch_pos.is_empty():
+				_kin_scroll.release_fling()
+			_scroll_dragging = false
 			if _manual_button != null:
 				_fire_armed(mouse_pos)
 				get_viewport().set_input_as_handled()
@@ -764,35 +667,7 @@ func _input(event: InputEvent) -> void:
 	if event is InputEventScreenDrag and _try_mobile_scroll(event):
 		get_viewport().set_input_as_handled()
 		return
-	if _worlds.is_empty() or _zoom_blocked():
-		if pinching:
-			get_viewport().set_input_as_handled()
-		return
-	if pinching:
-		if event is InputEventScreenDrag:
-			_apply_pinch()
-		get_viewport().set_input_as_handled()
-		return
-	if event is InputEventMouseButton:
-		if event.button_index == MOUSE_BUTTON_WHEEL_UP and event.pressed:
-			_zoom_at(event.global_position, pow(ZOOM_WHEEL, clampf(absf(event.factor), 0.25, 1.5)))
-			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_WHEEL_DOWN and event.pressed:
-			_zoom_at(event.global_position, 1.0 / pow(ZOOM_WHEEL, clampf(absf(event.factor), 0.25, 1.5)))
-			get_viewport().set_input_as_handled()
-		elif event.button_index == MOUSE_BUTTON_MIDDLE:
-			_mmb_pan = event.pressed and _zoom > ZOOM_MIN + 0.001
-			if event.pressed:
-				get_viewport().set_input_as_handled()
-	elif event is InputEventMouseMotion and _mmb_pan:
-		_pan_world(event.relative)
-		get_viewport().set_input_as_handled()
-	elif event is InputEventMagnifyGesture:
-		_zoom_at(event.position, _magnify_factor(event.factor))
-		get_viewport().set_input_as_handled()
-	elif event is InputEventPanGesture and _zoom > ZOOM_MIN + 0.001:
-		_pan_world(-event.delta)
-		get_viewport().set_input_as_handled()
+	# 画面缩放已关闭：滚轮 / 捏合 / 触控板放大不再处理。
 
 func _button_at(pos: Vector2) -> BaseButton:
 	# 问卷是模态的，排在最前。走这条链路才能拿到既有的「合成 pressed + 吞
@@ -1110,8 +985,8 @@ func _apply_challenge_seed() -> void:
 	history = [180, 200, 210, 220]
 	wealth_log = [1800]
 	_cash_shown = 1800.0
-	ready_eggs = 1
-	pending_eggs = maxi(0, hens - 1)
+	ready_eggs = 0
+	pending_eggs = maxi(0, hens)
 	_roll_egg_pre_dusk_target()
 
 func _load_unlocks() -> void:
@@ -1363,11 +1238,30 @@ func _try_mobile_scroll(event: InputEvent) -> bool:
 	if focused is LineEdit or focused is TextEdit:
 		return false
 	var pos := _click_pos(event)
+	var armed := _manual_button != null or not _armed_touches.is_empty()
+	var travel := 0.0
+	if event is InputEventScreenDrag:
+		travel = float(_touch_drag_travel.get((event as InputEventScreenDrag).index, 0.0))
+	elif event is InputEventMouseMotion:
+		var motion := event as InputEventMouseMotion
+		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
+			_mouse_drag_travel += absf(motion.relative.y)
+			travel = _mouse_drag_travel
+	# Finger jitter on a chip used to scroll 1px and cancel the press before
+	# pressed could fire — survey options looked untappable on phones.
+	if armed and travel < MobileScroll.DRAG_CANCEL_PX:
+		var dy := MobileScroll.drag_delta(event)
+		if absf(dy) < 0.01:
+			return false
+		for scroll in _modal_scrolls():
+			if scroll.get_global_rect().has_point(pos):
+				return true
+		return false
 	for scroll in _modal_scrolls():
-		var moved := MobileScroll.try_drag(scroll, event, pos)
+		var moved := _kin_scroll.try_drag(scroll, event, pos)
 		if moved > 0.0:
-			# 从选项/按钮上开始拖时，滑开后不要再当成点击。
-			if _manual_button != null or not _armed_touches.is_empty():
+			_scroll_dragging = true
+			if armed:
 				_cancel_press()
 			return true
 	return false
@@ -1467,6 +1361,7 @@ func _write_tutorial_status(status: String) -> void:
 func _process(delta: float) -> void:
 	if not _booted:
 		return
+	_kin_scroll.tick(delta)
 	if OS.is_debug_build() and FileAccess.file_exists("user://debug_skip_day8"):
 		DirAccess.remove_absolute(ProjectSettings.globalize_path("user://debug_skip_day8"))
 		_debug_skip_to_campaign_clear()
@@ -1509,21 +1404,7 @@ func _process(delta: float) -> void:
 	_advance_baking(delta)
 	if baking > 0:
 		_sync_bake_bar()
-	if _can_drip_egg():
-		if _egg_drip_gap <= 0.0:
-			_egg_drip_gap = _egg_drip_wait()
-		_egg_ready_acc += delta
-		if _egg_ready_acc >= _egg_drip_gap:
-			_egg_ready_acc = 0.0
-			_egg_drip_gap = 0.0
-			pending_eggs -= 1
-			ready_eggs += 1
-			sfx.egg_ready()
-			juice.punch(egg_btn, 1.12)
-			_refresh_thoughts()
-	else:
-		_egg_ready_acc = 0.0
-		_egg_drip_gap = 0.0
+	_tick_egg_drips()
 	_save_throttled(delta)
 
 func _advance_baking(delta: float) -> void:
@@ -1593,10 +1474,69 @@ func _roll_egg_pre_dusk_target() -> void:
 	var hen_n := maxi(0, hens)
 	if hen_n <= 0:
 		_egg_pre_dusk_target = 0
+		_egg_drip_at.clear()
 		return
 	var lo := maxi(1, int(round(float(hen_n) * _egg_ratio_lo())))
 	var hi := clampi(int(round(float(hen_n) * _egg_ratio_hi())), lo, hen_n)
 	_egg_pre_dusk_target = randi_range(lo, hi)
+	_schedule_egg_drips()
+
+func _schedule_egg_drips() -> void:
+	_egg_drip_at.clear()
+	if tutorial_mode or hens <= 0 or _egg_pre_dusk_target <= 0:
+		return
+	var need := _egg_pre_dusk_target - _egg_generated()
+	if need <= 0:
+		return
+	var elapsed := _day_elapsed_s()
+	var window := _egg_drip_window_s()
+	if _egg_generated() <= 0:
+		var first_at := randf_range(EGG_FIRST_MIN_S, EGG_FIRST_MAX_S)
+		if first_at < elapsed:
+			first_at = elapsed
+		_egg_drip_at.append(first_at)
+		need -= 1
+	for _i in need:
+		var t := elapsed
+		if window > elapsed:
+			t = randf_range(elapsed, window)
+		_egg_drip_at.append(t)
+	_egg_drip_at.sort()
+
+func _restore_egg_drip_at(d: Dictionary) -> void:
+	_egg_drip_at.clear()
+	var raw = d.get("eggDripAt", [])
+	if typeof(raw) != TYPE_ARRAY:
+		return
+	for v in raw:
+		_egg_drip_at.append(float(v))
+
+func _day_elapsed_s() -> float:
+	return maxf(0.0, (_day_len_ms() - left_ms) / 1000.0)
+
+func _egg_drip_window_s() -> float:
+	return maxf(0.0, (_day_len_ms() - _dusk_warn_ms()) / 1000.0)
+
+func _tick_egg_drips() -> void:
+	if not _can_drip_egg():
+		return
+	if _egg_drip_at.is_empty():
+		_schedule_egg_drips()
+	if _egg_drip_at.is_empty():
+		return
+	var elapsed := _day_elapsed_s()
+	var popped := 0
+	while not _egg_drip_at.is_empty() and pending_eggs > 0 and elapsed + 0.0001 >= _egg_drip_at[0]:
+		_egg_drip_at.remove_at(0)
+		pending_eggs -= 1
+		ready_eggs += 1
+		popped += 1
+		if not _can_drip_egg():
+			break
+	if popped > 0:
+		sfx.egg_ready()
+		juice.punch(egg_btn, 1.12)
+		_refresh_thoughts()
 
 func _ensure_egg_pre_dusk_target() -> void:
 	if hens > 0 and _egg_pre_dusk_target <= 0:
@@ -1608,18 +1548,8 @@ func _can_drip_egg() -> bool:
 	_ensure_egg_pre_dusk_target()
 	return _egg_generated() < _egg_pre_dusk_target
 
-func _egg_drip_wait() -> float:
-	# More hens = more drips in the same pre-red window = shorter gaps.
-	# Each gap is random, but remaining time is split so 65–75% still lands.
-	_ensure_egg_pre_dusk_target()
-	var left_to_drip := maxi(1, _egg_pre_dusk_target - _egg_generated())
-	var window_left := maxf(0.35, (left_ms - _dusk_warn_ms()) / 1000.0)
-	var base := window_left / float(left_to_drip)
-	var slack := 0.06 * float(left_to_drip - 1)
-	var cap := maxf(EGG_DRIP_MIN_S, window_left - slack)
-	return clampf(randf_range(base * 0.45, base * 1.12), EGG_DRIP_MIN_S, cap)
-
 func _flush_dusk_eggs() -> void:
+	_egg_drip_at.clear()
 	if pending_eggs <= 0:
 		return
 	var hen_n := maxi(1, hens)
@@ -4424,6 +4354,7 @@ func _capture_dawn() -> void:
 		"eggAcc": _egg_acc,
 		"eggReadyAcc": _egg_ready_acc,
 		"eggPreDuskTarget": _egg_pre_dusk_target,
+		"eggDripAt": _egg_drip_at.duplicate(),
 		"challengeMode": challenge_mode,
 		"endlessMode": endless_mode,
 	}
@@ -4456,6 +4387,7 @@ func _rewind_to_dawn() -> void:
 	_egg_acc = float(d.get("eggAcc", 0.0))
 	_egg_ready_acc = float(d.get("eggReadyAcc", 0.0))
 	_egg_pre_dusk_target = int(d.get("eggPreDuskTarget", 0))
+	_restore_egg_drip_at(d)
 	if d.has("history") and d.history is Array:
 		history.clear()
 		for x in d.history:
@@ -4753,8 +4685,8 @@ func _wake() -> void:
 	left_ms = _day_len_ms()
 	if endless_mode and day >= 7:
 		_grant_trophy("endless7")
-	ready_eggs = 1 if hens > 0 else 0
-	pending_eggs = maxi(0, hens - 1)
+	ready_eggs = 0
+	pending_eggs = maxi(0, hens)
 	_roll_egg_pre_dusk_target()
 	_egg_ready_acc = 0.0
 	_egg_drip_gap = 0.0
@@ -5207,6 +5139,7 @@ func _save() -> void:
 	var d := {
 		"coins": coins, "eggs": eggs, "readyEggs": ready_eggs, "pendingEggs": pending_eggs,
 		"eggPreDuskTarget": _egg_pre_dusk_target,
+		"eggDripAt": _egg_drip_at.duplicate(),
 		"hens": hens, "youngChicks": young_chicks, "cakes": cakes, "cakesSold": cakes_sold,
 		"shares": shares, "stockSpent": stock_spent, "stockSold": stock_sold,
 		"price": price, "day": day, "leftMs": left_ms,
@@ -5247,6 +5180,7 @@ func _load() -> void:
 	ready_eggs = int(d.get("readyEggs", ready_eggs))
 	pending_eggs = int(d.get("pendingEggs", pending_eggs))
 	_egg_pre_dusk_target = int(d.get("eggPreDuskTarget", 0))
+	_restore_egg_drip_at(d)
 	hens = int(d.get("hens", hens))
 	young_chicks = int(d.get("youngChicks", young_chicks))
 	cakes = int(d.get("cakes", cakes))

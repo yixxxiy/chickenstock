@@ -443,7 +443,7 @@ func _build_body(p_form: String) -> void:
 			var chip := _make_chip()
 			flow.add_child(chip)
 			_chips[k].append([value, chip, str(opt[1])])
-			chip.pressed.connect(_on_chip.bind(k, value))
+			chip.button_down.connect(_on_chip.bind(k, value))
 
 	if not _has_free:
 		return

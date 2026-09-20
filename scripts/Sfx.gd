@@ -56,7 +56,8 @@ func _ready() -> void:
 	_amb_gen.buffer_length = 0.22
 	_amb_player = AudioStreamPlayer.new()
 	_amb_player.stream = _amb_gen
-	_amb_player.volume_db = -2.0
+	# 床底环境音，比音效低一截；-2 在手机上太抢。
+	_amb_player.volume_db = -14.0
 	add_child(_amb_player)
 	for _i in 4:
 		var voice := AudioStreamPlayer.new()
@@ -215,8 +216,8 @@ func _fill_amb() -> void:
 	var rate := _amb_gen.mix_rate
 	var avail := mini(pb.get_frames_available(), 1800)
 	var night_mul := 0.55 if _night else 1.0
-	var white_amt := (0.011 if _night else 0.016) * _amb_gain
-	var wind_amt := (0.11 if _night else 0.155) * _amb_gain * night_mul
+	var white_amt := (0.007 if _night else 0.010) * _amb_gain
+	var wind_amt := (0.07 if _night else 0.095) * _amb_gain * night_mul
 	for _i in avail:
 		var n_l := randf() * 2.0 - 1.0
 		var n_r := randf() * 2.0 - 1.0
