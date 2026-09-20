@@ -1,0 +1,14 @@
+{
+  "version": "2026.09.21-lite1",
+  "before_bytes": 35350060,
+  "after_bytes": 34522852,
+  "saved_bytes": 827208,
+  "saved_percent": 2.34,
+  "retained_content_identical": true,
+  "changed_metadata": [
+    "project.binary",
+    ".godot/global_script_class_cache.cfg",
+    ".godot/uid_cache.bin"
+  ],
+  "pck_sha256": "c6ae6478e8c190337445867ffff522be44d8d4f5398232e29008d69fbbb9a345"
+}
