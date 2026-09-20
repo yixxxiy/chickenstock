@@ -1,0 +1,16 @@
+---
+description: HUD / 结算 / 底栏 z-index，禁止为了可点而抬 Dock
+globs: scripts/Game.gd, scenes/Game.tscn, scenes/SettlementCard.tscn
+alwaysApply: false
+---
+
+# 层级
+
+权威在 `Game._raise_hud_chrome()` 与 `_set_settle_chrome()`。
+
+- Dock = 8，且结算时 **隐藏**
+- HUD = 40（金币时钟）；Night = 100
+- 信封 / 设置按钮 = 120，结算期间仍可点信封
+- QuestPop 110，SettingsPop 115，Toasts 130
+
+不要把 Dock 或 HUD 抬过 Night 去「修点击」。结算挡 CTA 时先藏底栏，不要加 z。

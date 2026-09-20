@@ -1,0 +1,16 @@
+---
+description: 网页发布：Godot Web 单线程导出到 export/web，整包覆盖 chickenstock.netlify.app
+globs: export_presets.cfg, netlify.toml, export/**, project.godot
+alwaysApply: false
+---
+
+# Deploy
+
+详细步骤见 `AGENTS.md`「Deploy SOP」。
+
+- 先消掉脚本红字，再 **项目 → 导出 → Web** 到 `export/web/index.html`。
+- 导出已排除草稿和对版资源（generated-v2、mockups、未接线的图集）。不要把 Resources 改回「导出所有资源」且清空排除项。
+- 保持单线程。模板是 4.7.1 的 `web_nothreads_*`。
+- 整夹 `export/web` 上传站点 **chickenstock**（https://chickenstock.netlify.app），不要只拖 html，不要新建 site。
+- 导完确认 `netlify.toml` 和 `_headers` 还在（COOP/COEP + wasm MIME）。
+- 手机打开后强制刷新。编辑器预览不算发布完成。

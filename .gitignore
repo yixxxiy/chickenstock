@@ -1,0 +1,16 @@
+# Godot 4+ specific ignores
+.godot/
+/android/
+
+# Web export binaries (keep Netlify config)
+export/web/*
+!export/web/netlify.toml
+!export/web/_headers
+
+# CJK source font (subset lives in fonts/game_zh.ttf)
+fonts/_src*
+fonts/_bold_instance.ttf
+
+
+# 本地测试用的隔离 APPDATA / 临时产物（EndlessSmokeTest 要求路径含 audit-user）
+tmp/

@@ -1,0 +1,865 @@
+[gd_scene format=3 uid="uid://c1fa1isualro2"]
+
+[ext_resource type="Script" uid="uid://rj3mga7aiknx" path="res://scripts/ArtScene.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://6p3gunmmb80d" path="res://assets/map/farm-background.png" id="2_map"]
+[ext_resource type="Texture2D" uid="uid://rs4cunjihjxy" path="res://icons/egg.png" id="3_egg"]
+[ext_resource type="Texture2D" uid="uid://bxiw6xexquu7e" path="res://icons/cake.png" id="4_cake"]
+[ext_resource type="PackedScene" path="res://scenes/SheetSprite.tscn" id="5_sheet"]
+[ext_resource type="Texture2D" uid="uid://bhcj8ga0qt3rs" path="res://assets/sprites/hen.png" id="6_hen"]
+[ext_resource type="Texture2D" uid="uid://1p7lqhoqoa1u" path="res://assets/sprites/chick-character.png" id="7_chick"]
+[ext_resource type="Texture2D" uid="uid://bhsiymv7ua011" path="res://assets/sprites/hatch-8.png" id="7_r0bdu"]
+[ext_resource type="Texture2D" uid="uid://d2pdd2uvy3ra8" path="res://assets/sprites/wolf-hen-idle-6x1.png" id="8_wolf"]
+[ext_resource type="Script" uid="uid://dhi7d28iec3tn" path="res://scripts/StockGraph.gd" id="9_graph"]
+[ext_resource type="Texture2D" uid="uid://ctw8iynocrk2q" path="res://assets/ui/farm-ui/settings_gear.png" id="10_gear"]
+[ext_resource type="Texture2D" uid="uid://cuxi31y8w0vqe" path="res://icons/coin.png" id="11_coin"]
+[ext_resource type="Texture2D" uid="uid://ba8dweypmr75m" path="res://icons/stock.png" id="12_stock"]
+[ext_resource type="Texture2D" uid="uid://d00oxm8m62cec" path="res://assets/ui/farm-ui/speech.png" id="13_speech"]
+[ext_resource type="StyleBox" path="res://themes/frame_ticker_panel.tres" id="14_ticker"]
+[ext_resource type="Texture2D" uid="uid://cqj4ngs1a8fv7" path="res://icons/chick.png" id="15_chick_icon"]
+[ext_resource type="Texture2D" uid="uid://b4pemqsp611cg" path="res://assets/ui/clock-face.png" id="16_face"]
+[ext_resource type="Texture2D" uid="uid://cgganp30whoxt" path="res://assets/ui/clock-hour-hand.png" id="17_hand"]
+[ext_resource type="Texture2D" uid="uid://by5ro48bc6kkp" path="res://assets/ui/settlement/layers/00-moon.png" id="20_moon"]
+[ext_resource type="Texture2D" uid="uid://c1b2ryjkgyq3p" path="res://assets/ui/farm-ui/button_green.png" id="21_green"]
+[ext_resource type="Texture2D" uid="uid://7dlog1q3rf2d" path="res://assets/ui/farm-ui/button_red.png" id="22_red"]
+[ext_resource type="Texture2D" uid="uid://i6posfh2pbbc" path="res://assets/ui/farm-ui/button_empty_beige.png" id="23_beige"]
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_vlgna"]
+atlas = ExtResource("7_r0bdu")
+region = Rect2(512, 0, 128, 128)
+filter_clip = true
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ynacb"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91764706, 0.8509804, 0.6901961, 0.54901963)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mmnfg"]
+content_margin_left = 8.0
+content_margin_top = 4.0
+content_margin_right = 10.0
+content_margin_bottom = 4.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.8)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.91764706, 0.8509804, 0.6901961, 0.54901963)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_ehqjx"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.9607843)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76862746, 0.64705884, 0.45490196, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_apmas"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.9607843)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76862746, 0.64705884, 0.45490196, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_u2voy"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.9607843)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76862746, 0.64705884, 0.45490196, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mush5"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(1, 0.9647059, 0.9019608, 0.9607843)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.76862746, 0.64705884, 0.45490196, 1)
+corner_radius_top_left = 28
+corner_radius_top_right = 28
+corner_radius_bottom_right = 28
+corner_radius_bottom_left = 28
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_e0fmx"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("21_green")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="AtlasTexture" id="AtlasTexture_nea2g"]
+atlas = ExtResource("8_wolf")
+region = Rect2(0, 0, 1024, 1024)
+filter_clip = true
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_wolf"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_tifql"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("21_green")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_c3clw"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("22_red")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_gw0hi"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("23_beige")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_iaxdn"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("23_beige")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lhh4h"]
+content_margin_left = 18.0
+content_margin_top = 8.0
+content_margin_right = 18.0
+content_margin_bottom = 8.0
+texture = ExtResource("21_green")
+texture_margin_left = 24.0
+texture_margin_top = 16.0
+texture_margin_right = 24.0
+texture_margin_bottom = 16.0
+
+[node name="ArtScene" type="Control" unique_id=618764704]
+custom_minimum_size = Vector2(576, 2700)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 576.0
+offset_bottom = 2700.0
+script = ExtResource("1_script")
+
+[node name="Board" type="Control" parent="." unique_id=828751999]
+clip_contents = true
+anchors_preset = 0
+offset_right = 576.0
+offset_bottom = 1024.0
+mouse_filter = 2
+
+[node name="Bg" type="ColorRect" parent="Board" unique_id=264227137]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.776, 0.847, 0.714, 1)
+
+[node name="Map" type="TextureRect" parent="Board" unique_id=859254556]
+texture_filter = 6
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -6.0
+offset_top = -36.0
+offset_right = -6.0
+offset_bottom = -36.0
+grow_horizontal = 2
+grow_vertical = 2
+scale = Vector2(1.08, 1.08)
+mouse_filter = 2
+texture = ExtResource("2_map")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="Moon" type="TextureRect" parent="Board" unique_id=715860399]
+texture_filter = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.37
+anchor_top = 0.015
+anchor_right = 0.63
+anchor_bottom = 0.125
+mouse_filter = 2
+texture = ExtResource("20_moon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ArtAssets" type="Control" parent="Board" unique_id=895503352]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HenPreview" type="TextureRect" parent="Board/ArtAssets" unique_id=1519757491]
+layout_mode = 0
+offset_left = 218.0
+offset_top = 558.0
+offset_right = 311.0
+offset_bottom = 676.0
+mouse_filter = 2
+texture = ExtResource("6_hen")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ChickPreview" type="TextureRect" parent="Board/ArtAssets" unique_id=743768044]
+layout_mode = 0
+offset_left = 326.0
+offset_top = 602.0
+offset_right = 388.0
+offset_bottom = 668.0
+mouse_filter = 2
+texture = ExtResource("7_chick")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HatchEgg" parent="Board" unique_id=281884006 instance=ExtResource("5_sheet")]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 420.0
+offset_right = 92.0
+offset_bottom = 553.0
+texture = SubResource("AtlasTexture_vlgna")
+sheet_path = "res://assets/sprites/hatch-8.png"
+rows = 1
+
+[node name="HUD" type="HBoxContainer" parent="Board" unique_id=413193252]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 10.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 100.0
+grow_horizontal = 2
+mouse_filter = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="ClockBox" type="VBoxContainer" parent="Board/HUD" unique_id=1263501214]
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="Clock" type="Control" parent="Board/HUD/ClockBox" unique_id=1563616213]
+custom_minimum_size = Vector2(90, 90)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+
+[node name="ClockFaceStill" type="TextureRect" parent="Board/HUD/ClockBox/Clock" unique_id=1019822546]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("16_face")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ClockHandStill" type="TextureRect" parent="Board/HUD/ClockBox/Clock" unique_id=1379833393]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -23.0
+offset_top = -23.0
+offset_right = 23.0
+offset_bottom = 23.0
+grow_horizontal = 2
+grow_vertical = 2
+rotation = 2.2
+pivot_offset = Vector2(23, 23)
+mouse_filter = 2
+texture = ExtResource("17_hand")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DayLabel" type="Label" parent="Board/HUD/ClockBox/Clock" unique_id=1544044835]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -10.0
+offset_top = 1.0
+offset_right = 10.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(1, 0.98, 0.93, 1)
+theme_override_colors/font_outline_color = Color(0.22, 0.3, 0.16, 0.88)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 14
+text = "1/8天"
+horizontal_alignment = 1
+
+[node name="Spacer" type="Control" parent="Board/HUD" unique_id=897431294]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HudBar" type="HBoxContainer" parent="Board/HUD" unique_id=1145055242]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+theme_override_constants/separation = 6
+
+[node name="CashChip" type="PanelContainer" parent="Board/HUD/HudBar" unique_id=327500989]
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ynacb")
+
+[node name="Row" type="HBoxContainer" parent="Board/HUD/HudBar/CashChip" unique_id=1652377550]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Board/HUD/HudBar/CashChip/Row" unique_id=1855627449]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("11_coin")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CashBox" type="VBoxContainer" parent="Board/HUD/HudBar/CashChip/Row" unique_id=422504183]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="CashTitle" type="Label" parent="Board/HUD/HudBar/CashChip/Row/CashBox" unique_id=1833791603]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 11
+text = "现金"
+
+[node name="Cash" type="Label" parent="Board/HUD/HudBar/CashChip/Row/CashBox" unique_id=1112693821]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "140"
+vertical_alignment = 1
+
+[node name="StockChip" type="PanelContainer" parent="Board/HUD/HudBar" unique_id=449701297]
+custom_minimum_size = Vector2(96, 44)
+layout_mode = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_mmnfg")
+
+[node name="Row" type="HBoxContainer" parent="Board/HUD/HudBar/StockChip" unique_id=814052117]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Board/HUD/HudBar/StockChip/Row" unique_id=958676618]
+custom_minimum_size = Vector2(30, 30)
+layout_mode = 2
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("12_stock")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="StockBox" type="VBoxContainer" parent="Board/HUD/HudBar/StockChip/Row" unique_id=1764452475]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 0
+alignment = 1
+
+[node name="StockTitle" type="Label" parent="Board/HUD/HudBar/StockChip/Row/StockBox" unique_id=1611880344]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 11
+text = "股票"
+
+[node name="Stock" type="Label" parent="Board/HUD/HudBar/StockChip/Row/StockBox" unique_id=265813886]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 24
+text = "0"
+vertical_alignment = 1
+
+[node name="SpacerEnd" type="Control" parent="Board/HUD" unique_id=1936285476]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="SettingsBtn" type="TextureButton" parent="Board/HUD" unique_id=307253958]
+custom_minimum_size = Vector2(56, 56)
+layout_mode = 2
+size_flags_vertical = 4
+texture_normal = ExtResource("10_gear")
+ignore_texture_size = true
+stretch_mode = 5
+
+[node name="EggThought" type="Button" parent="Board" unique_id=1840044128]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.22
+anchor_top = 0.22
+anchor_right = 0.22
+anchor_bottom = 0.22
+offset_left = 47.28
+offset_top = -41.28
+offset_right = 111.28
+offset_bottom = 22.72
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_ehqjx")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_ehqjx")
+theme_override_styles/hover = SubResource("StyleBoxFlat_ehqjx")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_ehqjx")
+icon = ExtResource("3_egg")
+icon_alignment = 1
+expand_icon = true
+
+[node name="CakeThought" type="Button" parent="Board" unique_id=2031641796]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.66
+anchor_top = 0.26
+anchor_right = 0.66
+anchor_bottom = 0.26
+offset_left = 35.84
+offset_top = -12.24
+offset_right = 99.84
+offset_bottom = 51.76
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_apmas")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_apmas")
+theme_override_styles/hover = SubResource("StyleBoxFlat_apmas")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_apmas")
+icon = ExtResource("4_cake")
+icon_alignment = 1
+expand_icon = true
+
+[node name="HatchThought" type="Button" parent="Board" unique_id=1577432305]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.375
+anchor_right = 0.025
+anchor_bottom = 0.375
+offset_left = 5.6
+offset_top = 14.0
+offset_right = 65.6
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_u2voy")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_u2voy")
+theme_override_styles/hover = SubResource("StyleBoxFlat_u2voy")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_u2voy")
+icon = ExtResource("3_egg")
+icon_alignment = 1
+expand_icon = true
+
+[node name="ChickThought" type="Button" parent="Board" unique_id=367912494]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.025
+anchor_top = 0.375
+anchor_right = 0.025
+anchor_bottom = 0.375
+offset_left = 72.0
+offset_top = 14.0
+offset_right = 132.0
+offset_bottom = 74.0
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_mush5")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mush5")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mush5")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_mush5")
+icon = ExtResource("15_chick_icon")
+icon_alignment = 1
+expand_icon = true
+
+[node name="BakeryEggs" type="Label" parent="Board" unique_id=1203256102]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.62
+anchor_top = 0.48
+anchor_right = 0.76
+anchor_bottom = 0.52
+offset_left = -24.12
+offset_top = -10.52
+offset_right = -24.12
+offset_bottom = -10.52
+theme_override_colors/font_color = Color(0.31, 0.24, 0.17, 1)
+theme_override_colors/font_outline_color = Color(1, 0.96, 0.88, 0.9)
+theme_override_constants/outline_size = 5
+theme_override_font_sizes/font_size = 16
+text = "蛋 0"
+horizontal_alignment = 1
+
+[node name="BakeryUpgrade" type="Button" parent="Board" unique_id=1071940298]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.62
+anchor_top = 0.515
+anchor_right = 0.84
+anchor_bottom = 0.575
+offset_left = 72.88
+offset_top = -19.36
+offset_right = 72.88
+offset_bottom = -19.36
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxTexture_e0fmx")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_e0fmx")
+theme_override_styles/hover = SubResource("StyleBoxTexture_e0fmx")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_e0fmx")
+text = "升级烤炉 Lv.1→2
+200 金币"
+
+[node name="WolfShop" type="Control" parent="Board" unique_id=328235314]
+layout_mode = 1
+anchor_left = 0.11
+anchor_top = 0.72
+anchor_right = 0.35
+anchor_bottom = 0.91
+mouse_filter = 2
+
+[node name="MerchantVisualGroup" type="Control" parent="Board/WolfShop" unique_id=1478873081]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="Wolf" parent="Board/WolfShop/MerchantVisualGroup" unique_id=557128256 instance=ExtResource("5_sheet")]
+anchors_preset = -1
+anchor_left = 0.15
+anchor_top = 0.2
+anchor_right = 1.0
+anchor_bottom = 1.03
+offset_left = -251.096
+offset_top = -146.192
+offset_right = 31.4
+offset_bottom = 92.323
+scale = Vector2(1.32, 1.32)
+texture = SubResource("AtlasTexture_nea2g")
+sheet_path = "res://assets/sprites/wolf-hen-idle-6x1.png"
+columns = 6
+rows = 1
+frame_count = 6
+frame_step = 0.166667
+
+[node name="WolfHit" type="Button" parent="Board/WolfShop" unique_id=183757301]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -18.0
+offset_top = -8.0
+offset_right = 22.0
+offset_bottom = 12.0
+grow_horizontal = 2
+grow_vertical = 2
+focus_mode = 0
+mouse_filter = 2
+theme_override_styles/normal = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/pressed = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/hover = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/disabled = SubResource("StyleBoxEmpty_wolf")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_wolf")
+flat = true
+
+[node name="Talk" type="NinePatchRect" parent="Board/WolfShop" unique_id=1522986129]
+z_index = 2
+layout_mode = 1
+anchors_preset = -1
+anchor_left = -0.1
+anchor_top = -0.35
+anchor_right = 0.86
+anchor_bottom = 0.16
+offset_left = 11.464
+offset_top = -132.184
+offset_right = 78.754
+offset_bottom = -81.41
+texture = ExtResource("13_speech")
+patch_margin_left = 22
+patch_margin_top = 20
+patch_margin_right = 22
+patch_margin_bottom = 30
+
+[node name="Col" type="VBoxContainer" parent="Board/WolfShop/Talk" unique_id=1704048333]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = 3.0
+offset_right = -11.000381
+offset_bottom = -38.999603
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 8
+
+[node name="WolfBuy" type="Button" parent="Board/WolfShop/Talk/Col" unique_id=582678984]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_tifql")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_tifql")
+theme_override_styles/hover = SubResource("StyleBoxTexture_tifql")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_tifql")
+text = "买小鸡  50"
+
+[node name="WolfSell" type="Button" parent="Board/WolfShop/Talk/Col" unique_id=808034688]
+custom_minimum_size = Vector2(0, 50)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_c3clw")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_c3clw")
+theme_override_styles/hover = SubResource("StyleBoxTexture_c3clw")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_c3clw")
+text = "卖母鸡  40"
+
+[node name="Ticker" type="Control" parent="Board" unique_id=1977434395]
+layout_mode = 1
+anchor_left = 0.64
+anchor_top = 0.57
+anchor_right = 0.99
+anchor_bottom = 0.88
+mouse_filter = 2
+
+[node name="Face" type="PanelContainer" parent="Board/Ticker" unique_id=1334227248]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.7
+theme_override_styles/panel = ExtResource("14_ticker")
+
+[node name="StockGraph" type="Control" parent="Board/Ticker/Face" unique_id=1671362126]
+layout_mode = 2
+mouse_filter = 2
+script = ExtResource("9_graph")
+header_pad = null
+values = PackedFloat32Array(108, 96, 132, 114, 120)
+
+[node name="Col" type="VBoxContainer" parent="Board/Ticker/Face" unique_id=1926712574]
+layout_mode = 2
+theme_override_constants/separation = 2
+
+[node name="TickerPrice" type="Label" parent="Board/Ticker/Face/Col" unique_id=2086963083]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.16, 0.1, 1)
+theme_override_font_sizes/font_size = 22
+text = "金币  120"
+horizontal_alignment = 1
+
+[node name="TickerDelta" type="Label" parent="Board/Ticker/Face/Col" unique_id=1677935875]
+layout_mode = 2
+theme_override_font_sizes/font_size = 15
+text = "▲0"
+horizontal_alignment = 1
+
+[node name="TickerHold" type="Label" parent="Board/Ticker/Face/Col" unique_id=1303028981]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.42, 0.33, 0.24, 1)
+theme_override_font_sizes/font_size = 14
+text = "0股"
+horizontal_alignment = 1
+
+[node name="TradeRow" type="HBoxContainer" parent="Board/Ticker" unique_id=510510985]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.04
+anchor_top = 0.73
+anchor_right = 0.96
+anchor_bottom = 1.0
+offset_left = 0.2960205
+offset_top = -14.411194
+offset_right = 0.2960205
+offset_bottom = -48.119995
+theme_override_constants/separation = 8
+
+[node name="ShareBuy" type="Button" parent="Board/Ticker/TradeRow" unique_id=1319080887]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_gw0hi")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_gw0hi")
+theme_override_styles/hover = SubResource("StyleBoxTexture_gw0hi")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_gw0hi")
+text = "买1股"
+
+[node name="ShareSell" type="Button" parent="Board/Ticker/TradeRow" unique_id=19921427]
+custom_minimum_size = Vector2(0, 52)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_iaxdn")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_iaxdn")
+theme_override_styles/hover = SubResource("StyleBoxTexture_iaxdn")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_iaxdn")
+text = "卖1股"
+
+[node name="Ticker2" type="Control" parent="Board" unique_id=776547860]
+layout_mode = 1
+anchor_left = 0.64
+anchor_top = 0.57
+anchor_right = 0.99
+anchor_bottom = 0.88
+offset_left = -180.63998
+offset_top = 151.32
+offset_right = -180.63998
+offset_bottom = 151.31995
+mouse_filter = 2
+
+[node name="Face" type="PanelContainer" parent="Board/Ticker2" unique_id=1045019388]
+layout_mode = 1
+anchors_preset = -1
+anchor_right = 1.0
+anchor_bottom = 0.7
+offset_left = -190.0
+offset_top = 150.0
+offset_right = 183.4
+offset_bottom = 66.79204
+theme_override_styles/panel = ExtResource("14_ticker")
+
+[node name="QuestBtn" type="Button" parent="Board" unique_id=1319338739]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.46
+anchor_top = 0.81
+anchor_right = 0.66
+anchor_bottom = 0.865
+flat = true
+
+[node name="NewsLabel" type="Label" parent="Board/QuestBtn" unique_id=990346898]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.18, 0.42, 0.24, 1)
+theme_override_colors/font_outline_color = Color(1, 0.97, 0.88, 0.92)
+theme_override_constants/outline_size = 6
+theme_override_font_sizes/font_size = 15
+text = "蛋糕热销"
+horizontal_alignment = 1
+vertical_alignment = 1
+autowrap_mode = 3
+
+[node name="DayEnd" type="Button" parent="Board" unique_id=1321191222]
+layout_mode = 1
+anchors_preset = -1
+anchor_left = 0.24
+anchor_top = 0.895
+anchor_right = 0.76
+anchor_bottom = 0.955
+theme_override_colors/font_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_pressed_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_colors/font_hover_color = Color(0.22745098, 0.16470589, 0.09411765, 1)
+theme_override_font_sizes/font_size = 20
+theme_override_styles/normal = SubResource("StyleBoxTexture_lhh4h")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_lhh4h")
+theme_override_styles/hover = SubResource("StyleBoxTexture_lhh4h")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_lhh4h")
+text = "结束本日"
