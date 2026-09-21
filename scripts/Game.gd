@@ -440,8 +440,9 @@ func _raise_hud_chrome() -> void:
 		start_menu.z_as_relative = false
 	var toasts := get_node_or_null("Toasts") as Control
 	if toasts:
-		# Stay under StartMenuLayer (500). Menu lock hints go into MenuToasts.
-		toasts.z_index = 130
+		# Above StartMenuLayer (500) so boot trophy hints sit on the logo,
+		# not under the menu card. Lock hints still use MenuToasts.
+		toasts.z_index = 510
 		toasts.z_as_relative = false
 	_sync_toast_layout()
 
@@ -1066,9 +1067,9 @@ func _grant_trophy(id: String) -> void:
 		return
 	_trophies[id] = true
 	_save_trophies()
-	if tutorial_mode or _menu_holds_clock():
+	if tutorial_mode:
 		return
-	_toast(Loc.t("toast_trophy", [Loc.t(title_key)]))
+	_toast(Loc.t("toast_trophy", [Loc.t(title_key)]), true)
 
 func _grant_ranks_for(wealth: int) -> void:
 	for x in RANKS:
@@ -2546,7 +2547,7 @@ func _start_hold(cb: Callable, b: BaseButton = null) -> void:
 	juice.press(b)
 	cb.call(false)
 
-func _toast(text: String) -> void:
+func _toast(text: String, over_menu := false) -> void:
 	var l := _label(text, 16, Color.WHITE)
 	l.add_theme_color_override("font_color", Color.WHITE)
 	l.add_theme_color_override("font_outline_color", Color("3a2e22cc"))
@@ -2565,15 +2566,15 @@ func _toast(text: String) -> void:
 	sb.content_margin_bottom = 8
 	toast_panel.add_theme_stylebox_override("panel", sb)
 	toast_panel.add_child(l)
-	var host := _toast_host()
+	var host := _toast_host(over_menu)
 	host.add_child(toast_panel)
 	juice.toast_in(toast_panel)
 	get_tree().create_timer(2.2).timeout.connect(toast_panel.queue_free)
 
-func _toast_host() -> Control:
-	# Menu is z=500 and would bury global Toasts (130) under the logo.
-	# Host lock hints inside the menu layer, below the card (not over buttons).
-	if start_menu != null and start_menu.visible:
+func _toast_host(over_menu := false) -> Control:
+	# Lock hints stay in the strip under Settings/Trophies. Trophy unlocks
+	# use the global Toasts layer (z=510) so they draw over the menu logo.
+	if not over_menu and start_menu != null and start_menu.visible:
 		var slot := start_menu.get_node_or_null("MenuToasts") as VBoxContainer
 		if slot == null:
 			slot = VBoxContainer.new()

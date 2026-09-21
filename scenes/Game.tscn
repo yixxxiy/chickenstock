@@ -1838,7 +1838,7 @@ ignore_texture_size = true
 stretch_mode = 5
 
 [node name="Toasts" type="VBoxContainer" parent="." unique_id=1966947139]
-z_index = 130
+z_index = 510
 z_as_relative = false
 layout_mode = 1
 anchors_preset = -1

@@ -221,7 +221,7 @@ func scroll_box() -> ScrollContainer:
 
 func _ready() -> void:
 	mouse_filter = Control.MOUSE_FILTER_STOP
-	# 高于设置（115）与信封按钮（120），低于 Toasts（130）。见 AGENTS.md 的层级表。
+	# 高于设置（115）与信封按钮（120），低于 Toasts（510）。见 AGENTS.md 的层级表。
 	z_index = 125
 	visible = false
 	set_process(false)

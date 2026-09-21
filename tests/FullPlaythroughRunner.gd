@@ -108,7 +108,7 @@ func _test_layers() -> void:
 	_check(game.settings_pop.z_index == 115, "SettingsPop z=115", str(game.settings_pop.z_index))
 	_check(game.trophy_pop.z_index == 125, "TrophyPop z=125", str(game.trophy_pop.z_index))
 	_check(game.quest_btn.z_index == 120, "信封 QuestBtn z=120", str(game.quest_btn.z_index))
-	_check(game.get_node("Toasts").z_index == 130, "Toasts z=130", str(game.get_node("Toasts").z_index))
+	_check(game.get_node("Toasts").z_index == 510, "Toasts z=510", str(game.get_node("Toasts").z_index))
 	_check(game.start_menu.z_index == 500, "StartMenuLayer z=500", str(game.start_menu.z_index))
 	_check(_max_bird_z() <= 100, "鸡群 z 不越过结算层", str(_max_bird_z()))
 	_check(game.guide_pop.z_index > game.settings_pop.z_index, "攻略盖在设置之上",

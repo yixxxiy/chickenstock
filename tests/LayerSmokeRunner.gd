@@ -78,7 +78,7 @@ func _assert_stack(game) -> void:
 	# 新手指南是整屏模态：它盖住信封按钮是刻意的，不是漏改。
 	# 改这个值要同步改 AGENTS.md 的 z 表。
 	_eq(game.guide_pop.z_index, 126, "GuidePop")
-	_eq(game.get_node("Toasts").z_index, 130, "Toasts")
+	_eq(game.get_node("Toasts").z_index, 510, "Toasts")
 	_eq(game.menu_backdrop.z_index, 90, "菜单背景")
 	_eq(game.start_menu.z_index, 500, "StartMenuLayer")
 	_ok(bird_z <= 100, "鸡群 z 不越过结算层（实际 %d）" % bird_z)
@@ -91,7 +91,7 @@ func _assert_stack(game) -> void:
 	_ok(game.quest_btn.z_index < game.trophy_pop.z_index, "信封按钮 < TrophyPop")
 	_ok(game.trophy_pop.z_index < game.guide_pop.z_index, "TrophyPop < GuidePop")
 	_ok(game.guide_pop.z_index < game.get_node("Toasts").z_index, "GuidePop < Toasts")
-	_ok(game.get_node("Toasts").z_index < game.start_menu.z_index, "Toasts < 主菜单")
+	_ok(game.start_menu.z_index < game.get_node("Toasts").z_index, "主菜单 < Toasts")
 	_ok(game.menu_backdrop.z_index < tut_z, "菜单背景在教学层之下")
 
 
