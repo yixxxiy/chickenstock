@@ -179,6 +179,7 @@ node tools/web-sync.mjs
 
 | 事件 | 触发点 | 属性 |
 | --- | --- | --- |
+| `quest_hit` | 普通八日局中首次双线达标（庆祝弹窗弹出时） | `wealth`、`birds`、`day`、`wealth_goal`、`flock_goal` |
 | `gate_result` | 第 12 / 16 / 20 天考核判定完 | `gate_day`、`hit`、`wealth`、`wealth_goal`、`wealth_gap`、`birds`、`birds_goal`、`birds_gap`、`shortfall_pct`、`gate_retry_left` |
 | `campaign_end` | 普通八日终局 | `quest_ok`、`wealth`、`birds`、`wealth_goal`、`flock_goal` |
 | `settlement_cta` | 玩家在结算卡上做出选择 | `choice`、`decision_id`、`previous_run_id`、`result`、`terminal` |

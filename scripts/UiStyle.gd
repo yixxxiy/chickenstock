@@ -21,6 +21,7 @@ static func button_states(button: Button, surface: StyleBoxTexture) -> void:
 		button.button_down.connect(down)
 		button.button_up.connect(up)
 		button.visibility_changed.connect(up)
+		button.mouse_exited.connect(up)
 	var focus := StyleBoxFlat.new()
 	focus.bg_color = Color.TRANSPARENT
 	focus.border_color = Color("b88938")
@@ -36,5 +37,12 @@ static func _press(button: Button) -> void:
 	button.add_theme_stylebox_override("hover", surface)
 
 static func _release(button: Button) -> void:
-	button.add_theme_stylebox_override("normal", button.get_meta("ui_normal_surface"))
-	button.add_theme_stylebox_override("hover", button.get_meta("ui_hover_surface"))
+	if not is_instance_valid(button):
+		return
+	if button.has_meta("ui_normal_surface"):
+		button.add_theme_stylebox_override("normal", button.get_meta("ui_normal_surface"))
+	if button.has_meta("ui_hover_surface"):
+		button.add_theme_stylebox_override("hover", button.get_meta("ui_hover_surface"))
+	button.scale = Vector2.ONE
+	button.rotation = 0.0
+	button.modulate = Color.WHITE

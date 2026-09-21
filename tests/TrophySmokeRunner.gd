@@ -79,11 +79,8 @@ func settle_case(spec: Array) -> void:
 	check(game._trophies.has("stock_god"), label + " stock 3000 awarded at close")
 	if game.day == 8:
 		check(game._trophies.has("day8"), label + " finished eight days")
-		for rank in game.RANKS:
-			if int(rank.lv) <= game.CAMPAIGN_RANK_CAP and game.total() >= int(rank.min):
-				check(game._trophies.has("rank_%d" % int(rank.lv)), label + " closing rank " + str(rank.lv))
-	elif game.challenge_mode:
-		check(game._trophies.has("wealth_20k") == (spec[5] == "won"), label + " challenge wealth requires clear")
+	for rank in game.RANKS:
+		check(game._trophies.has("rank_%d" % int(rank.lv)) == (game.total() >= int(rank.min)), label + " rank " + str(rank.lv))
 	var earned: Dictionary = game._trophies.duplicate()
 	game._load_trophies()
 	check(game._trophies == earned, label + " trophies survive reload")
@@ -118,6 +115,6 @@ func threshold_cases() -> void:
 		check(game._trophies.has("retail_not_chives") == (values[1] >= 2000), label + " stock 2000 threshold")
 		check(game._trophies.has("stock_god") == (values[1] >= 3000), label + " stock 3000 threshold")
 		for rank in game.RANKS:
-			var expected: bool = int(rank.lv) <= game.CAMPAIGN_RANK_CAP and values[0] >= int(rank.min)
+			var expected: bool = game.total() >= int(rank.min)
 			check(game._trophies.has("rank_%d" % int(rank.lv)) == expected, label + " rank " + str(rank.lv))
 		completed_cases += 1

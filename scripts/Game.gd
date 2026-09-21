@@ -69,18 +69,6 @@ const TROPHY_DEFS := [
 	{"id": "retail_not_chives", "icon": "res://icons/stock.png", "title": "trophy_retail", "desc": "trophy_retail_desc"},
 	{"id": "stock_god", "icon": "res://icons/stock.png", "title": "trophy_stock_god", "desc": "trophy_stock_god_desc"},
 ]
-const WEALTH_TROPHY_DEFS := [
-	{"id": "wealth_100k", "min": 100000, "title": "trophy_wealth_100k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_90k", "min": 90000, "title": "trophy_wealth_90k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_80k", "min": 80000, "title": "trophy_wealth_80k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_70k", "min": 70000, "title": "trophy_wealth_70k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_60k", "min": 60000, "title": "trophy_wealth_60k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_50k", "min": 50000, "title": "trophy_wealth_50k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_40k", "min": 40000, "title": "trophy_wealth_40k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_30k", "min": 30000, "title": "trophy_wealth_30k", "desc": "trophy_wealth_tier_desc"},
-	{"id": "wealth_20k", "min": 20000, "title": "trophy_wealth_20k", "desc": "trophy_wealth_tier_desc"},
-]
-const CAMPAIGN_RANK_CAP := 10
 # Long-run guards. A challenge run reaches 58+ birds and day 20, and every bird
 # is its own animated YardBird node; the wealth log otherwise grows forever and
 # goes into the save as-is.
@@ -101,16 +89,16 @@ const NEWS := {
 const RANKS := [
 	{"lv": 1, "min": 0, "title": "流浪小鸡"},
 	{"lv": 2, "min": 500, "title": "见习农民"},
-	{"lv": 3, "min": 1000, "title": "咯咯佃农"},
-	{"lv": 4, "min": 1600, "title": "篱笆鸡舍"},
-	{"lv": 5, "min": 2300, "title": "积谷农户"},
-	{"lv": 6, "min": 3000, "title": "温饱农场"},
-	{"lv": 7, "min": 4200, "title": "街口商贩"},
-	{"lv": 8, "min": 5200, "title": "农场掌柜"},
-	{"lv": 9, "min": 6500, "title": "金币大亨"},
-	{"lv": 10, "min": 8000, "title": "农场传奇"},
-	{"lv": 11, "min": 13000, "title": "农场街新贵"},
-	{"lv": 12, "min": 18000, "title": "鸡隆·股斯克"},
+	{"lv": 3, "min": 1200, "title": "咯咯佃农"},
+	{"lv": 4, "min": 2500, "title": "篱笆鸡舍"},
+	{"lv": 5, "min": 5000, "title": "积谷农户"},
+	{"lv": 6, "min": 10000, "title": "温饱农场"},
+	{"lv": 7, "min": 20000, "title": "街口商贩"},
+	{"lv": 8, "min": 40000, "title": "农场掌柜"},
+	{"lv": 9, "min": 80000, "title": "金币大亨"},
+	{"lv": 10, "min": 160000, "title": "鸡伦·巴菲特"},
+	{"lv": 11, "min": 230000, "title": "独角鸡兽"},
+	{"lv": 12, "min": 320000, "title": "鸡隆·股斯克"},
 ]
 
 const FENCE_POLY := [
@@ -197,6 +185,9 @@ var summary: Dictionary = {}
 var _dawn_snap: Dictionary = {}
 var just_grown := 0
 var fanfare := false
+## 仅自动弹出的任务卡带「继续游戏」（达标庆祝 / 挑战开局简介）；
+## 之后点信封打开时不显示。
+var _quest_offer_continue := false
 var _booted := false
 var show_quest := false
 var show_settings := false
@@ -248,6 +239,7 @@ var _had_main_save := false
 var _tutorial_focused_target: Control
 var _tutorial_target_z_index := 0
 var _tutorial_target_z_as_relative := true
+var _tutorial_focus_retry_id := 0
 
 var sfx: Node
 var juice: Node
@@ -377,8 +369,9 @@ func _lock_web_gestures() -> void:
 		return
 	# selectstart / touch 拦截必须放过 INPUT：问卷 LineEdit 靠 experimentalVK 的 HTML
 	# 输入框弹系统键盘；一律 preventDefault 会让手机「点了也不出输入法」。
+	# CluckKb.reset：收起键盘后把 visualViewport / scroll 拉回，否则问卷卡会卡在半屏上。
 	Engine.get_singleton("JavaScriptBridge").eval(
-		"(function(){var s=document.getElementById('cluck-no-select');if(!s){s=document.createElement('style');s.id='cluck-no-select';s.textContent='html,body,#canvas{height:100%!important;height:100dvh!important;width:100%!important;max-height:100dvh!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent;touch-action:none!important;overscroll-behavior:none}#canvas input,#canvas textarea,input,textarea{ -webkit-user-select:text!important;user-select:text!important;touch-action:auto!important;}#netlify-badge,.netlify-badge,a[href*=netlify]{display:none!important}';document.head.appendChild(s);}var isField=function(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);};var stop=function(e){if(isField(e.target))return;e.preventDefault();};var pinch=function(e){if(isField(e.target))return;if(e.touches&&e.touches.length>1)e.preventDefault();};document.addEventListener('contextmenu',stop,{passive:false});document.addEventListener('selectstart',stop,{passive:false});document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('gestureend',stop,{passive:false});document.addEventListener('touchmove',pinch,{passive:false});window.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)e.preventDefault();},{passive:false});var c=document.getElementById('canvas');if(c){c.style.touchAction='none';c.style.height='100dvh';c.addEventListener('contextmenu',stop,{passive:false});c.addEventListener('touchmove',function(e){if(isField(e.target))return;e.preventDefault();},{passive:false});}})();",
+		"(function(){var s=document.getElementById('cluck-no-select');if(!s){s=document.createElement('style');s.id='cluck-no-select';s.textContent='html,body,#canvas{height:100%!important;height:100dvh!important;width:100%!important;max-height:100dvh!important;-webkit-user-select:none!important;user-select:none!important;-webkit-touch-callout:none!important;-webkit-tap-highlight-color:transparent;touch-action:none!important;overscroll-behavior:none}#canvas input,#canvas textarea,input,textarea{font-size:16px!important;-webkit-user-select:text!important;user-select:text!important;touch-action:auto!important;}#netlify-badge,.netlify-badge,a[href*=netlify]{display:none!important}';document.head.appendChild(s);}try{var m=document.querySelector('meta[name=viewport]');if(m)m.setAttribute('content','width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover');}catch(e){}var isField=function(t){return t&&(t.tagName==='INPUT'||t.tagName==='TEXTAREA'||t.isContentEditable);};var stop=function(e){if(isField(e.target))return;e.preventDefault();};var pinch=function(e){if(isField(e.target))return;if(e.touches&&e.touches.length>1)e.preventDefault();};document.addEventListener('contextmenu',stop,{passive:false});document.addEventListener('selectstart',stop,{passive:false});document.addEventListener('gesturestart',stop,{passive:false});document.addEventListener('gesturechange',stop,{passive:false});document.addEventListener('gestureend',stop,{passive:false});document.addEventListener('touchmove',pinch,{passive:false});window.addEventListener('wheel',function(e){if(e.ctrlKey||e.metaKey)e.preventDefault();},{passive:false});var c=document.getElementById('canvas');if(c){c.style.touchAction='none';c.style.height='100dvh';c.addEventListener('contextmenu',stop,{passive:false});c.addEventListener('touchmove',function(e){if(isField(e.target))return;e.preventDefault();},{passive:false});}if(!window.CluckKb){window.CluckKb={pad:0};}var sync=function(){try{var vv=window.visualViewport;if(!vv){window.CluckKb.pad=0;return;}window.CluckKb.pad=Math.max(0,window.innerHeight-(vv.height+vv.offsetTop));}catch(err){window.CluckKb.pad=0;}};window.CluckKb.reset=function(){try{window.scrollTo(0,0);if(document.documentElement)document.documentElement.scrollTop=0;if(document.body)document.body.scrollTop=0;if(window.visualViewport&&visualViewport.offsetTop){window.scrollTo(0,0);}window.CluckKb.pad=0;var canvas=document.getElementById('canvas');if(canvas){canvas.style.height='100dvh';canvas.style.top='0';canvas.style.transform='';}sync();}catch(err){window.CluckKb.pad=0;}};if(window.visualViewport){visualViewport.addEventListener('resize',sync);visualViewport.addEventListener('scroll',sync);}window.addEventListener('resize',sync);sync();})();",
 		true
 	)
 
@@ -751,6 +744,9 @@ func _finish_boot() -> void:
 func _menu_holds_clock() -> bool:
 	if survey_pop != null and survey_pop.visible:
 		return true
+	# 挑战开信封看门槛时停表，关掉再走。
+	if _in_challenge() and quest_pop != null and quest_pop.visible:
+		return true
 	return start_menu.visible or _return_to_menu or settings_pop.visible
 
 func _show_main_menu() -> void:
@@ -896,6 +892,8 @@ func _enter_play(kind: String) -> void:
 		_rebuild_flock()
 		_restore_settlement()
 		_refresh()
+		if want_challenge and not settling:
+			call_deferred("_present_challenge_brief")
 		return
 	_reset_new_game_data()
 	tutorial_mode = false
@@ -915,6 +913,8 @@ func _enter_play(kind: String) -> void:
 	_rebuild_flock()
 	_refresh()
 	_save()
+	if want_challenge:
+		call_deferred("_present_challenge_brief")
 
 ## 一局开始（新开或续档）的统计口径。玩法状态在调用前已经就位。
 func _begin_run(kind: String, continued: bool, forced_reason := "") -> void:
@@ -1070,30 +1070,13 @@ func _grant_trophy(id: String) -> void:
 		return
 	_toast(Loc.t("toast_trophy", [Loc.t(title_key)]))
 
-func _grant_challenge_wealth_trophies(closing: int) -> void:
-	var top_title := ""
-	var newly := false
-	for def in WEALTH_TROPHY_DEFS:
-		if closing < int(def.min):
-			continue
-		var id := str(def.id)
-		if top_title == "":
-			top_title = str(def.title)
-		if _trophies.get(id, false):
-			continue
-		_trophies[id] = true
-		newly = true
-	if newly:
-		_save_trophies()
-		if not tutorial_mode:
-			_toast(Loc.t("toast_trophy", [Loc.t(top_title)]))
+func _grant_ranks_for(wealth: int) -> void:
+	for x in RANKS:
+		if wealth >= int(x.min):
+			_grant_trophy("rank_%d" % int(x.lv))
 
 func _trophy_catalog() -> Array:
 	var out: Array = []
-	for def in WEALTH_TROPHY_DEFS:
-		var row: Dictionary = def.duplicate()
-		row["icon"] = "res://icons/coin.png"
-		out.append(row)
 	out.append_array(TROPHY_DEFS.duplicate())
 	for x in RANKS:
 		var lv := int(x.lv)
@@ -1101,17 +1084,10 @@ func _trophy_catalog() -> Array:
 			"id": "rank_%d" % lv,
 			"icon": "res://icons/coin.png",
 			"title": "rank_%d_title" % lv,
-			"desc": "trophy_rank_day8_desc" if lv <= CAMPAIGN_RANK_CAP else "trophy_rank_endless_desc",
+			"desc": "trophy_rank_desc",
 			"min": int(x.min),
 		})
 	return out
-
-func _grant_day8_ranks(closing: int) -> void:
-	for x in RANKS:
-		if int(x.lv) > CAMPAIGN_RANK_CAP:
-			continue
-		if closing >= int(x.min):
-			_grant_trophy("rank_%d" % int(x.lv))
 
 func _check_closing_trophies(closing: int) -> void:
 	if tutorial_mode:
@@ -1119,13 +1095,10 @@ func _check_closing_trophies(closing: int) -> void:
 	# The closing price can cross stock/wealth thresholds without a player action
 	# calling _refresh(). Check before displaying any daily or terminal report.
 	_check_trophies()
+	_grant_ranks_for(closing)
 	if day == 8 and not challenge_mode and not endless_mode:
-		# These trophies describe finishing day 8 and its closing wealth, not
-		# passing both campaign goals. A flock shortfall must not discard them.
+		# Finishing day 8, not passing both campaign goals.
 		_grant_trophy("day8")
-		_grant_day8_ranks(closing)
-	if game_result == "won" and challenge_mode and not endless_mode:
-		_grant_challenge_wealth_trophies(closing)
 
 func _check_trophies() -> void:
 	if tutorial_mode:
@@ -1143,17 +1116,13 @@ func _check_trophies() -> void:
 		_grant_trophy("retail_not_chives")
 	if stock_gain >= 3000:
 		_grant_trophy("stock_god")
+	_grant_ranks_for(total())
 	if not endless_mode:
 		return
 	# 只有 _wake() 那一瞬间发 endless7，中途读档和老存档刷新都补不回来，
 	# 所以这里按当前天数补一次；_grant_trophy 自带去重。
 	if day >= 7:
 		_grant_trophy("endless7")
-	for x in RANKS:
-		if int(x.lv) <= CAMPAIGN_RANK_CAP:
-			continue
-		if total() >= int(x.min):
-			_grant_trophy("rank_%d" % int(x.lv))
 
 func _open_trophies() -> void:
 	_close_quest()
@@ -1247,7 +1216,7 @@ func _on_sfx_toggle_pressed() -> void:
 	_audio_toggle_ms = now
 	sfx.set_sfx(not sfx.sfx_on)
 	sfx.egg()
-	_apply_settings_labels()
+	_sync_audio_chips()
 
 func _on_amb_toggle_pressed() -> void:
 	var now := Time.get_ticks_msec()
@@ -1255,7 +1224,15 @@ func _on_amb_toggle_pressed() -> void:
 		return
 	_audio_toggle_ms = now
 	sfx.set_amb(not sfx.amb_on)
-	_apply_settings_labels()
+	_sync_audio_chips()
+
+func _sync_audio_chips() -> void:
+	var sfx_btn := _settings_node("SfxRow/SfxBtn") as Button
+	var amb_btn := _settings_node("AmbRow/AmbBtn") as Button
+	sfx_btn.text = Loc.t("toggle_on" if sfx.sfx_on else "toggle_off")
+	amb_btn.text = Loc.t("toggle_on" if sfx.amb_on else "toggle_off")
+	_style_toggle_chip(sfx_btn, sfx.sfx_on)
+	_style_toggle_chip(amb_btn, sfx.amb_on)
 
 func _armed_is_choice_button() -> bool:
 	# 问卷选项 / 设置里的开关：手指落在上面时不要改成列表滚动，否则一点就取消。
@@ -1469,6 +1446,8 @@ func _advance_baking(delta: float) -> void:
 				juice.punch(cake_btn, 1.22)
 				if tutorial_mode:
 					_tutorial_refresh_prompt()
+					# 气泡从「烘焙中」切到「可卖」后再套一次金高亮 + 灰蒙版。
+					call_deferred("_tutorial_focus_target")
 			_refresh_thoughts()
 		elif baking >= 100:
 			var used := minf(remaining, maxf(0.0, _bake_hold_s() - _bake_hold))
@@ -1490,6 +1469,9 @@ func _advance_baking(delta: float) -> void:
 				break
 			_ignite_bake()
 			_refresh()
+			# 新手第 3 步蛋糕气泡此时才出现，补上和其他步骤一样的蒙版高亮。
+			if tutorial_mode and tutorial_step == 3:
+				call_deferred("_tutorial_focus_target")
 		else:
 			_egg_acc = 0.0
 			break
@@ -2706,6 +2688,9 @@ func _apply_settings_labels() -> void:
 	_settings_node("Help").text = Loc.t("help")
 	_settings_node("Restart").text = Loc.t("restart")
 	settings_home.text = Loc.t("home_menu")
+	for path in ["GuideBtn", "Restart"]:
+		_settle_settings_btn(_settings_node_or_null(path) as Control)
+	_settle_settings_btn(settings_home)
 	var credits := _settings_node("Credits") as Label
 	credits.text = Loc.t("credits")
 	var col := credits.get_parent()
@@ -3136,7 +3121,7 @@ func _refresh_quest() -> void:
 		quest_stamp.modulate.a = 0.0
 	var cont := get_node_or_null("QuestPop/Card/Box/ContinueBtn") as Button
 	if cont:
-		cont.visible = done
+		cont.visible = _quest_offer_continue
 		cont.text = Loc.t("continue_game")
 
 func _fit_quest_stamp() -> void:
@@ -3608,7 +3593,6 @@ func _next_day() -> void:
 			if int(gate.day) == 20 and hit:
 				game_result = "won"
 				_unlock_challenge_clear()
-				_grant_challenge_wealth_trophies(closing)
 				_fill_win_card(closing)
 				sfx.ending("mid")
 				await get_tree().process_frame
@@ -3719,7 +3703,14 @@ func _continue_endless_from_finale() -> void:
 	_save()
 	# 模式变了，按新的一局记：run_start 会带上刚才那次终局的 decision_id。
 	_begin_run("challenge", false)
-	_wake()
+	await _wake()
+	_present_challenge_brief()
+
+func _present_challenge_brief() -> void:
+	if not _in_challenge() or settling or start_menu.visible:
+		return
+	_quest_offer_continue = true
+	_open_quest()
 
 func _toggle_quest() -> void:
 	var now := Time.get_ticks_msec()
@@ -3754,6 +3745,7 @@ func _close_quest() -> void:
 	show_quest = false
 	quest_pop.visible = false
 	_quest_ignore_close = false
+	_quest_offer_continue = false
 	if quest_card:
 		quest_card.modulate.a = 1.0
 		quest_card.scale = Vector2.ONE
@@ -3884,16 +3876,27 @@ func _style_tutorial_card() -> void:
 func _style_lang_buttons() -> void:
 	var zh := _settings_node("LangRow/Options/ZhBtn") as Button
 	var en := _settings_node("LangRow/Options/EnBtn") as Button
+	# 普通木按钮，不要 chip-on 那种左右滑块。
+	zh.toggle_mode = false
+	en.toggle_mode = false
+	zh.button_pressed = false
+	en.button_pressed = false
 	if Loc.lang == "zh":
-		_style_toggle_chip(zh, true)
-		_style_toggle_chip(en, false)
+		_style_green(zh)
+		_style_beige(en)
 	else:
-		_style_toggle_chip(zh, false)
-		_style_toggle_chip(en, true)
-	zh.add_theme_font_size_override("font_size", 24)
-	en.add_theme_font_size_override("font_size", 24)
-	zh.custom_minimum_size = Vector2(156, 56)
-	en.custom_minimum_size = Vector2(156, 56)
+		_style_beige(zh)
+		_style_green(en)
+	for b in [zh, en]:
+		b.add_theme_font_size_override("font_size", 24)
+		b.custom_minimum_size = Vector2(156, 56)
+		b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+		b.focus_mode = Control.FOCUS_NONE
+		b.alignment = HORIZONTAL_ALIGNMENT_CENTER
+		b.clip_text = false
+		b.autowrap_mode = TextServer.AUTOWRAP_OFF
+		b.icon = null
+		_settle_settings_btn(b)
 
 func _style_font_buttons() -> void:
 	var small := _settings_node("FontRow/Options/SmallBtn") as Button
@@ -3913,6 +3916,7 @@ func _style_font_buttons() -> void:
 	large.add_theme_font_size_override("font_size", 26)
 	for b in [small, normal, large]:
 		b.custom_minimum_size = Vector2(140, 56)
+		_settle_settings_btn(b)
 
 func _chip_toggle_box(on: bool) -> StyleBoxTexture:
 	# chip-on: knob on right; tag: knob on left. Protect knob so it stays round.
@@ -3945,10 +3949,21 @@ func _style_toggle_chip(b: Button, on: bool) -> void:
 	b.autowrap_mode = TextServer.AUTOWRAP_OFF
 	b.alignment = HORIZONTAL_ALIGNMENT_CENTER
 	UiStyle.button_states(b, _chip_toggle_box(on))
-	# Keep height at native 56 so the knob stays round; width stretches the track only.
-	b.custom_minimum_size = Vector2(maxf(b.custom_minimum_size.x, 132.0), 56.0)
+	# 开/关贴图边距对调，外框必须锁死，否则音量一切下面整排跟着挪。
+	b.custom_minimum_size = Vector2(132, 56)
 	b.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	b.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	_settle_settings_btn(b)
+
+func _settle_settings_btn(b: Control) -> void:
+	if b == null:
+		return
+	b.scale = Vector2.ONE
+	b.rotation = 0.0
+	b.modulate = Color.WHITE
+	b.pivot_offset = b.size * 0.5
+	if b is BaseButton:
+		(b as BaseButton).release_focus()
 
 func _style_settings_chrome() -> void:
 	var flourish := _settings_node_or_null("Flourish") as TextureRect
@@ -4575,7 +4590,7 @@ func _debug_skip_to_campaign_clear() -> void:
 		"oldWealth": closing, "newWealth": closing,
 	}
 	_grant_trophy("day8")
-	_grant_day8_ranks(closing)
+	_grant_ranks_for(closing)
 	_unlock_normal()
 	Analytics.set_phase(Analytics.PHASE_SETTLE)
 	_set_settle_chrome(true)
@@ -4593,8 +4608,6 @@ func _fill_finale_card(closing: int = -1) -> void:
 	if closing < 0:
 		closing = total()
 	var rank := _rank_of(closing)
-	if int(rank.lv) > CAMPAIGN_RANK_CAP:
-		rank = RANKS[CAMPAIGN_RANK_CAP - 1]
 	var pts: Array[int] = []
 	for x in wealth_log:
 		pts.append(int(x))
@@ -4614,7 +4627,7 @@ func _fill_finale_card(closing: int = -1) -> void:
 		"stock": held() * maxi(1, price),
 		"wealth_pts": pts,
 		"rewind": not _dawn_snap.is_empty(),
-		"rank_max": CAMPAIGN_RANK_CAP,
+		"rank_max": RANKS.size(),
 		"beat_text": _campaign_beat_text(closing, true),
 	})
 
@@ -4659,8 +4672,6 @@ func _fill_campaign_flop_card(closing: int = -1) -> void:
 	if closing < 0:
 		closing = total()
 	var rank := _rank_of(closing)
-	if int(rank.lv) > CAMPAIGN_RANK_CAP:
-		rank = RANKS[CAMPAIGN_RANK_CAP - 1]
 	card.show_finale({
 		"kind": "campaign_flop",
 		"rank_lv": int(rank.lv),
@@ -4675,7 +4686,7 @@ func _fill_campaign_flop_card(closing: int = -1) -> void:
 		"stock": held() * maxi(1, price),
 		"wealth_pts": _closing_wealth_points(closing),
 		"rewind": not _dawn_snap.is_empty(),
-		"rank_max": CAMPAIGN_RANK_CAP,
+		"rank_max": RANKS.size(),
 		"beat_text": "",
 	})
 	_note_retry_offer("campaign_flop", not _dawn_snap.is_empty(), {})
@@ -4697,7 +4708,7 @@ func _fill_flop_card(closing: int, gate: Dictionary) -> void:
 		"wealth_pts": _closing_wealth_points(closing),
 		# This gate's single reward-retry, independent of the other two.
 		"rewind": _gate_retry_left(int(gate.day)) and not _dawn_snap.is_empty(),
-		"rank_max": 12,
+		"rank_max": RANKS.size(),
 		"beat_text": "",
 	})
 	_note_retry_offer("gate_flop", _gate_retry_left(int(gate.day)) and not _dawn_snap.is_empty(), gate)
@@ -4796,9 +4807,17 @@ func _wake() -> void:
 
 func _start_fanfare() -> void:
 	fanfare = true
+	_quest_offer_continue = true
 	quest_stamp.visible = false
 	quest_stamp.modulate.a = 0.0
 	_open_quest()
+	Analytics.log_event("quest_hit", {
+		"wealth": total(),
+		"birds": birds(),
+		"day": day,
+		"wealth_goal": WEALTH_GOAL,
+		"flock_goal": FLOCK_GOAL,
+	}, true)
 	juice.celebrate(quest_btn)
 	_later(0.12, func(): juice.punch(wealth_card, 1.12))
 	_later(0.22, func(): juice.punch(flock_card, 1.12))
@@ -4835,6 +4854,7 @@ func _reset_new_game_data() -> void:
 	settling = false; game_result = ""; summary = {}
 	just_grown = 0; fanfare = false; quest_done = false
 	show_quest = false; show_settings = false
+	_quest_offer_continue = false
 	seen_goal = 0; mail_seen = ""; news = "cake"
 	panic_told = false; _dusk_hurry = false
 	endless_mode = false
@@ -5052,6 +5072,7 @@ func _tutorial_apply_locks() -> void:
 		wolf_hit.mouse_filter = Control.MOUSE_FILTER_IGNORE if tutorial_step == 4 else Control.MOUSE_FILTER_STOP
 
 func _tutorial_clear_highlights() -> void:
+	_tutorial_focus_retry_id += 1
 	if _tutorial_focused_target != null and is_instance_valid(_tutorial_focused_target):
 		_tutorial_focused_target.z_index = _tutorial_target_z_index
 		_tutorial_focused_target.z_as_relative = _tutorial_target_z_as_relative
@@ -5110,15 +5131,33 @@ func _tutorial_focus_target() -> void:
 	var targets: Array = [quest_btn, egg_btn, hatch_btn, cake_btn, wolf_buy, share_buy, share_sell, quest_btn]
 	var target: Control = targets[tutorial_step] if tutorial_step >= 0 and tutorial_step < targets.size() else null
 	UiLayout.tutorial(self, target)
-	if target != null and target.is_visible_in_tree():
-		_tutorial_focused_target = target
-		_tutorial_target_z_index = target.z_index
-		_tutorial_target_z_as_relative = target.z_as_relative
-		target.z_as_relative = false
-		target.z_index = 106
-		tutorial_dim.visible = true
-		target.modulate = Color(1.18, 1.08, 0.72, 1.0)
-		juice.punch(target, 1.12)
+	if target == null:
+		return
+	# 第 3 步蛋糕气泡要等烤箱点燃后才 visible；进步立刻 focus 会空跑，
+	# 灰蒙版和金色跳动都丢了。目标未就绪时短重试，和其他步骤视觉对齐。
+	if not target.is_visible_in_tree():
+		_tutorial_schedule_focus_retry()
+		return
+	_tutorial_focus_retry_id += 1
+	_tutorial_focused_target = target
+	_tutorial_target_z_index = target.z_index
+	_tutorial_target_z_as_relative = target.z_as_relative
+	target.z_as_relative = false
+	target.z_index = 106
+	tutorial_dim.visible = true
+	target.modulate = Color(1.18, 1.08, 0.72, 1.0)
+	juice.punch(target, 1.12)
+
+func _tutorial_schedule_focus_retry() -> void:
+	_tutorial_focus_retry_id += 1
+	var rid := _tutorial_focus_retry_id
+	_later(0.15, func():
+		if rid != _tutorial_focus_retry_id:
+			return
+		if not tutorial_mode:
+			return
+		_tutorial_focus_target()
+	)
 
 func _wipe_user_file(path: String) -> void:
 	if FileAccess.file_exists(path):

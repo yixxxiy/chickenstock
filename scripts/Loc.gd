@@ -91,8 +91,7 @@ const ZH := {
 	"trophy_hen_desc": "从狼摊买来第一只鸡。",
 	"trophy_share": "进场交易",
 	"trophy_share_desc": "买下第一股。",
-	"trophy_rank_day8_desc": "八日收官时资产达到 %d。",
-	"trophy_rank_endless_desc": "无尽模式资产达到 %d。",
+	"trophy_rank_desc": "任意模式资产达到 %d。",
 	"trophy_flock": "十五只鸡",
 	"trophy_flock_desc": "同时养到 15 只鸡。",
 	"trophy_day8": "八日收官",
@@ -109,13 +108,13 @@ const ZH := {
 	"trophy_stock_god_desc": "一局里股票增值达到 3000。",
 	"trophy_wealth_tier_desc": "挑战通关时资产达到 %d。",
 	"trophy_wealth_100k": "封鸡隆·股斯克",
-	"trophy_wealth_90k": "90,000",
+	"trophy_wealth_90k": "230,000",
 	"trophy_wealth_80k": "鸡伦·巴菲特",
-	"trophy_wealth_70k": "70,000",
-	"trophy_wealth_60k": "60,000",
-	"trophy_wealth_50k": "50,000",
+	"trophy_wealth_70k": "110,000",
+	"trophy_wealth_60k": "80,000",
+	"trophy_wealth_50k": "55,000",
 	"trophy_wealth_40k": "40,000",
-	"trophy_wealth_30k": "30,000",
+	"trophy_wealth_30k": "28,000",
 	"trophy_wealth_20k": "20,000",
 	"lang": "English / 中文",
 	"language": "语言",
@@ -227,7 +226,7 @@ const ZH := {
 	"beat_tail_5": "这局有点离谱。",
 	"beat_tail_6": "这局封神了！",
 	"rank_1_title": "流浪小鸡",
-	"rank_1_copy": "八天空手而归。鸡：这人我都不认识。",
+	"rank_1_copy": "口袋空空。鸡：这人我都不认识。",
 	"rank_2_title": "见习农民",
 	"rank_2_copy": "刚摸到锄头，蛋还得自己捡。",
 	"rank_3_title": "咯咯佃农",
@@ -237,19 +236,19 @@ const ZH := {
 	"rank_5_title": "积谷农户",
 	"rank_5_copy": "谷仓有底，离顿顿吃饱还差一口。",
 	"rank_6_title": "温饱农场",
-	"rank_6_copy": "八日攒到三千，桌上终于能摆上热饭。",
+	"rank_6_copy": "桌上终于能摆上热饭。",
 	"rank_7_title": "街口商贩",
-	"rank_7_copy": "四千二出手，邻居开始打听你。",
+	"rank_7_copy": "邻居开始打听你怎么养。",
 	"rank_8_title": "农场掌柜",
-	"rank_8_copy": "五千二。鸡舍和股市两边都能转。",
+	"rank_8_copy": "鸡舍和股市两边都能转。",
 	"rank_9_title": "金币大亨",
-	"rank_9_copy": "六千五进袋，街坊开始叫你大亨。",
-	"rank_10_title": "农场传奇",
-	"rank_10_copy": "八千封顶。八日能摸到的最高等。",
-	"rank_11_title": "农场街新贵",
-	"rank_11_copy": "无尽里把家业推到一万三，街上换你的名。",
+	"rank_9_copy": "街坊开始叫你大亨。",
+	"rank_10_title": "鸡伦·巴菲特",
+	"rank_10_copy": "长线持鸡，从不跟风割肉。",
+	"rank_11_title": "独角鸡兽",
+	"rank_11_copy": "农场街第一只独角兽。",
 	"rank_12_title": "鸡隆·股斯克",
-	"rank_12_copy": "一万八。鸡界本隆，股斯克本人。",
+	"rank_12_copy": "鸡界本隆，股斯克本人。",
 	# 奖励重试入口。文案必须描述真实发生的事：本轮没有真实广告，
 	# 第一次是问卷，之后是五秒占位等待。不要写成「看广告」。
 	"reward_survey_cta": "填反馈 → 重试今天",
@@ -409,8 +408,7 @@ const EN := {
 	"trophy_hen_desc": "Buy your first hen from the wolf.",
 	"trophy_share": "First Trade",
 	"trophy_share_desc": "Buy your first share.",
-	"trophy_rank_day8_desc": "Hit %d wealth at the 8-day close.",
-	"trophy_rank_endless_desc": "Hit %d wealth in Endless.",
+	"trophy_rank_desc": "Reach %d wealth in any mode.",
 	"trophy_flock": "Fifteen Birds",
 	"trophy_flock_desc": "Hold 15 birds at once.",
 	"trophy_day8": "Eight-Day Close",
@@ -427,13 +425,13 @@ const EN := {
 	"trophy_stock_god_desc": "Make 3000 from stocks in one run.",
 	"trophy_wealth_tier_desc": "Clear Challenge with %d wealth.",
 	"trophy_wealth_100k": "Seal Clucklon Musk",
-	"trophy_wealth_90k": "90,000",
+	"trophy_wealth_90k": "230,000",
 	"trophy_wealth_80k": "Chicken Buffett",
-	"trophy_wealth_70k": "70,000",
-	"trophy_wealth_60k": "60,000",
-	"trophy_wealth_50k": "50,000",
+	"trophy_wealth_70k": "110,000",
+	"trophy_wealth_60k": "80,000",
+	"trophy_wealth_50k": "55,000",
 	"trophy_wealth_40k": "40,000",
-	"trophy_wealth_30k": "30,000",
+	"trophy_wealth_30k": "28,000",
 	"trophy_wealth_20k": "20,000",
 	"lang": "English / 中文",
 	"language": "Language",
@@ -545,7 +543,7 @@ const EN := {
 	"beat_tail_5": "This run is wild.",
 	"beat_tail_6": "This run is cracked!",
 	"rank_1_title": "Stray Chick",
-	"rank_1_copy": "Eight days. Empty pockets. The hens don't know you.",
+	"rank_1_copy": "Empty pockets. The hens don't know you.",
 	"rank_2_title": "Apprentice Farmer",
 	"rank_2_copy": "Just found the hoe. Still picking eggs yourself.",
 	"rank_3_title": "Cluck Tenant",
@@ -555,19 +553,19 @@ const EN := {
 	"rank_5_title": "Grain Farmer",
 	"rank_5_copy": "The barn has a floor. Full meals are still a bite away.",
 	"rank_6_title": "Full-Belly Farm",
-	"rank_6_copy": "Three thousand in eight days. Dinner is hot.",
+	"rank_6_copy": "Dinner is finally hot.",
 	"rank_7_title": "Corner Vendor",
-	"rank_7_copy": "Forty-two hundred. Neighbors started asking.",
+	"rank_7_copy": "Neighbors started asking how you farm.",
 	"rank_8_title": "Farm Keeper",
-	"rank_8_copy": "Fifty-two hundred. Coop and market both run.",
+	"rank_8_copy": "Coop and market both run.",
 	"rank_9_title": "Gold Baron",
-	"rank_9_copy": "Sixty-five hundred. They started calling you baron.",
-	"rank_10_title": "Farm Legend",
-	"rank_10_copy": "Eight thousand. The top of the eight-day climb.",
-	"rank_11_title": "Farm Street Star",
-	"rank_11_copy": "Thirteen thousand in Endless. The street says your name.",
+	"rank_9_copy": "They started calling you baron.",
+	"rank_10_title": "Chicken Buffett",
+	"rank_10_copy": "Holds the hens. Never panic-sells.",
+	"rank_11_title": "Cluckcorn",
+	"rank_11_copy": "The first unicorn on Farm Street.",
 	"rank_12_title": "Clucklon Musk",
-	"rank_12_copy": "Eighteen thousand. Clucklon Musk of Chicken Street.",
+	"rank_12_copy": "Clucklon Musk of Chicken Street.",
 	"reward_survey_cta": "Feedback → retry today",
 	"reward_wait_cta": "Wait 5s → retry today",
 	"reward_wait_counting": "Waiting… %d",
@@ -679,17 +677,21 @@ static func set_lang(next: String) -> bool:
 
 static func load_settings() -> void:
 	if not FileAccess.file_exists(SETTINGS_PATH):
+		_mirror_lang_to_web()
 		return
 	var f := FileAccess.open(SETTINGS_PATH, FileAccess.READ)
 	if f == null:
+		_mirror_lang_to_web()
 		return
 	var parsed = JSON.parse_string(f.get_as_text())
 	if typeof(parsed) != TYPE_DICTIONARY:
+		_mirror_lang_to_web()
 		return
 	var next := str(parsed.get("lang", lang))
 	if next == "en" or next == "zh":
 		lang = next
 	ui_font_scale = 0.85
+	_mirror_lang_to_web()
 
 static func set_ui_font_scale(value: float) -> void:
 	ui_font_scale = clampf(value, 0.85, 1.15)
@@ -699,3 +701,14 @@ static func save() -> void:
 	var f := FileAccess.open(SETTINGS_PATH, FileAccess.WRITE)
 	if f:
 		f.store_string(JSON.stringify({"lang": lang, "ui_font_scale": ui_font_scale}))
+	_mirror_lang_to_web()
+
+## 给 web/notice.js 读：下次进站加载页跟玩家选的语言走，默认英文。
+static func _mirror_lang_to_web() -> void:
+	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
+		return
+	var safe := "zh" if lang == "zh" else "en"
+	Engine.get_singleton("JavaScriptBridge").eval(
+		"try{localStorage.setItem('cluck_lang',%s)}catch(e){}" % JSON.stringify(safe),
+		true
+	)

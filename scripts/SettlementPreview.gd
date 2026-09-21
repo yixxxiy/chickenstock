@@ -44,7 +44,7 @@ func _apply() -> void:
 			"wealth_goal": 3000, "flock_goal": 15, "quest": false,
 			"cash": 140, "stock": 0,
 			"wealth_pts": [500, 420, 310, 260, 200, 180, 150, 140],
-			"rank_max": 10,
+			"rank_max": 12,
 			"beat_text": "八日收官，你打败了 0.1% 的挑战者。才刚进场，明天再捞。",
 		})
 		return
@@ -55,6 +55,6 @@ func _apply() -> void:
 		"wealth_goal": 3000, "flock_goal": 15, "quest": true,
 		"cash": 1840, "stock": 1400,
 		"wealth_pts": [140, 280, 420, 510, 680, 900, 1400, 3240],
-		"rank_max": 10,
+		"rank_max": 12,
 		"beat_text": "八日收官，你打败了 47% 的挑战者。快摸到中位了。",
 	})

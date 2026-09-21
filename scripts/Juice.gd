@@ -103,8 +103,12 @@ func press(n: Control) -> void:
 	_store(n, "press", tw)
 	# A short, readable touch response: compress, overshoot, then settle.
 	tw.tween_property(n, "scale", Vector2(0.93, 0.93), 0.055).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(n, "scale", Vector2(1.025, 1.025), 0.11).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tw.tween_property(n, "scale", Vector2.ONE, 0.10).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.tween_property(n, "scale", Vector2.ONE, 0.16).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
+	tw.finished.connect(func():
+		if is_instance_valid(n):
+			n.scale = Vector2.ONE
+			n.rotation = 0.0
+	)
 
 func shake(n: Control) -> void:
 	if n == null:

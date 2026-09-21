@@ -17,9 +17,16 @@
   "use strict";
 
   var TIPS = {
-    zh: "小提示：长按可连续收蛋、卖蛋糕",
-    en: "Tip: Hold to keep collecting eggs & cakes",
+    zh: [
+      "小提示：长按可连续收蛋、卖蛋糕",
+      "本游戏开发中，尚未完善，敬请期待完整版",
+    ],
+    en: [
+      "Tip: Hold to keep collecting eggs & cakes",
+      "Early build — unfinished. Full version coming soon",
+    ],
   };
+  var TIP_MS = 2800;
 
   // card 相对视口 + logo 相对 card → 相对 #status（与游戏 576×1024 同比例）
   var CARD_X = 0.17;
@@ -116,18 +123,31 @@
     "pointer-events:none;",
     "user-select:none;",
     "-webkit-user-select:none;",
+    "opacity:1;",
+    "transition:opacity 280ms ease;",
     "}",
   ].join("");
 
+  // 锁死缩放，避免 iOS 对小字号 input 自动放大后整页弹不回去。
+  try {
+    var meta = document.querySelector('meta[name="viewport"]');
+    if (meta) {
+      meta.setAttribute(
+        "content",
+        "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover"
+      );
+    }
+  } catch (e) {}
+
   function isZh() {
     try {
-      return /^zh/i.test(String(navigator.language || ""));
+      return window.localStorage.getItem("cluck_lang") === "zh";
     } catch (e) {
       return false;
     }
   }
 
-  function tipCopy() {
+  function tipList() {
     return isZh() ? TIPS.zh : TIPS.en;
   }
 
@@ -154,6 +174,26 @@
     return img;
   }
 
+  function startTipRotate(tip) {
+    if (tip.getAttribute("data-rotating") === "1") return;
+    tip.setAttribute("data-rotating", "1");
+    var list = tipList();
+    var i = 0;
+    tip.textContent = list[0];
+    if (list.length < 2) return;
+    window.setInterval(function () {
+      if (!tip.parentNode) return;
+      tip.style.opacity = "0";
+      window.setTimeout(function () {
+        if (!tip.parentNode) return;
+        list = tipList();
+        i = (i + 1) % list.length;
+        tip.textContent = list[i];
+        tip.style.opacity = "1";
+      }, 280);
+    }, TIP_MS);
+  }
+
   function mountChrome() {
     var status = document.getElementById("status");
     if (!status) return false;
@@ -166,13 +206,14 @@
       var word = addImg("cluck-load-logo-word", wordSrc(), "Chicken Stock");
       status.appendChild(word);
     }
-    if (!document.getElementById("cluck-load-tip")) {
-      var tip = document.createElement("p");
+    var tip = document.getElementById("cluck-load-tip");
+    if (!tip) {
+      tip = document.createElement("p");
       tip.id = "cluck-load-tip";
       tip.setAttribute("role", "note");
-      tip.textContent = tipCopy();
       status.appendChild(tip);
     }
+    startTipRotate(tip);
     return true;
   }
 

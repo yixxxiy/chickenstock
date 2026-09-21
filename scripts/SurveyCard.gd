@@ -206,8 +206,13 @@ var _body: VBoxContainer
 var _free: LineEdit
 var _submit: Button
 var _later: Button
+var _actions: HBoxContainer
 ## 手机触屏 + 鼠标回声可能连打两次；选项会选上又被取消。
 var _chip_guard_ms := 0
+## 系统键盘弹出时把卡片底边卡在输入法上方，输入条始终可见。
+var _kb_watching := false
+var _kb_pad_applied := -1.0
+const _KB_GAP := 16.0
 
 
 func scroll_box() -> ScrollContainer:
@@ -219,6 +224,7 @@ func _ready() -> void:
 	# 高于设置（115）与信封按钮（120），低于 Toasts（130）。见 AGENTS.md 的层级表。
 	z_index = 125
 	visible = false
+	set_process(false)
 	_fit()
 	get_viewport().size_changed.connect(_fit)
 	_build()
@@ -248,6 +254,7 @@ func open(p_form: String, p_source: String) -> void:
 
 
 func close() -> void:
+	_stop_keyboard_guard()
 	if _free != null and _free.has_focus():
 		_free.release_focus()
 	if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
@@ -371,22 +378,22 @@ func _build() -> void:
 	_privacy.modulate.a = 0.75
 	col.add_child(_privacy)
 
-	var actions := HBoxContainer.new()
-	actions.add_theme_constant_override("separation", 10)
-	actions.alignment = BoxContainer.ALIGNMENT_CENTER
-	col.add_child(actions)
+	_actions = HBoxContainer.new()
+	_actions.add_theme_constant_override("separation", 10)
+	_actions.alignment = BoxContainer.ALIGNMENT_CENTER
+	col.add_child(_actions)
 
 	_later = Button.new()
 	_later.custom_minimum_size = Vector2(150, 58)
 	_style_button(_later, CHIP_BG)
 	_later.pressed.connect(_on_later)
-	actions.add_child(_later)
+	_actions.add_child(_later)
 
 	_submit = Button.new()
 	_submit.custom_minimum_size = Vector2(190, 58)
 	_style_button(_submit, CHIP_ON)
 	_submit.pressed.connect(_on_submit)
-	actions.add_child(_submit)
+	_actions.add_child(_submit)
 
 	_build_body(form)
 
@@ -460,7 +467,7 @@ func _build_body(p_form: String) -> void:
 	_free.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_free.focus_mode = Control.FOCUS_ALL
 	_free.virtual_keyboard_enabled = true
-	_free.add_theme_font_size_override("font_size", 19)
+	_free.add_theme_font_size_override("font_size", 22)
 	_free.add_theme_color_override("font_color", INK)
 	_free.add_theme_color_override("font_placeholder_color", Color(INK, 0.45))
 	_free.text_changed.connect(_on_free_changed)
@@ -540,13 +547,142 @@ func _on_free_gui_input(event: InputEvent) -> void:
 
 func _on_free_focus_entered() -> void:
 	_last_key = "free_text"
-	if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
-		DisplayServer.virtual_keyboard_show(_free.text if _free else "", _free.get_global_rect() if _free else Rect2(), DisplayServer.KEYBOARD_TYPE_DEFAULT, _free.max_length if _free else -1)
+	_start_keyboard_guard()
 
 
 func _on_free_focus_exited() -> void:
+	_stop_keyboard_guard()
 	if DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
 		DisplayServer.virtual_keyboard_hide()
+
+
+func _start_keyboard_guard() -> void:
+	_kb_watching = true
+	_kb_pad_applied = -1.0
+	set_process(true)
+	call_deferred("_sync_keyboard_layout", true)
+
+
+func _stop_keyboard_guard() -> void:
+	var was := _kb_watching or _kb_pad_applied > 0.0
+	_kb_watching = false
+	_kb_pad_applied = -1.0
+	set_process(false)
+	if _privacy:
+		_privacy.visible = true
+	if _actions:
+		_actions.visible = true
+	if was:
+		_apply_card_metrics()
+		_reset_web_viewport()
+
+
+func _process(_delta: float) -> void:
+	if not _kb_watching:
+		return
+	if not visible or _free == null or not _free.has_focus():
+		_stop_keyboard_guard()
+		return
+	_sync_keyboard_layout(false)
+
+
+func _read_keyboard_pad() -> float:
+	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
+		return 0.0
+	var raw = Engine.get_singleton("JavaScriptBridge").eval(
+		"window.CluckKb && typeof window.CluckKb.pad === 'number' ? window.CluckKb.pad : 0",
+		true
+	)
+	if raw == null:
+		return 0.0
+	return maxf(0.0, float(raw))
+
+
+## 收起键盘后浏览器常把 visualViewport 留在半空：卡片缩着、整页偏上。
+## 强制 scroll 归零并清 pad，再把卡片锚点拉回正常。
+func _reset_web_viewport() -> void:
+	if not OS.has_feature("web") or not Engine.has_singleton("JavaScriptBridge"):
+		return
+	Engine.get_singleton("JavaScriptBridge").eval(
+		"window.CluckKb&&window.CluckKb.reset&&window.CluckKb.reset()",
+		true
+	)
+
+
+func _sync_keyboard_layout(force_show_vk: bool) -> void:
+	if _card == null or _free == null or not _free.has_focus():
+		return
+	var view_h := get_viewport_rect().size.y
+	var pad := _read_keyboard_pad()
+	if pad <= 12.0 and force_show_vk and OS.has_feature("web"):
+		# 键盘高度还没报到时先按常见占比抬，避免首帧被挡住。
+		pad = clampf(view_h * 0.38, 180.0, view_h * 0.5)
+	if pad <= 12.0:
+		# 键盘已收但焦点还在输入框：立刻把卡片弹回全高，别卡在「半屏上」。
+		if _kb_pad_applied > 0.0:
+			_kb_pad_applied = -1.0
+			if _privacy:
+				_privacy.visible = true
+			if _actions:
+				_actions.visible = true
+			_apply_card_metrics()
+			_reset_web_viewport()
+		elif force_show_vk:
+			_scroll_free_above_keyboard(0.0)
+			call_deferred("_reshow_virtual_keyboard")
+		return
+	if absf(pad - _kb_pad_applied) < 8.0 and not force_show_vk:
+		_keep_free_above_keyboard(pad)
+		return
+	_kb_pad_applied = pad
+	# 打字时收起底栏，把输入条放到卡片最底（紧贴输入法上方）。
+	if _privacy:
+		_privacy.visible = false
+	if _actions:
+		_actions.visible = false
+	# 卡片底边停在键盘顶上方，输入条落在卡片底部。
+	_card.anchor_top = 0.0
+	_card.anchor_bottom = 1.0
+	_card.offset_top = 24.0
+	_card.offset_bottom = -(pad + _KB_GAP)
+	_scroll_free_above_keyboard(pad)
+	call_deferred("_keep_free_above_keyboard", pad)
+	if force_show_vk or DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		call_deferred("_reshow_virtual_keyboard")
+
+
+func _scroll_free_above_keyboard(_pad: float) -> void:
+	if _scroll == null or _free == null:
+		return
+	# 开放题滚到滚动视口底部，贴着卡片下沿（也就是输入法上方）。
+	var target := _free.position.y + _free.size.y - _scroll.size.y + 8.0
+	_scroll.scroll_vertical = maxi(0, int(target))
+
+
+func _keep_free_above_keyboard(pad: float) -> void:
+	if _free == null or not _free.has_focus() or _card == null:
+		return
+	var view_h := get_viewport_rect().size.y
+	var kb_top := view_h - pad
+	var free_bottom := _free.get_global_rect().end.y
+	var overflow := free_bottom - (kb_top - _KB_GAP)
+	if overflow <= 2.0:
+		return
+	_card.offset_bottom = _card.offset_bottom - overflow
+	_scroll_free_above_keyboard(pad)
+
+
+func _reshow_virtual_keyboard() -> void:
+	if _free == null or not _free.has_focus():
+		return
+	if not DisplayServer.has_feature(DisplayServer.FEATURE_VIRTUAL_KEYBOARD):
+		return
+	DisplayServer.virtual_keyboard_show(
+		_free.text,
+		_free.get_global_rect(),
+		DisplayServer.KEYBOARD_TYPE_DEFAULT,
+		_free.max_length
+	)
 
 
 func _sync_chips(key: String) -> void:

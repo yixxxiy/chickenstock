@@ -63,7 +63,7 @@ func catalog_copy() -> void:
 		check(Loc.EN.has(str(def.desc)), "en desc " + id)
 		check(str(Loc.ZH[str(def.title)]) != str(def.title), "zh title not raw key " + id)
 		check(str(Loc.EN[str(def.title)]) != str(def.title), "en title not raw key " + id)
-	for id in ["primer", "cake", "hen", "share", "flock", "day8", "endless7", "chicken_king", "chicken_emperor", "retail_not_chives", "stock_god", "wealth_20k", "wealth_100k", "rank_1", "rank_10", "rank_11", "rank_12"]:
+	for id in ["primer", "cake", "hen", "share", "flock", "day8", "endless7", "chicken_king", "chicken_emperor", "retail_not_chives", "stock_god", "rank_1", "rank_7", "rank_10", "rank_12"]:
 		check(seen.has(id), "catalog contains " + id)
 	game._grant_trophy("not_a_real_trophy")
 	check(not game._trophies.has("not_a_real_trophy"), "unknown id is ignored")
@@ -149,12 +149,12 @@ func threshold_grants() -> void:
 	game.coins = 18000
 	game.shares = 0
 	game._refresh()
-	check(not game._trophies.get("rank_11", false), "campaign refresh does not grant endless ranks")
-	check(not game._trophies.get("rank_12", false), "campaign refresh does not grant rank 12")
+	check(game._trophies.get("rank_6", false), "18000 wealth unlocks Full-Belly Farm")
+	check(not game._trophies.get("rank_7", false), "18000 wealth does not unlock Corner Vendor")
 	game.endless_mode = true
 	game._refresh()
-	check(game._trophies.get("rank_11", false), "endless wealth 18000 unlocks rank 11")
-	check(game._trophies.get("rank_12", false), "endless wealth 18000 unlocks rank 12")
+	check(game._trophies.get("rank_6", false), "endless uses the same rank ladder")
+	check(not game._trophies.get("rank_12", false), "18000 does not unlock Clucklon Musk")
 
 func closing_mode_grants() -> void:
 	fresh()
@@ -167,7 +167,8 @@ func closing_mode_grants() -> void:
 	game.pending_eggs = 0
 	await game._next_day()
 	check(not game._trophies.get("day8", false), "day 7 close does not unlock day8")
-	check(not game._trophies.get("rank_6", false), "day 7 close does not unlock campaign ranks")
+	check(game._trophies.get("rank_4", false), "3000 wealth unlocks Fence Coop")
+	check(not game._trophies.get("rank_6", false), "3000 wealth does not unlock Full-Belly Farm")
 
 	fresh()
 	game.day = 8
@@ -182,7 +183,7 @@ func closing_mode_grants() -> void:
 	check(game.game_result == "flop", "day 8 shortfall is a flop")
 	check(game._trophies.get("day8", false), "day 8 flop still unlocks day8")
 	check(game._trophies.get("rank_1", false), "day 8 flop still unlocks rank 1")
-	check(not game._trophies.get("wealth_20k", false), "campaign flop does not grant challenge wealth")
+	check(not game._trophies.get("rank_7", false), "campaign flop at 0 does not unlock Corner Vendor")
 
 	fresh()
 	game.challenge_mode = true
@@ -196,7 +197,8 @@ func closing_mode_grants() -> void:
 	game.pending_eggs = 0
 	await game._next_day()
 	check(game.game_result == "flop", "challenge bird shortfall is a flop")
-	check(not game._trophies.get("wealth_20k", false), "challenge flop does not grant wealth 20k")
+	check(game._trophies.get("rank_7", false), "challenge flop at 30000 still unlocks Corner Vendor")
+	check(not game._trophies.get("rank_8", false), "challenge flop at 30000 does not unlock Farm Keeper")
 
 	fresh()
 	game.challenge_mode = true
@@ -210,8 +212,8 @@ func closing_mode_grants() -> void:
 	game.pending_eggs = 0
 	await game._next_day()
 	check(game.game_result == "won", "challenge clear is won")
-	check(game._trophies.get("wealth_20k", false), "challenge clear 22500 unlocks wealth 20k")
-	check(not game._trophies.get("wealth_30k", false), "challenge clear 22500 does not unlock 30k")
+	check(game._trophies.get("rank_7", false), "challenge clear 22500 unlocks Corner Vendor")
+	check(not game._trophies.get("rank_8", false), "challenge clear 22500 does not unlock Farm Keeper")
 
 	fresh()
 	game.hens = 15
