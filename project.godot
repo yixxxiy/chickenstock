@@ -11,7 +11,7 @@ config_version=5
 [application]
 
 config/name="小鸡股市"
-config/version="2026.09.21-lite1"
+config/version="2026.09.21-live1"
 run/main_scene="res://scenes/Game.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0.08, 0.12, 0.18, 1)

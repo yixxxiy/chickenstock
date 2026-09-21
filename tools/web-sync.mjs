@@ -47,6 +47,9 @@ const FILES = [
   ["analytics.js", true],
   ["notice.js", true],
   ["posthog-config.js", false],
+  ["logo_icon.png", true],
+  ["logo_wordmark.png", true],
+  ["logo_wordmark_en.png", true],
 ];
 
 for (const [name, overwrite] of FILES) {
@@ -64,10 +67,10 @@ for (const [name, overwrite] of FILES) {
   notes.push(`已同步 ${name}`);
 }
 
-// ---- 3. 检查 index.html 真的引用了它们 ----
+// ---- 3. 检查 index.html 真的引用了外壳脚本（logo 由 notice.js 动态挂，不必写进 html）----
 
 const html = readFileSync(join(DST, "index.html"), "utf8");
-for (const [name] of FILES) {
+for (const name of ["posthog-config.js", "analytics.js", "notice.js"]) {
   if (!html.includes(name)) {
     fail(`index.html 没有引用 ${name} —— 检查 export_presets.cfg 的 html/head_include`);
   }

@@ -26,6 +26,9 @@ FILES = [
     ("analytics.js", True),
     ("notice.js", True),
     ("posthog-config.js", False),
+    ("logo_icon.png", True),
+    ("logo_wordmark.png", True),
+    ("logo_wordmark_en.png", True),
 ]
 
 
@@ -49,7 +52,7 @@ def main() -> int:
     index = DST / "index.html"
     if index.exists():
         html = index.read_text(encoding="utf-8", errors="replace")
-        for name, _ in FILES:
+        for name in ("posthog-config.js", "analytics.js", "notice.js"):
             if name not in html:
                 print(f"警告：index.html 里没有引用 {name}，检查 export_presets.cfg 的 head_include")
     else:

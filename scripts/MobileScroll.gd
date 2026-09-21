@@ -3,10 +3,10 @@ extends RefCounted
 ## 手机网页上 ScrollContainer 经常吃不到触屏拖拽。
 ## Game._input 把 ScreenDrag / 鼠标拖交给这里；按手指速度放大位移，松手后惯性滑行。
 
-const DRAG_CANCEL_PX := 14.0
+const DRAG_CANCEL_PX := 48.0
 ## 慢拖略快于 1:1；快甩最高约 2.8×，大列表翻得动。
-const GAIN_SLOW := 1.2
-const GAIN_FAST := 2.8
+const GAIN_SLOW := 1.15
+const GAIN_FAST := 2.6
 const FAST_SPEED := 1600.0
 const FLING_MIN := 420.0
 const FLING_MAX := 5200.0

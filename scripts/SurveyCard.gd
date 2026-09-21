@@ -206,6 +206,8 @@ var _body: VBoxContainer
 var _free: LineEdit
 var _submit: Button
 var _later: Button
+## 手机触屏 + 鼠标回声可能连打两次；选项会选上又被取消。
+var _chip_guard_ms := 0
 
 
 func scroll_box() -> ScrollContainer:
@@ -482,6 +484,8 @@ func _label(text: String, font_px: int, bold: bool) -> Label:
 func _make_chip() -> Button:
 	var b := Button.new()
 	b.toggle_mode = false
+	b.focus_mode = Control.FOCUS_NONE
+	b.mouse_filter = Control.MOUSE_FILTER_STOP
 	b.custom_minimum_size = Vector2(0, 50)
 	b.add_theme_font_size_override("font_size", 19)
 	_style_button(b, CHIP_BG)
@@ -508,6 +512,10 @@ func _style_button(b: Button, bg: Color) -> void:
 
 
 func _on_chip(key: String, value: String) -> void:
+	var now := Time.get_ticks_msec()
+	if now - _chip_guard_ms < 280:
+		return
+	_chip_guard_ms = now
 	# 再点一次已选项等于取消，回到「未回答」——和「不想披露」不是一回事。
 	_answers[key] = "" if str(_answers.get(key, "")) == value else value
 	_last_key = key

@@ -388,7 +388,8 @@ static func _dialogs(game: Control) -> void:
 	surface(trophy_card, 26)
 	var quest := game.get_node("QuestPop/Card") as Control
 	# Fit content height and sit on viewport center (was tall + top-heavy).
-	rect(quest, 0.14, 0.20, 0.72, 0.56)
+	# Extra height for the dual-goal Continue CTA at the bottom.
+	rect(quest, 0.14, 0.18, 0.72, 0.62)
 	surface(quest, 24)
 	var quest_box := quest.get_node("Box") as VBoxContainer
 	quest_box.alignment = BoxContainer.ALIGNMENT_CENTER
@@ -398,6 +399,12 @@ static func _dialogs(game: Control) -> void:
 	font(quest.get_node("Box/QuestNews"), 23)
 	quest.get_node("Box/QuestNews").autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	font(quest.get_node("Box/QuestNote"), 21)
+	var quest_continue := quest.get_node_or_null("Box/ContinueBtn") as Button
+	if quest_continue:
+		font(quest_continue, 28)
+		quest_continue.custom_minimum_size.y = 56
+		quest_continue.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		quest_continue.clip_text = true
 	for name in ["WealthCard", "FlockCard"]:
 		var metric := quest.get_node("Box/" + name)
 		metric.get_node("Row/Icon").custom_minimum_size = Vector2(58, 58)

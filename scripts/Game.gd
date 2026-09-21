@@ -203,6 +203,7 @@ var show_settings := false
 var reveal := "off"
 var _quest_ignore_close := false
 var _settings_ignore_close := false
+var _audio_toggle_ms := 0
 var _quest_toggle_ms := 0
 var _settings_toggle_ms := 0
 var _hatch_ignore_ms := 0
@@ -560,26 +561,31 @@ func _arm_touch(index: int, btn: BaseButton) -> void:
 	_press_from_touch = true
 	btn.button_down.emit()
 
-func _fire_armed(pos: Vector2) -> void:
+func _fire_armed(_pos: Vector2) -> void:
 	if _manual_button == null:
 		return
 	var released := _manual_button
 	released.button_up.emit()
-	if released.is_visible_in_tree() and not released.disabled and released.get_global_rect().grow(16.0).has_point(pos):
+	# 已 arm 且未被滚动取消：松手必点。不再用抬手坐标卡命中——
+	# 手机一点偏就「按下字变大/高亮，抬起没功能」。
+	if released.is_visible_in_tree() and not released.disabled:
 		released.pressed.emit()
 	_manual_button = null
 	if _armed_touches.is_empty():
 		_press_from_touch = false
 
-func _fire_touch(index: int, pos: Vector2) -> void:
+func _fire_touch(index: int, _pos: Vector2) -> void:
 	if not _armed_touches.has(index):
 		return
 	var released: BaseButton = _armed_touches[index]
 	# Erase before button_up so other fingers still on the same button keep the hold.
 	_armed_touches.erase(index)
+	# 同一颗钮若也被 mouse 路径 arm 过，避免松手时再 fire 一次。
+	if _manual_button == released:
+		_manual_button = null
 	if released != null and is_instance_valid(released):
 		released.button_up.emit()
-		if released.is_visible_in_tree() and not released.disabled and released.get_global_rect().grow(16.0).has_point(pos):
+		if released.is_visible_in_tree() and not released.disabled:
 			released.pressed.emit()
 	if _armed_touches.is_empty() and _manual_button == null:
 		_press_from_touch = false
@@ -588,7 +594,7 @@ func _hud_button_at(pos: Vector2) -> BaseButton:
 	if settings_pop.visible or guide_pop.visible or quest_pop.visible or night.visible or start_menu.visible or trophy_pop.visible or _return_to_menu or (survey_pop != null and survey_pop.visible):
 		return null
 	for b in [quest_btn, get_node_or_null("HUD/SettingsBtn") as BaseButton]:
-		if b != null and b.is_visible_in_tree() and not b.disabled and b.get_global_rect().grow(12.0).has_point(pos):
+		if b != null and b.is_visible_in_tree() and not b.disabled and b.get_global_rect().grow(16.0).has_point(pos):
 			return b
 	return null
 
@@ -632,11 +638,12 @@ func _input(event: InputEvent) -> void:
 			if not event.pressed:
 				_cancel_press()
 			get_viewport().set_input_as_handled()
-		elif _press_from_touch:
+		elif _press_from_touch or not _armed_touches.is_empty():
+			# 触屏已接管：吞掉 mouse 回声，防止 pressed 触发两次（开关会闪一下又关）。
 			get_viewport().set_input_as_handled()
-			# Primary-touch mouse echo: only fire the mouse slot, not every finger.
-			if not event.pressed and _manual_button != null:
-				_fire_armed(mouse_pos)
+			if not event.pressed:
+				if _manual_button != null and _armed_touches.is_empty():
+					_fire_armed(mouse_pos)
 				_end_gesture()
 				_sweep_hit = null
 		elif event.pressed:
@@ -713,7 +720,8 @@ func _control_button_at(scope: Node, pos: Vector2) -> BaseButton:
 		var box := b.get_global_rect()
 		if box.size.x < 8.0 or box.size.y < 8.0:
 			continue
-		if box.grow(8.0).has_point(pos):
+		# 手机点按略偏也要命中；过小会漏 arm，GUI 与合成 pressed 叠成双击。
+		if box.grow(14.0).has_point(pos):
 			return b
 	return null
 
@@ -1232,10 +1240,47 @@ func _modal_scrolls() -> Array[ScrollContainer]:
 			out.append(survey_scroll)
 	return out
 
+func _on_sfx_toggle_pressed() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _audio_toggle_ms < 280:
+		return
+	_audio_toggle_ms = now
+	sfx.set_sfx(not sfx.sfx_on)
+	sfx.egg()
+	_apply_settings_labels()
+
+func _on_amb_toggle_pressed() -> void:
+	var now := Time.get_ticks_msec()
+	if now - _audio_toggle_ms < 280:
+		return
+	_audio_toggle_ms = now
+	sfx.set_amb(not sfx.amb_on)
+	_apply_settings_labels()
+
+func _armed_is_choice_button() -> bool:
+	# 问卷选项 / 设置里的开关：手指落在上面时不要改成列表滚动，否则一点就取消。
+	if _manual_button != null and is_instance_valid(_manual_button) and _is_choice_button(_manual_button):
+		return true
+	for v in _armed_touches.values():
+		var b := v as BaseButton
+		if b != null and is_instance_valid(b) and _is_choice_button(b):
+			return true
+	return false
+
+func _is_choice_button(b: BaseButton) -> bool:
+	if survey_pop != null and survey_pop.visible and survey_pop.is_ancestor_of(b):
+		return true
+	if settings_pop != null and settings_pop.visible and settings_pop.is_ancestor_of(b):
+		return true
+	return false
+
 func _try_mobile_scroll(event: InputEvent) -> bool:
 	# 正在打字时不要拖问卷，否则焦点和输入法会被打断。
 	var focused := get_viewport().gui_get_focus_owner()
 	if focused is LineEdit or focused is TextEdit:
+		return false
+	# 选项/音量钮按下期间：点按优先，绝不抢成滚动。
+	if _armed_is_choice_button():
 		return false
 	var pos := _click_pos(event)
 	var armed := _manual_button != null or not _armed_touches.is_empty()
@@ -1247,11 +1292,9 @@ func _try_mobile_scroll(event: InputEvent) -> bool:
 		if (motion.button_mask & MOUSE_BUTTON_MASK_LEFT) != 0:
 			_mouse_drag_travel += absf(motion.relative.y)
 			travel = _mouse_drag_travel
-	# Finger jitter on a chip used to scroll 1px and cancel the press before
-	# pressed could fire — survey options looked untappable on phones.
+	# 其它按钮仍保留容差，避免误滑取消。
 	if armed and travel < MobileScroll.DRAG_CANCEL_PX:
-		var dy := MobileScroll.drag_delta(event)
-		if absf(dy) < 0.01:
+		if absf(MobileScroll.drag_delta(event)) < 0.01:
 			return false
 		for scroll in _modal_scrolls():
 			if scroll.get_global_rect().has_point(pos):
@@ -1870,19 +1913,17 @@ func _connect_ui() -> void:
 	$QuestPop/Dim.gui_input.connect(_on_quest_dim_input)
 	$SettingsPop/Dim.gui_input.connect(_on_settings_dim_input)
 	day_end_btn.pressed.connect(_next_day)
+	var quest_continue := get_node("QuestPop/Card/Box/ContinueBtn") as Button
+	_style_green(quest_continue)
+	quest_continue.add_theme_font_size_override("font_size", 28)
+	quest_continue.custom_minimum_size.y = 56
+	quest_continue.pressed.connect(_close_quest)
 	_bind_close_x($QuestPop/CloseBtn, quest_card, _close_quest)
 	_bind_close_x($SettingsPop/CloseBtn, settings_card, _close_settings)
 	$GuidePop/CloseBtn.pressed.connect(_close_guide)
 	$GuidePop/Dim.gui_input.connect(_on_guide_dim_input)
-	_settings_node("SfxRow/SfxBtn").pressed.connect(func():
-		sfx.set_sfx(not sfx.sfx_on)
-		sfx.egg()
-		_apply_settings_labels()
-	)
-	_settings_node("AmbRow/AmbBtn").pressed.connect(func():
-		sfx.set_amb(not sfx.amb_on)
-		_apply_settings_labels()
-	)
+	_settings_node("SfxRow/SfxBtn").pressed.connect(_on_sfx_toggle_pressed)
+	_settings_node("AmbRow/AmbBtn").pressed.connect(_on_amb_toggle_pressed)
 	_settings_node("LangRow/Options/ZhBtn").pressed.connect(func():
 		if Loc.lang != "zh":
 			Loc.toggle()
@@ -3089,9 +3130,31 @@ func _refresh_quest() -> void:
 		quest_stamp.modulate.a = 1.0
 		quest_stamp.scale = Vector2.ONE
 		quest_stamp.rotation = -0.22
+		_fit_quest_stamp()
 	elif not done:
 		quest_stamp.visible = false
 		quest_stamp.modulate.a = 0.0
+	var cont := get_node_or_null("QuestPop/Card/Box/ContinueBtn") as Button
+	if cont:
+		cont.visible = done
+		cont.text = Loc.t("continue_game")
+
+func _fit_quest_stamp() -> void:
+	# Absolute overlay on the card — never a PanelContainer layout child —
+	# and sit above the metrics so it does not cover ContinueBtn.
+	if quest_stamp == null or quest_card == null:
+		return
+	var card_sz := quest_card.size
+	if card_sz.x < 8.0:
+		return
+	var side := minf(140.0, card_sz.x * 0.34)
+	quest_stamp.set_anchors_and_offsets_preset(Control.PRESET_TOP_LEFT)
+	quest_stamp.custom_minimum_size = Vector2(side, side)
+	quest_stamp.size = Vector2(side, side)
+	quest_stamp.position = Vector2(card_sz.x * 0.58 - side * 0.5, card_sz.y * 0.34 - side * 0.5)
+	quest_stamp.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	quest_stamp.z_as_relative = true
+	quest_stamp.z_index = 2
 
 func _sync_mail_dot() -> void:
 	if mail_dot == null:
@@ -3679,6 +3742,7 @@ func _open_quest() -> void:
 	_quest_toggle_ms = Time.get_ticks_msec()
 	juice.pop_in(quest_card)
 	_pin_close_x($QuestPop/CloseBtn, quest_card)
+	_fit_quest_stamp()
 	_sync_mail_dot()
 	_refresh()
 	_sync_hud_chrome()
@@ -3868,6 +3932,7 @@ func _chip_toggle_box(on: bool) -> StyleBoxTexture:
 
 func _style_toggle_chip(b: Button, on: bool) -> void:
 	var ink := Color("fff8e8") if on else Color("4e3d2c")
+	b.focus_mode = Control.FOCUS_NONE
 	b.add_theme_font_size_override("font_size", 24)
 	b.add_theme_color_override("font_color", ink)
 	b.add_theme_color_override("font_hover_color", ink)
@@ -3996,6 +4061,8 @@ func _on_quest_dim_input(event: InputEvent) -> void:
 	if _hud_button_at(pos) != null:
 		return
 	if quest_btn.get_global_rect().has_point(pos):
+		return
+	if _control_button_at(quest_pop, pos) != null:
 		return
 	_close_quest()
 
@@ -4735,7 +4802,10 @@ func _start_fanfare() -> void:
 	juice.celebrate(quest_btn)
 	_later(0.12, func(): juice.punch(wealth_card, 1.12))
 	_later(0.22, func(): juice.punch(flock_card, 1.12))
-	_later(0.32, func(): juice.stamp_in(quest_stamp))
+	_later(0.32, func():
+		_fit_quest_stamp()
+		juice.stamp_in(quest_stamp)
+	)
 	juice.burst(22)
 	_toast(Loc.t("toast_quest"))
 	sfx.quest()
